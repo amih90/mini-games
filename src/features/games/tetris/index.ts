@@ -1,0 +1,1 @@
+export { tetrisConfig } from './config';

@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="groundGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#388e3c"/>
+      <stop offset="100%" stop-color="#2e7d32"/>
+    </linearGradient>
+    <linearGradient id="pathGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8d6e63"/>
+      <stop offset="100%" stop-color="#6d4c41"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background (grass) -->
+  <rect width="200" height="200" rx="20" fill="url(#groundGrad)"/>
+  
+  <!-- Grid pattern -->
+  <g stroke="rgba(255,255,255,0.1)" stroke-width="1">
+    <line x1="25" y1="0" x2="25" y2="200"/>
+    <line x1="50" y1="0" x2="50" y2="200"/>
+    <line x1="75" y1="0" x2="75" y2="200"/>
+    <line x1="100" y1="0" x2="100" y2="200"/>
+    <line x1="125" y1="0" x2="125" y2="200"/>
+    <line x1="150" y1="0" x2="150" y2="200"/>
+    <line x1="175" y1="0" x2="175" y2="200"/>
+    <line x1="0" y1="25" x2="200" y2="25"/>
+    <line x1="0" y1="50" x2="200" y2="50"/>
+    <line x1="0" y1="75" x2="200" y2="75"/>
+    <line x1="0" y1="100" x2="200" y2="100"/>
+    <line x1="0" y1="125" x2="200" y2="125"/>
+    <line x1="0" y1="150" x2="200" y2="150"/>
+    <line x1="0" y1="175" x2="200" y2="175"/>
+  </g>
+  
+  <!-- Path -->
+  <path d="M 0 75 L 50 75 L 50 50 L 100 50 L 100 125 L 150 125 L 150 75 L 200 75" 
+        stroke="url(#pathGrad)" stroke-width="25" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Towers -->
+  <!-- Archer tower -->
+  <g transform="translate(25, 100)">
+    <rect x="0" y="0" width="25" height="25" rx="5" fill="#4caf50"/>
+    <text x="12.5" y="18" font-size="16" text-anchor="middle">🏹</text>
+    <circle cx="12.5" cy="12.5" r="30" stroke="rgba(76,175,80,0.3)" stroke-width="2" fill="none"/>
+  </g>
+  
+  <!-- Mage tower -->
+  <g transform="translate(75, 75)">
+    <rect x="0" y="0" width="25" height="25" rx="5" fill="#9c27b0"/>
+    <text x="12.5" y="18" font-size="16" text-anchor="middle">🔮</text>
+    <circle cx="12.5" cy="12.5" r="25" stroke="rgba(156,39,176,0.3)" stroke-width="2" fill="none"/>
+  </g>
+  
+  <!-- Cannon tower -->
+  <g transform="translate(125, 150)">
+    <rect x="0" y="0" width="25" height="25" rx="5" fill="#795548"/>
+    <text x="12.5" y="18" font-size="16" text-anchor="middle">💣</text>
+    <circle cx="12.5" cy="12.5" r="20" stroke="rgba(121,85,72,0.3)" stroke-width="2" fill="none"/>
+  </g>
+  
+  <!-- Enemies -->
+  <!-- Goblin -->
+  <circle cx="70" cy="75" r="10" fill="#4caf50">
+    <animate attributeName="cx" values="70;75;70" dur="0.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="67" cy="73" r="2" fill="#fff"/>
+  <circle cx="73" cy="73" r="2" fill="#fff"/>
+  
+  <!-- Orc -->
+  <circle cx="100" cy="90" r="12" fill="#795548">
+    <animate attributeName="cy" values="90;95;90" dur="0.6s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="96" cy="88" r="2.5" fill="#fff"/>
+  <circle cx="104" cy="88" r="2.5" fill="#fff"/>
+  
+  <!-- Projectiles -->
+  <circle cx="40" cy="85" r="3" fill="#795548">
+    <animate attributeName="cx" values="40;60;40" dur="0.8s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="85;75;85" dur="0.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="88" cy="82" r="4" fill="#9c27b0">
+    <animate attributeName="cx" values="88;100;88" dur="0.6s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Castle at end -->
+  <g transform="translate(170, 55)">
+    <rect x="0" y="10" width="25" height="30" fill="#607d8b"/>
+    <rect x="3" y="0" width="6" height="15" fill="#607d8b"/>
+    <rect x="16" y="0" width="6" height="15" fill="#607d8b"/>
+    <rect x="8" y="25" width="9" height="15" fill="#455a64"/>
+  </g>
+  
+  <!-- Start indicator -->
+  <text x="10" y="90" font-size="10" fill="#fff" font-weight="bold">▶</text>
+  
+  <!-- Decorative -->
+  <text x="15" y="175" font-size="20">🏰</text>
+  <text x="165" y="175" font-size="14" fill="#fbbf24">⚔️</text>
+</svg>

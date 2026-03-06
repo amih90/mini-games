@@ -1,0 +1,99 @@
+name: Azure Deployment
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            .next/
+            public/
+            package.json
+            package-lock.json
+
+  # Uncomment and configure one of the deployment options below:
+
+  # Option 1: Deploy to Azure Static Web Apps (for static export)
+  # deploy-swa:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/download-artifact@v4
+  #       with:
+  #         name: build-output
+  #     - name: Deploy to Azure Static Web Apps
+  #       uses: Azure/static-web-apps-deploy@v1
+  #       with:
+  #         azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+  #         repo_token: ${{ secrets.GITHUB_TOKEN }}
+  #         action: 'upload'
+  #         app_location: 'out'
+  #         skip_app_build: true
+
+  # Option 2: Deploy to Azure Container Apps
+  # deploy-container-apps:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Azure Login
+  #       uses: azure/login@v2
+  #       with:
+  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+  #     - name: Build and push to ACR
+  #       run: |
+  #         az acr build --registry ${{ secrets.ACR_NAME }} --image mini-games:${{ github.sha }} .
+  #     - name: Deploy to Container Apps
+  #       run: |
+  #         az containerapp update \
+  #           --name mini-games \
+  #           --resource-group ${{ secrets.RESOURCE_GROUP }} \
+  #           --image ${{ secrets.ACR_NAME }}.azurecr.io/mini-games:${{ github.sha }}
+
+  # Option 3: Deploy to Azure App Service
+  # deploy-app-service:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/download-artifact@v4
+  #       with:
+  #         name: build-output
+  #     - name: Azure Login
+  #       uses: azure/login@v2
+  #       with:
+  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+  #     - name: Deploy to App Service
+  #       uses: azure/webapps-deploy@v3
+  #       with:
+  #         app-name: ${{ secrets.APP_SERVICE_NAME }}
+  #         package: .

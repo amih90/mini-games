@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="grass" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#90EE90"/>
+      <stop offset="100%" style="stop-color:#228B22"/>
+    </linearGradient>
+    <linearGradient id="sky2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#87CEEB"/>
+      <stop offset="100%" style="stop-color:#90EE90"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="200" height="200" fill="url(#sky2)" rx="20"/>
+  <rect x="0" y="80" width="200" height="120" fill="url(#grass)" rx="0 0 20 20"/>
+  
+  <!-- Holes with moles -->
+  <!-- Hole 1 - with regular mole -->
+  <g transform="translate(40, 100)">
+    <!-- Hole -->
+    <ellipse cx="0" cy="10" rx="25" ry="8" fill="#1a1a1a"/>
+    <ellipse cx="0" cy="0" rx="25" ry="12" fill="#3d2817"/>
+    
+    <!-- Mole popping up -->
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="0,20;0,0;0,20" dur="1.5s" repeatCount="indefinite"/>
+      
+      <!-- Body -->
+      <circle cx="0" cy="-5" r="18" fill="#8B4513"/>
+      <!-- Ears -->
+      <circle cx="-12" cy="-20" r="6" fill="#8B4513"/>
+      <circle cx="12" cy="-20" r="6" fill="#8B4513"/>
+      <circle cx="-12" cy="-20" r="3" fill="#ffb6c1"/>
+      <circle cx="12" cy="-20" r="3" fill="#ffb6c1"/>
+      <!-- Face -->
+      <ellipse cx="0" cy="0" rx="12" ry="10" fill="#a0522d"/>
+      <!-- Eyes -->
+      <circle cx="-5" cy="-8" r="5" fill="white"/>
+      <circle cx="5" cy="-8" r="5" fill="white"/>
+      <circle cx="-5" cy="-8" r="2.5" fill="black"/>
+      <circle cx="5" cy="-8" r="2.5" fill="black"/>
+      <!-- Nose -->
+      <ellipse cx="0" cy="0" rx="5" ry="3" fill="#ff69b4"/>
+      <!-- Teeth -->
+      <rect x="-3" y="5" width="2.5" height="4" fill="white"/>
+      <rect x="0.5" y="5" width="2.5" height="4" fill="white"/>
+    </g>
+    
+    <!-- Dirt mound -->
+    <ellipse cx="0" cy="15" rx="28" ry="8" fill="#8B4513"/>
+  </g>
+  
+  <!-- Hole 2 - with golden mole -->
+  <g transform="translate(100, 120)">
+    <ellipse cx="0" cy="10" rx="25" ry="8" fill="#1a1a1a"/>
+    <ellipse cx="0" cy="0" rx="25" ry="12" fill="#3d2817"/>
+    
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="0,0;0,20;0,0" dur="1.8s" repeatCount="indefinite"/>
+      
+      <circle cx="0" cy="-5" r="18" fill="#FFD700"/>
+      <circle cx="-12" cy="-20" r="6" fill="#FFD700"/>
+      <circle cx="12" cy="-20" r="6" fill="#FFD700"/>
+      <circle cx="-12" cy="-20" r="3" fill="#ffb6c1"/>
+      <circle cx="12" cy="-20" r="3" fill="#ffb6c1"/>
+      <ellipse cx="0" cy="0" rx="12" ry="10" fill="#FFC700"/>
+      <circle cx="-5" cy="-8" r="5" fill="white"/>
+      <circle cx="5" cy="-8" r="5" fill="white"/>
+      <circle cx="-5" cy="-8" r="2.5" fill="black"/>
+      <circle cx="5" cy="-8" r="2.5" fill="black"/>
+      <ellipse cx="0" cy="0" rx="5" ry="3" fill="#ff69b4"/>
+      
+      <!-- Crown -->
+      <polygon points="-10,-30 -6,-40 0,-32 6,-40 10,-30" fill="#FFD700" stroke="#ff8c00" stroke-width="1"/>
+    </g>
+    
+    <ellipse cx="0" cy="15" rx="28" ry="8" fill="#8B4513"/>
+  </g>
+  
+  <!-- Hole 3 - empty -->
+  <g transform="translate(160, 100)">
+    <ellipse cx="0" cy="10" rx="25" ry="8" fill="#1a1a1a"/>
+    <ellipse cx="0" cy="0" rx="25" ry="12" fill="#3d2817"/>
+    <ellipse cx="0" cy="15" rx="28" ry="8" fill="#8B4513"/>
+  </g>
+  
+  <!-- Hammer -->
+  <g transform="translate(140, 50) rotate(20)">
+    <animateTransform attributeName="transform" type="rotate" values="20;-10;20" dur="0.5s" repeatCount="indefinite" additive="sum"/>
+    <animateTransform attributeName="transform" type="translate" values="140,50" dur="0.5s" repeatCount="indefinite"/>
+    
+    <!-- Handle -->
+    <rect x="-4" y="0" width="8" height="35" rx="2" fill="#8B4513"/>
+    
+    <!-- Head -->
+    <rect x="-15" y="-12" width="30" height="18" rx="3" fill="#666"/>
+    <rect x="-13" y="-10" width="26" height="4" fill="#888"/>
+  </g>
+  
+  <!-- Stars/sparkles -->
+  <circle cx="70" cy="70" r="3" fill="#FFD700">
+    <animate attributeName="opacity" values="0;1;0" dur="0.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="130" cy="60" r="2" fill="#FFD700">
+    <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="170" cy="75" r="2.5" fill="#FFD700">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="0.6s" repeatCount="indefinite"/>
+  </circle>
+</svg>

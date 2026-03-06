@@ -1,0 +1,539 @@
+'use client';
+
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
+import { GameWrapper } from '@/features/games/shared/GameWrapper';
+import { WinModal } from '@/features/games/shared/WinModal';
+import { InstructionsModal } from '@/features/games/shared/InstructionsModal';
+import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useCheckersGame, Difficulty } from './useCheckersGame';
+
+// ---------------------------------------------------------------------------
+// Instructions data – Feynman-style, 4 locales
+// ---------------------------------------------------------------------------
+const instructionsData: Record<
+  string,
+  {
+    instructions: { icon: string; title: string; description: string }[];
+    controls: { icon: string; description: string }[];
+    tip: string;
+  }
+> = {
+  en: {
+    instructions: [
+      {
+        icon: '🎯',
+        title: 'Goal',
+        description:
+          'Capture all of your opponent\'s pieces — or block them so they can\'t move. You play the red pieces and the computer plays black.',
+      },
+      {
+        icon: '↗️',
+        title: 'Moving',
+        description:
+          'Pieces move diagonally, one square at a time, on the dark squares. Regular pieces can only move forward (up the board).',
+      },
+      {
+        icon: '🦘',
+        title: 'Jumping & Capturing',
+        description:
+          'If an opponent\'s piece is next to yours diagonally with an empty square behind it, you MUST jump over it to capture it. You can chain multiple jumps in one turn!',
+      },
+      {
+        icon: '👑',
+        title: 'Becoming a King',
+        description:
+          'When your piece reaches the far side of the board it becomes a King! Kings can move and jump both forward AND backward.',
+      },
+    ],
+    controls: [
+      { icon: '🖱️', description: 'Click a red piece to select it, then click a green square to move' },
+      { icon: '⬆️', description: 'Arrow keys to move the cursor on the board' },
+      { icon: '⏎', description: 'Enter to select a piece or confirm a move' },
+      { icon: '💡', description: 'Press the Hint button to see a suggested move' },
+    ],
+    tip: 'Try to keep your pieces together and control the center of the board. If you must jump, you must — those are the rules!',
+  },
+  he: {
+    instructions: [
+      {
+        icon: '🎯',
+        title: 'מטרה',
+        description:
+          'לכוד את כל כלי היריב — או חסום אותם כך שלא יוכלו לזוז. אתה משחק בכלים האדומים והמחשב משחק בשחורים.',
+      },
+      {
+        icon: '↗️',
+        title: 'תנועה',
+        description:
+          'הכלים זזים באלכסון, משבצת אחת בכל פעם, על המשבצות הכהות. כלים רגילים יכולים לזוז רק קדימה (למעלה על הלוח).',
+      },
+      {
+        icon: '🦘',
+        title: 'קפיצה ולכידה',
+        description:
+          'אם כלי של היריב נמצא ליד שלך באלכסון ויש משבצת ריקה מאחוריו, אתה חייב לקפוץ מעליו כדי ללכוד אותו! אפשר לשרשר מספר קפיצות בתור אחד!',
+      },
+      {
+        icon: '👑',
+        title: 'הפיכה למלך',
+        description:
+          'כשכלי שלך מגיע לצד הרחוק של הלוח הוא הופך למלך! מלכים יכולים לזוז ולקפוץ קדימה וגם אחורה.',
+      },
+    ],
+    controls: [
+      { icon: '🖱️', description: 'לחץ על כלי אדום כדי לבחור אותו, ואז לחץ על משבצת ירוקה כדי לזוז' },
+      { icon: '⬆️', description: 'מקשי החצים להזזת הסמן על הלוח' },
+      { icon: '⏎', description: 'Enter כדי לבחור כלי או לאשר מהלך' },
+      { icon: '💡', description: 'לחץ על כפתור הרמז כדי לראות מהלך מומלץ' },
+    ],
+    tip: 'נסה לשמור על הכלים שלך ביחד ולשלוט במרכז הלוח. אם אתה חייב לקפוץ, אתה חייב — אלה הכללים!',
+  },
+  zh: {
+    instructions: [
+      {
+        icon: '🎯',
+        title: '目标',
+        description:
+          '吃掉对手所有的棋子——或者堵住它们让对手无法移动。你执红子，电脑执黑子。',
+      },
+      {
+        icon: '↗️',
+        title: '移动',
+        description:
+          '棋子沿对角线移动，每次一格，只能在深色格子上。普通棋子只能向前移动（向上）。',
+      },
+      {
+        icon: '🦘',
+        title: '跳吃',
+        description:
+          '如果对手的棋子在你的棋子对角线旁边，而且后面有空格，你必须跳过去吃掉它！一个回合可以连续跳吃！',
+      },
+      {
+        icon: '👑',
+        title: '升王',
+        description:
+          '当你的棋子到达棋盘对面时，它会升级为王！王可以向前和向后移动和跳吃。',
+      },
+    ],
+    controls: [
+      { icon: '🖱️', description: '点击红色棋子选中它，再点击绿色格子移动' },
+      { icon: '⬆️', description: '方向键移动光标' },
+      { icon: '⏎', description: 'Enter键选择棋子或确认移动' },
+      { icon: '💡', description: '点击提示按钮查看建议的走法' },
+    ],
+    tip: '尽量让你的棋子聚在一起并控制棋盘中央。如果必须跳吃，那就必须跳——这是规则！',
+  },
+  es: {
+    instructions: [
+      {
+        icon: '🎯',
+        title: 'Objetivo',
+        description:
+          'Captura todas las piezas de tu oponente o bloquéalas para que no puedan moverse. Juegas con las piezas rojas y la computadora con las negras.',
+      },
+      {
+        icon: '↗️',
+        title: 'Movimiento',
+        description:
+          'Las piezas se mueven en diagonal, una casilla a la vez, en las casillas oscuras. Las piezas regulares solo pueden avanzar (hacia arriba).',
+      },
+      {
+        icon: '🦘',
+        title: 'Saltar y capturar',
+        description:
+          'Si una pieza del oponente está junto a la tuya en diagonal y hay una casilla vacía detrás, ¡DEBES saltar para capturarla! ¡Puedes encadenar varios saltos en un turno!',
+      },
+      {
+        icon: '👑',
+        title: 'Coronarse',
+        description:
+          '¡Cuando tu pieza llega al otro lado del tablero se convierte en Rey! Los reyes pueden moverse y saltar tanto hacia adelante como hacia atrás.',
+      },
+    ],
+    controls: [
+      { icon: '🖱️', description: 'Haz clic en una pieza roja para seleccionarla y luego en una casilla verde para mover' },
+      { icon: '⬆️', description: 'Flechas del teclado para mover el cursor en el tablero' },
+      { icon: '⏎', description: 'Enter para seleccionar una pieza o confirmar movimiento' },
+      { icon: '💡', description: 'Pulsa el botón de pista para ver un movimiento sugerido' },
+    ],
+    tip: 'Intenta mantener tus piezas juntas y controlar el centro del tablero. Si debes saltar, debes hacerlo — ¡esas son las reglas!',
+  },
+};
+
+// ---------------------------------------------------------------------------
+// CheckersGame component
+// ---------------------------------------------------------------------------
+export function CheckersGame() {
+  const t = useTranslations('checkers');
+  const locale = useLocale();
+  const isRtl = locale === 'he';
+
+  const {
+    board,
+    selectedPiece,
+    validMoves,
+    currentPlayer,
+    difficulty,
+    setDifficulty,
+    gameOver,
+    winner,
+    hintMove,
+    moveCount,
+    score,
+    handleCellClick,
+    getHint,
+    resetGame,
+  } = useCheckersGame();
+
+  // --- Sound effects -------------------------------------------------------
+  const { playMove, playCapture, playWin, playGameOver, playClick, playSuccess } =
+    useRetroSounds();
+
+  // --- Instructions modal --------------------------------------------------
+  const [showInstructions, setShowInstructions] = useState(true);
+
+  // --- Win tracking --------------------------------------------------------
+  const [wins, setWins] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('checkers-wins');
+      return saved ? parseInt(saved, 10) : 0;
+    }
+    return 0;
+  });
+
+  // --- Keyboard navigation -------------------------------------------------
+  const [cursorPos, setCursorPos] = useState<{ row: number; col: number }>({
+    row: 5,
+    col: 1,
+  });
+  const boardRef = useRef<HTMLDivElement>(null);
+
+  // Keep refs for the latest values so the keydown handler is always current
+  const cursorPosRef = useRef(cursorPos);
+  cursorPosRef.current = cursorPos;
+  const gameOverRef = useRef(gameOver);
+  gameOverRef.current = gameOver;
+  const currentPlayerRef = useRef(currentPlayer);
+  currentPlayerRef.current = currentPlayer;
+
+  // Previous board / game-over state for detecting events (sounds)
+  const prevBoardRef = useRef(board);
+  const prevGameOverRef = useRef(gameOver);
+  const prevScoreRef = useRef(score);
+
+  // Detect moves, captures, king promotions, and game end to trigger sounds
+  useEffect(() => {
+    const prevBoard = prevBoardRef.current;
+    const prevScore = prevScoreRef.current;
+
+    // --- Game just ended ---
+    if (gameOver && !prevGameOverRef.current) {
+      if (winner === 'red') {
+        playWin();
+        // Persist win
+        setWins((prev) => {
+          const next = prev + 1;
+          localStorage.setItem('checkers-wins', String(next));
+          return next;
+        });
+      } else {
+        playGameOver();
+      }
+    }
+
+    // --- A move was made (board changed while game not over) ---
+    if (!gameOver && prevBoard !== board) {
+      // Detect capture: score decreased for either side
+      const captured =
+        score.red < prevScore.red || score.black < prevScore.black;
+
+      if (captured) {
+        playCapture();
+      } else {
+        playMove();
+      }
+
+      // Detect king promotion: a new king appeared that wasn't there before
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const cur = board[r][c];
+          const prev = prevBoard[r][c];
+          if (
+            (cur === 'red-king' && prev !== 'red-king') ||
+            (cur === 'black-king' && prev !== 'black-king')
+          ) {
+            playSuccess();
+          }
+        }
+      }
+    }
+
+    prevBoardRef.current = board;
+    prevGameOverRef.current = gameOver;
+    prevScoreRef.current = score;
+  }, [board, gameOver, winner, score, playMove, playCapture, playWin, playGameOver, playSuccess]);
+
+  // Keyboard handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't handle keys when instructions modal is open
+      if (showInstructions) return;
+      if (gameOverRef.current) return;
+      if (currentPlayerRef.current !== 'red') return;
+
+      const pos = cursorPosRef.current;
+
+      switch (e.key) {
+        case 'ArrowUp':
+          e.preventDefault();
+          setCursorPos((p) => ({ ...p, row: Math.max(0, p.row - 1) }));
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          setCursorPos((p) => ({ ...p, row: Math.min(7, p.row + 1) }));
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          setCursorPos((p) => ({ ...p, col: Math.max(0, p.col - 1) }));
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          setCursorPos((p) => ({ ...p, col: Math.min(7, p.col + 1) }));
+          break;
+        case 'Enter':
+          e.preventDefault();
+          handleCellClick(pos.row, pos.col);
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleCellClick, showInstructions]);
+
+  // --- Helpers -------------------------------------------------------------
+  const isValidMove = useCallback(
+    (row: number, col: number) =>
+      validMoves.some((move) => move.row === row && move.col === col),
+    [validMoves],
+  );
+
+  const isHintMove = useCallback(
+    (row: number, col: number) =>
+      hintMove?.to.row === row && hintMove?.to.col === col,
+    [hintMove],
+  );
+
+  const isHintFrom = useCallback(
+    (row: number, col: number) =>
+      hintMove?.from.row === row && hintMove?.from.col === col,
+    [hintMove],
+  );
+
+  const isCursor = useCallback(
+    (row: number, col: number) =>
+      cursorPos.row === row && cursorPos.col === col,
+    [cursorPos],
+  );
+
+  // Instruction data for the current locale
+  const instrData = instructionsData[locale] || instructionsData.en;
+
+  // --- Render --------------------------------------------------------------
+  return (
+    <GameWrapper
+      title={t('title') || 'Checkers'}
+      onInstructionsClick={() => {
+        playClick();
+        setShowInstructions(true);
+      }}
+    >
+      <div
+        className={`flex flex-col items-center gap-6 p-4 ${isRtl ? 'direction-rtl' : ''}`}
+        dir={isRtl ? 'rtl' : 'ltr'}
+      >
+        {/* Difficulty Selector */}
+        <div className="flex flex-col items-center gap-2">
+          <label className="text-lg font-bold text-gray-800">
+            {t('difficulty') || 'Difficulty'}
+          </label>
+          <div className="flex gap-2 flex-wrap justify-center">
+            {(['learn', 'easy', 'medium', 'hard'] as Difficulty[]).map((level) => (
+              <button
+                key={level}
+                onClick={() => {
+                  playClick();
+                  setDifficulty(level);
+                  resetGame();
+                }}
+                disabled={!gameOver && currentPlayer === 'black'}
+                className={`px-4 py-2 rounded-lg font-semibold transition-all min-h-[48px] min-w-[48px] ${
+                  difficulty === level
+                    ? 'bg-blue-500 text-white shadow-lg scale-105'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {t(`difficulty_${level}`) || level.charAt(0).toUpperCase() + level.slice(1)}
+              </button>
+            ))}
+          </div>
+          {difficulty === 'learn' && (
+            <p className="text-sm text-gray-600 text-center max-w-md">
+              {t('learn_mode_hint') ||
+                'In Learn mode, you play without an opponent. Use hints to learn the rules!'}
+            </p>
+          )}
+        </div>
+
+        {/* Game Info */}
+        <div className="flex gap-8 items-center flex-wrap justify-center">
+          <div className="text-center">
+            <div className="text-sm text-gray-600">{t('your_pieces') || 'Your Pieces'}</div>
+            <div className="text-2xl font-bold text-red-600">{score.red}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-sm text-gray-600">{t('moves') || 'Moves'}</div>
+            <div className="text-2xl font-bold text-gray-800">{moveCount}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-sm text-gray-600">
+              {t('opponent_pieces') || 'Opponent Pieces'}
+            </div>
+            <div className="text-2xl font-bold text-gray-800">{score.black}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-sm text-gray-600">🏆</div>
+            <div className="text-2xl font-bold text-amber-600">{wins}</div>
+          </div>
+        </div>
+
+        {/* Current Player */}
+        {!gameOver && (
+          <div
+            className={`text-lg font-semibold ${currentPlayer === 'red' ? 'text-red-600' : 'text-gray-800'}`}
+          >
+            {currentPlayer === 'red'
+              ? t('your_turn') || 'Your Turn!'
+              : t('opponent_turn') || "Opponent's Turn..."}
+          </div>
+        )}
+
+        {/* Hint Button */}
+        {currentPlayer === 'red' && !gameOver && (
+          <button
+            onClick={() => {
+              playClick();
+              getHint();
+            }}
+            className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold shadow-lg transition-all hover:scale-105 min-h-[48px]"
+          >
+            💡 {t('hint') || 'Show Hint'}
+          </button>
+        )}
+
+        {/* Checkers Board */}
+        <div
+          ref={boardRef}
+          tabIndex={0}
+          className="inline-block bg-gray-800 p-2 rounded-lg shadow-2xl focus:outline-none focus:ring-4 focus:ring-blue-400"
+          aria-label="Checkers board"
+        >
+          <div className="grid grid-cols-8 gap-0">
+            {board.map((row, rowIndex) =>
+              row.map((piece, colIndex) => {
+                const isBlackSquare = (rowIndex + colIndex) % 2 === 1;
+                const isSelected =
+                  selectedPiece?.row === rowIndex && selectedPiece?.col === colIndex;
+                const isValid = isValidMove(rowIndex, colIndex);
+                const isHint = isHintMove(rowIndex, colIndex);
+                const isHintSource = isHintFrom(rowIndex, colIndex);
+                const hasCursor = isCursor(rowIndex, colIndex);
+
+                return (
+                  <div
+                    key={`${rowIndex}-${colIndex}`}
+                    onClick={() => handleCellClick(rowIndex, colIndex)}
+                    className={`
+                      w-12 h-12 md:w-16 md:h-16 flex items-center justify-center cursor-pointer
+                      transition-all duration-200 relative
+                      ${isBlackSquare ? 'bg-amber-900' : 'bg-amber-200'}
+                      ${isSelected ? 'ring-4 ring-blue-400 ring-inset' : ''}
+                      ${isValid ? 'ring-4 ring-green-400 ring-inset' : ''}
+                      ${isHint ? 'ring-4 ring-yellow-400 ring-inset animate-pulse' : ''}
+                      ${isHintSource ? 'ring-4 ring-yellow-300 ring-inset' : ''}
+                      ${hasCursor ? 'outline outline-3 outline-cyan-400 z-10' : ''}
+                      ${
+                        !gameOver &&
+                        currentPlayer === 'red' &&
+                        piece &&
+                        (piece === 'red' || piece === 'red-king')
+                          ? 'hover:brightness-110'
+                          : ''
+                      }
+                    `}
+                    aria-label={`Row ${rowIndex + 1}, Column ${colIndex + 1}${piece ? `, ${piece}` : ''}${isValid ? ', valid move' : ''}`}
+                  >
+                    {piece && (
+                      <div
+                        className={`
+                          w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center
+                          shadow-lg border-2 transition-transform
+                          ${isSelected ? 'scale-110' : ''}
+                          ${
+                            piece === 'red' || piece === 'red-king'
+                              ? 'bg-red-600 border-red-800'
+                              : 'bg-gray-800 border-gray-900'
+                          }
+                        `}
+                      >
+                        {(piece === 'red-king' || piece === 'black-king') && (
+                          <span className="text-yellow-300 text-2xl font-bold">♔</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              }),
+            )}
+          </div>
+        </div>
+
+        {/* Reset Button */}
+        <button
+          onClick={() => {
+            playClick();
+            resetGame();
+          }}
+          className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold shadow-lg transition-all hover:scale-105 min-h-[48px]"
+        >
+          {t('new_game') || 'New Game'}
+        </button>
+      </div>
+
+      {/* Win Modal */}
+      <WinModal
+        isOpen={gameOver && winner === 'red'}
+        moves={moveCount}
+        onPlayAgain={() => {
+          playClick();
+          resetGame();
+        }}
+      />
+
+      {/* Instructions Modal */}
+      <InstructionsModal
+        isOpen={showInstructions}
+        onClose={() => setShowInstructions(false)}
+        title={t('title') || 'Checkers'}
+        instructions={instrData.instructions}
+        controls={instrData.controls}
+        tip={instrData.tip}
+        locale={locale}
+      />
+    </GameWrapper>
+  );
+}

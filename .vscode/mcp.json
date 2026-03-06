@@ -1,0 +1,34 @@
+{
+  "servers": {
+    "azure-devops": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure-devops/mcp",
+        "msazure",
+        "-a",
+        "azcli"
+      ],
+      "env": {
+        "AZURE_DEVOPS_DEFAULT_PROJECT": "One"
+      }
+    },
+    "azure-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure/mcp",
+        "server",
+        "start"
+      ]
+    },
+    "workiq": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@microsoft/workiq",
+        "mcp"
+      ]
+    }
+  }
+}

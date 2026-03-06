@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/* PBS Kids inspired vibrant color palette */
+@theme inline {
+  /* Primary brand colors - PBS Kids inspired */
+  --color-pbs-green: #6cbe45;
+  --color-pbs-green-light: #8ed66a;
+  --color-pbs-green-dark: #4a9c2d;
+  --color-pbs-blue: #00a4e4;
+  --color-pbs-blue-light: #4fc3f7;
+  --color-pbs-orange: #f7941d;
+  --color-pbs-orange-light: #ffb74d;
+  --color-pbs-pink: #ec4399;
+  --color-pbs-pink-light: #f48fb1;
+  --color-pbs-yellow: #ffdd00;
+  --color-pbs-yellow-light: #fff176;
+  --color-pbs-purple: #9c27b0;
+  --color-pbs-purple-light: #ce93d8;
+  --color-pbs-red: #e53935;
+  --color-pbs-teal: #26a69a;
+  
+  /* UI colors */
+  --color-candy-pink: #ec4399;
+  --color-candy-pink-light: #fce4ec;
+  --color-sky-bubble: #00a4e4;
+  --color-sky-bubble-light: #e1f5fe;
+  --color-mint-fresh: #6cbe45;
+  --color-mint-fresh-light: #e8f5e9;
+  --color-sunny-yellow: #ffdd00;
+  --color-sunny-yellow-light: #fffde7;
+  --color-lavender-dream: #9c27b0;
+  --color-lavender-dream-light: #f3e5f5;
+  --color-peach-glow: #f7941d;
+  --color-peach-glow-light: #fff3e0;
+  --color-cream-light: #f0fdf4;
+
+  /* Game colors - bright and vibrant */
+  --color-game-red: #e53935;
+  --color-game-blue: #00a4e4;
+  --color-game-green: #6cbe45;
+  --color-game-yellow: #ffdd00;
+  --color-game-purple: #9c27b0;
+  --color-game-orange: #f7941d;
+
+  /* Typography */
+  --font-sans: var(--font-nunito), system-ui, sans-serif;
+}
+
+/* Base styles */
+body {
+  font-family: var(--font-sans);
+  background: var(--color-cream-light);
+}
+
+/* Ensure proper RTL support */
+[dir="rtl"] {
+  text-align: right;
+}
+
+/* Large touch targets for accessibility */
+button,
+[role="button"],
+a {
+  min-height: 44px;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus styles for accessibility */
+:focus-visible {
+  outline: 3px solid var(--color-lavender-dream);
+  outline-offset: 2px;
+}
+
+/* Selection color */
+::selection {
+  background-color: var(--color-candy-pink-light);
+  color: inherit;
+}
