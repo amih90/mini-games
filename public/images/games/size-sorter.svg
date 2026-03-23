@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="20" fill="#F0FDF4"/>
+  <!-- Stars in different sizes, jumbled -->
+  <text x="40" y="90" font-size="50" transform="rotate(-10,40,90)">⭐</text>
+  <text x="100" y="120" font-size="20">⭐</text>
+  <text x="140" y="80" font-size="35">⭐</text>
+  <!-- Arrow showing order -->
+  <line x1="30" y1="160" x2="170" y2="160" stroke="#22C55E" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#22C55E"/></marker></defs>
+  <text x="30" y="180" font-size="10" fill="#6B7280">Small</text>
+  <text x="145" y="180" font-size="10" fill="#6B7280">Big</text>
+  <text x="100" y="40" font-size="14" text-anchor="middle" fill="#166534" font-weight="bold">📏 Sort!</text>
+</svg>

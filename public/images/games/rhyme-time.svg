@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="20" fill="#FDF2F8"/>
+  <!-- Word cards -->
+  <rect x="20" y="50" width="70" height="40" rx="10" fill="#F9A8D4"/>
+  <text x="55" y="76" font-size="16" text-anchor="middle" font-weight="bold" fill="#831843">cat 🐱</text>
+  <rect x="110" y="50" width="70" height="40" rx="10" fill="#F9A8D4"/>
+  <text x="145" y="76" font-size="16" text-anchor="middle" font-weight="bold" fill="#831843">hat 🎩</text>
+  <!-- Connection line -->
+  <line x1="90" y1="70" x2="110" y2="70" stroke="#EC4899" stroke-width="3" stroke-dasharray="5,3"/>
+  <rect x="20" y="110" width="70" height="40" rx="10" fill="#93C5FD"/>
+  <text x="55" y="136" font-size="16" text-anchor="middle" font-weight="bold" fill="#1E3A8A">dog 🐶</text>
+  <rect x="110" y="110" width="70" height="40" rx="10" fill="#93C5FD"/>
+  <text x="145" y="136" font-size="16" text-anchor="middle" font-weight="bold" fill="#1E3A8A">log 🪵</text>
+  <text x="100" y="30" font-size="22" text-anchor="middle">📝</text>
+  <text x="100" y="180" font-size="14" text-anchor="middle" fill="#6B7280" font-weight="bold">Match the Rhymes!</text>
+</svg>

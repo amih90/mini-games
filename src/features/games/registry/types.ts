@@ -3,6 +3,10 @@ export type GameCategory =
   | 'memory'
   | 'math'
   | 'reaction'
+  | 'shapes'
+  | 'patterns'
+  | 'language'
+  | 'science'
   | 'ages-3-5'
   | 'ages-6-8';
 

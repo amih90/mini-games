@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="20" fill="#FEF3C7"/>
+  <!-- Pizza circle -->
+  <circle cx="100" cy="100" r="65" fill="#F97316"/>
+  <circle cx="100" cy="100" r="60" fill="#FACC15"/>
+  <!-- Pepperoni -->
+  <circle cx="80" cy="80" r="8" fill="#EF4444"/>
+  <circle cx="120" cy="75" r="8" fill="#EF4444"/>
+  <circle cx="95" cy="115" r="8" fill="#EF4444"/>
+  <circle cx="115" cy="110" r="8" fill="#EF4444"/>
+  <!-- Slice lines (showing 1/4) -->
+  <line x1="100" y1="40" x2="100" y2="160" stroke="white" stroke-width="3"/>
+  <line x1="40" y1="100" x2="160" y2="100" stroke="white" stroke-width="3"/>
+  <!-- Fraction label -->
+  <rect x="60" y="170" width="80" height="25" rx="12" fill="white"/>
+  <text x="100" y="188" font-size="16" text-anchor="middle" font-weight="bold" fill="#92400E">¼ 🍕</text>
+</svg>

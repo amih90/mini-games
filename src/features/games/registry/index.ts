@@ -7,6 +7,17 @@ import { pingPongConfig } from '../ping-pong/game.config';
 import { nascarCarsConfig } from '../nascar-cars/game.config';
 import { sprintRacePhaserConfig } from '../sprint-race-phaser/game.config';
 import { colorMixConfig } from '../color-mix/game.config';
+import { shapeBuilderConfig } from '../shape-builder/game.config';
+import { patternMakerConfig } from '../pattern-maker/game.config';
+import { numberMuncherConfig } from '../number-muncher/game.config';
+import { rhymeTimeConfig } from '../rhyme-time/game.config';
+import { letterSoupConfig } from '../letter-soup/game.config';
+import { sizeSorterConfig } from '../size-sorter/game.config';
+import { weatherDressUpConfig } from '../weather-dress-up/game.config';
+import { plantGrowerConfig } from '../plant-grower/game.config';
+import { fractionPizzaConfig } from '../fraction-pizza/game.config';
+import { mirrorDrawConfig } from '../mirror-draw/game.config';
+import { matchPairsConfig } from '../match-pairs/game.config';
 
 // Re-export types
 export type { GameConfig, GameCategory } from './types';
@@ -216,6 +227,17 @@ export const gameRegistry: Record<string, GameConfig> = {
   'nascar-cars': nascarCarsConfig,
   'sprint-race-phaser': sprintRacePhaserConfig,
   'color-mix': colorMixConfig,
+  'shape-builder': shapeBuilderConfig,
+  'pattern-maker': patternMakerConfig,
+  'number-muncher': numberMuncherConfig,
+  'rhyme-time': rhymeTimeConfig,
+  'letter-soup': letterSoupConfig,
+  'size-sorter': sizeSorterConfig,
+  'weather-dress-up': weatherDressUpConfig,
+  'plant-grower': plantGrowerConfig,
+  'fraction-pizza': fractionPizzaConfig,
+  'mirror-draw': mirrorDrawConfig,
+  'match-pairs': matchPairsConfig,
 };
 
 /**

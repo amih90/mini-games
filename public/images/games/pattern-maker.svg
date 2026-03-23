@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="20" fill="#FEF3C7"/>
+  <!-- Pattern: red, blue, red, blue, ? -->
+  <circle cx="30" cy="100" r="20" fill="#EF4444"/>
+  <circle cx="70" cy="100" r="20" fill="#3B82F6"/>
+  <circle cx="110" cy="100" r="20" fill="#EF4444"/>
+  <circle cx="150" cy="100" r="20" fill="#3B82F6"/>
+  <!-- Question mark -->
+  <circle cx="190" cy="100" r="20" fill="#D1D5DB" stroke="#9CA3AF" stroke-width="2" stroke-dasharray="6,3"/>
+  <text x="190" y="108" font-size="24" text-anchor="middle" fill="#6B7280">?</text>
+  <!-- Decorative -->
+  <text x="100" y="50" font-size="28" text-anchor="middle">🧩</text>
+  <text x="100" y="170" font-size="16" text-anchor="middle" fill="#92400E" font-weight="bold">A B A B ?</text>
+</svg>

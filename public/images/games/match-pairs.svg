@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="20" fill="#ECFDF5"/>
+  <!-- Animal cards -->
+  <rect x="20" y="50" width="55" height="55" rx="10" fill="white" stroke="#D1D5DB" stroke-width="2"/>
+  <text x="47" y="88" font-size="30" text-anchor="middle">🐱</text>
+  <rect x="20" y="115" width="55" height="55" rx="10" fill="white" stroke="#D1D5DB" stroke-width="2"/>
+  <text x="47" y="153" font-size="30" text-anchor="middle">🐟</text>
+  <!-- Home cards -->
+  <rect x="125" y="50" width="55" height="55" rx="10" fill="white" stroke="#D1D5DB" stroke-width="2"/>
+  <text x="152" y="88" font-size="30" text-anchor="middle">🏠</text>
+  <rect x="125" y="115" width="55" height="55" rx="10" fill="white" stroke="#D1D5DB" stroke-width="2"/>
+  <text x="152" y="153" font-size="30" text-anchor="middle">🌊</text>
+  <!-- Connection lines -->
+  <line x1="75" y1="77" x2="125" y2="77" stroke="#22C55E" stroke-width="2" stroke-dasharray="5,3"/>
+  <line x1="75" y1="142" x2="125" y2="142" stroke="#3B82F6" stroke-width="2" stroke-dasharray="5,3"/>
+  <text x="100" y="30" font-size="18" text-anchor="middle">🔗</text>
+  <text x="100" y="190" font-size="12" text-anchor="middle" fill="#6B7280" font-weight="bold">Match the Pairs!</text>
+</svg>

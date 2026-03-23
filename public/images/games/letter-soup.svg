@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="20" fill="#FEF9C3"/>
+  <!-- Bowl -->
+  <ellipse cx="100" cy="140" rx="70" ry="35" fill="#D1D5DB"/>
+  <ellipse cx="100" cy="130" rx="70" ry="35" fill="#E5E7EB"/>
+  <ellipse cx="100" cy="125" rx="65" ry="30" fill="#FDE68A"/>
+  <!-- Letters floating in soup -->
+  <text x="60" y="120" font-size="22" font-weight="bold" fill="#EF4444" transform="rotate(-10,60,120)">C</text>
+  <text x="90" y="115" font-size="22" font-weight="bold" fill="#3B82F6" transform="rotate(5,90,115)">A</text>
+  <text x="120" y="122" font-size="22" font-weight="bold" fill="#22C55E" transform="rotate(-5,120,122)">T</text>
+  <text x="75" y="138" font-size="18" font-weight="bold" fill="#A855F7" opacity="0.5" transform="rotate(8,75,138)">X</text>
+  <text x="110" y="140" font-size="18" font-weight="bold" fill="#F97316" opacity="0.5" transform="rotate(-8,110,140)">Z</text>
+  <!-- Cat emoji target -->
+  <text x="100" y="55" font-size="40" text-anchor="middle">🐱</text>
+  <text x="100" y="80" font-size="14" text-anchor="middle" fill="#92400E" font-weight="bold">C _ T</text>
+</svg>

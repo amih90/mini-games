@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="20" fill="#DBEAFE"/>
+  <!-- Weather icons -->
+  <text x="50" y="55" font-size="36">☀️</text>
+  <text x="110" y="55" font-size="36">🌧️</text>
+  <!-- Character -->
+  <circle cx="100" cy="105" r="20" fill="#FBBF24"/>
+  <text x="100" y="112" font-size="16" text-anchor="middle">😊</text>
+  <rect x="85" y="125" width="30" height="40" rx="5" fill="#93C5FD"/>
+  <!-- Clothing items -->
+  <text x="30" y="175" font-size="24">🧥</text>
+  <text x="70" y="175" font-size="24">👕</text>
+  <text x="110" y="175" font-size="24">☂️</text>
+  <text x="150" y="175" font-size="24">🕶️</text>
+</svg>
