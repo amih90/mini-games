@@ -371,7 +371,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
   const frameCountRef = useRef(0);
   const diffRef = useRef<DifficultySettings>(DIFFICULTY_SETTINGS.medium);
   const gamePhaseRef = useRef<GamePhase>('menu');
-  const canvasSizeRef = useRef({ w: CANVAS_WIDTH, h: CANVAS_HEIGHT });
+  const canvasSizeRef = useRef({ w: CANVAS_WIDTH, h: 360 });
 
   // ---- State ----
   const [gamePhase, setGamePhase] = useState<GamePhase>('menu');
@@ -411,6 +411,11 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
     diffRef.current = DIFFICULTY_SETTINGS[difficulty];
   }, [difficulty]);
 
+  // ---- Derived layout values ----
+  const totalLanes = opponentCount + 1;
+  const LANE_HEIGHT = Math.min(50, Math.floor(280 / totalLanes));
+  const CANVAS_HEIGHT = TRACK_TOP + totalLanes * LANE_HEIGHT + 80;
+
   // ---- Responsive canvas ----
   useEffect(() => {
     const handleResize = () => {
@@ -422,12 +427,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // ---- Derived layout values ----
-  const totalLanes = opponentCount + 1;
-  const LANE_HEIGHT = Math.min(50, Math.floor(280 / totalLanes));
-  const CANVAS_HEIGHT = TRACK_TOP + totalLanes * LANE_HEIGHT + 80;
+  }, [CANVAS_HEIGHT]);
 
   // ---- Initialise runners ----
   const initRunners = useCallback(
@@ -647,6 +647,10 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const numLanes = totalLanes;
+    const laneH = LANE_HEIGHT;
+    const canvasH = CANVAS_HEIGHT;
+
     const loop = () => {
       frameCountRef.current++;
       const frame = frameCountRef.current;
@@ -654,6 +658,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
       const settings = diffRef.current;
       const FINISH_LINE = settings.finishX;
       const scaleX = canvasSizeRef.current.w / CANVAS_WIDTH;
+      const scaleY = canvasSizeRef.current.h / canvasH;
 
       // ---- Update ----
       if (phase === 'racing') {
@@ -735,7 +740,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
       ctx.save();
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.scale(scaleX, 1);
+      ctx.scale(scaleX, scaleY);
 
       const FINISH = settings.finishX;
 
@@ -772,21 +777,21 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
         0,
         TRACK_TOP,
         0,
-        TRACK_TOP + LANE_HEIGHT * 4,
+        TRACK_TOP + laneH * numLanes,
       );
       trackGrad.addColorStop(0, '#e53935');
       trackGrad.addColorStop(0.5, '#d32f2f');
       trackGrad.addColorStop(1, '#c62828');
       ctx.fillStyle = trackGrad;
-      ctx.fillRect(0, TRACK_TOP, CANVAS_WIDTH, LANE_HEIGHT * 4);
+      ctx.fillRect(0, TRACK_TOP, CANVAS_WIDTH, laneH * numLanes);
 
       // Lane lines
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = 2;
-      for (let i = 0; i <= 4; i++) {
+      for (let i = 0; i <= numLanes; i++) {
         ctx.beginPath();
-        ctx.moveTo(0, TRACK_TOP + i * LANE_HEIGHT);
-        ctx.lineTo(CANVAS_WIDTH, TRACK_TOP + i * LANE_HEIGHT);
+        ctx.moveTo(0, TRACK_TOP + i * laneH);
+        ctx.lineTo(CANVAS_WIDTH, TRACK_TOP + i * laneH);
         ctx.stroke();
       }
 
@@ -796,7 +801,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
       for (let x = 100; x < CANVAS_WIDTH; x += 100) {
         ctx.beginPath();
         ctx.moveTo(x, TRACK_TOP);
-        ctx.lineTo(x, TRACK_TOP + LANE_HEIGHT * 4);
+        ctx.lineTo(x, TRACK_TOP + laneH * numLanes);
         ctx.stroke();
       }
       ctx.setLineDash([]);
@@ -816,20 +821,20 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
         ctx.fillText(
           `${m}${meterLabel}`,
           mx,
-          TRACK_TOP + LANE_HEIGHT * 4 + 12,
+          TRACK_TOP + laneH * numLanes + 12,
         );
       }
 
       // Start line
       ctx.fillStyle = '#fff';
-      ctx.fillRect(START_X - 2, TRACK_TOP, 4, LANE_HEIGHT * 4);
+      ctx.fillRect(START_X - 2, TRACK_TOP, 4, laneH * numLanes);
 
       // Finish line checker
       if (checkerPatternRef.current) {
         const pat = ctx.createPattern(checkerPatternRef.current, 'repeat');
         if (pat) {
           ctx.fillStyle = pat;
-          ctx.fillRect(FINISH - 10, TRACK_TOP, 20, LANE_HEIGHT * 4);
+          ctx.fillRect(FINISH - 10, TRACK_TOP, 20, laneH * numLanes);
         }
       }
 
@@ -841,24 +846,24 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
       // Grass
       const grassGrad = ctx.createLinearGradient(
         0,
-        TRACK_TOP + LANE_HEIGHT * 4,
+        TRACK_TOP + laneH * numLanes,
         0,
-        CANVAS_HEIGHT,
+        canvasH,
       );
       grassGrad.addColorStop(0, '#66bb6a');
       grassGrad.addColorStop(1, '#43a047');
       ctx.fillStyle = grassGrad;
       ctx.fillRect(
         0,
-        TRACK_TOP + LANE_HEIGHT * 4 + 16,
+        TRACK_TOP + laneH * numLanes + 16,
         CANVAS_WIDTH,
-        CANVAS_HEIGHT,
+        canvasH,
       );
 
       // Countdown overlay
       if (phase === 'countdown') {
         ctx.fillStyle = 'rgba(0,0,0,0.45)';
-        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        ctx.fillRect(0, 0, CANVAS_WIDTH, canvasH);
         ctx.font = 'bold 90px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -872,9 +877,9 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
                 ? '1'
                 : cdT.go;
         ctx.fillStyle = 'rgba(0,0,0,0.4)';
-        ctx.fillText(cdText, CANVAS_WIDTH / 2 + 3, CANVAS_HEIGHT / 2 + 3);
+        ctx.fillText(cdText, CANVAS_WIDTH / 2 + 3, canvasH / 2 + 3);
         ctx.fillStyle = countdown === 0 ? '#76ff03' : '#fff';
-        ctx.fillText(cdText, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+        ctx.fillText(cdText, CANVAS_WIDTH / 2, canvasH / 2);
         ctx.textBaseline = 'alphabetic';
       }
 
@@ -884,7 +889,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
         const barW = 200;
         const barH = 18;
         const barX = CANVAS_WIDTH / 2 - barW / 2;
-        const barY = CANVAS_HEIGHT - 30;
+        const barY = canvasH - 30;
 
         ctx.fillStyle = 'rgba(0,0,0,0.5)';
         ctx.beginPath();
@@ -955,7 +960,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gamePhase, countdown, bestTime, canvasWidth, drawRunner, locale]);
+  }, [gamePhase, countdown, bestTime, canvasWidth, drawRunner, locale, totalLanes, LANE_HEIGHT, CANVAS_HEIGHT]);
 
   // ---- Restart ----
   const restartGame = useCallback(() => {
