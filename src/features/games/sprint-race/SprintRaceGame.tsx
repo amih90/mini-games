@@ -46,11 +46,11 @@ interface SprintRaceGameProps {
 // ---------------------------------------------------------------------------
 
 const CANVAS_WIDTH = 700;
-const CANVAS_HEIGHT = 360;
 const TRACK_TOP = 80;
-const LANE_HEIGHT = 50;
 const RUNNER_HEIGHT = 45;
 const START_X = 60;
+const MIN_OPPONENTS = 1;
+const MAX_OPPONENTS = 8;
 
 const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
   easy: {
@@ -86,6 +86,11 @@ const AI_RUNNERS_BASE = [
   { name: 'Flash', color: '#f44336', baseMax: 4.8 },
   { name: 'Bolt', color: '#9c27b0', baseMax: 5.0 },
   { name: 'Dash', color: '#ff9800', baseMax: 4.5 },
+  { name: 'Blaze', color: '#00bcd4', baseMax: 4.9 },
+  { name: 'Storm', color: '#795548', baseMax: 4.7 },
+  { name: 'Jet', color: '#607d8b', baseMax: 5.1 },
+  { name: 'Turbo', color: '#cddc39', baseMax: 4.6 },
+  { name: 'Rocket', color: '#ff5722', baseMax: 4.8 },
 ];
 
 const PLAYER_COLORS = [
@@ -129,6 +134,7 @@ const translations: Record<string, Record<string, string>> = {
     sprint: 'Sprint!',
     difficulty: 'Difficulty',
     playerColor: 'Your Color',
+    opponents: 'Opponents',
   },
   he: {
     title: 'מרוץ ספרינט',
@@ -157,6 +163,7 @@ const translations: Record<string, Record<string, string>> = {
     sprint: '!רוץ',
     difficulty: 'קושי',
     playerColor: 'הצבע שלך',
+    opponents: 'מתחרים',
   },
   zh: {
     title: '短跑比赛',
@@ -185,6 +192,7 @@ const translations: Record<string, Record<string, string>> = {
     sprint: '冲刺！',
     difficulty: '难度',
     playerColor: '你的颜色',
+    opponents: '对手',
   },
   es: {
     title: 'Carrera de Velocidad',
@@ -213,6 +221,7 @@ const translations: Record<string, Record<string, string>> = {
     sprint: '¡Sprint!',
     difficulty: 'Dificultad',
     playerColor: 'Tu Color',
+    opponents: 'Rivales',
   },
 };
 
@@ -375,6 +384,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
   const [playerWon, setPlayerWon] = useState(false);
   const [canvasWidth, setCanvasWidth] = useState(CANVAS_WIDTH);
   const [playerColor, setPlayerColor] = useState(PLAYER_COLORS[0].hex);
+  const [opponentCount, setOpponentCount] = useState(3);
 
   const [bestTime, setBestTime] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -414,14 +424,21 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // ---- Derived layout values ----
+  const totalLanes = opponentCount + 1;
+  const LANE_HEIGHT = Math.min(50, Math.floor(280 / totalLanes));
+  const CANVAS_HEIGHT = TRACK_TOP + totalLanes * LANE_HEIGHT + 80;
+
   // ---- Initialise runners ----
   const initRunners = useCallback(
-    (diff: Difficulty, color: string) => {
+    (diff: Difficulty, color: string, numOpponents: number) => {
       const settings = DIFFICULTY_SETTINGS[diff];
+      const lanes = numOpponents + 1;
+      const laneH = Math.min(50, Math.floor(280 / lanes));
       const runners: Runner[] = [
         {
           x: START_X,
-          y: TRACK_TOP + LANE_HEIGHT * 0.5 - RUNNER_HEIGHT / 2,
+          y: TRACK_TOP + laneH * 0.5 - RUNNER_HEIGHT / 2,
           speed: 0,
           maxSpeed: 5.2,
           frame: 0,
@@ -432,10 +449,12 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
           finishTime: 0,
         },
       ];
-      AI_RUNNERS_BASE.forEach((ai, i) => {
+      const shuffled = [...AI_RUNNERS_BASE].sort(() => Math.random() - 0.5);
+      for (let i = 0; i < numOpponents; i++) {
+        const ai = shuffled[i % shuffled.length];
         runners.push({
           x: START_X,
-          y: TRACK_TOP + LANE_HEIGHT * (i + 1.5) - RUNNER_HEIGHT / 2,
+          y: TRACK_TOP + laneH * (i + 1.5) - RUNNER_HEIGHT / 2,
           speed: 0,
           maxSpeed: ai.baseMax * settings.aiSpeedMultiplier,
           frame: 0,
@@ -445,7 +464,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
           finished: false,
           finishTime: 0,
         });
-      });
+      }
       runnersRef.current = runners;
     },
     [t.you],
@@ -454,7 +473,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
   // ---- Start race (countdown) ----
   const startRace = useCallback(
     (diff: Difficulty) => {
-      initRunners(diff, playerColor);
+      initRunners(diff, playerColor, opponentCount);
       setGamePhase('countdown');
       setCountdown(3);
       setRaceTime(0);
@@ -464,7 +483,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
       lastTapRef.current = 0;
       frameCountRef.current = 0;
     },
-    [initRunners, playerColor],
+    [initRunners, playerColor, opponentCount],
   );
 
   // ---- Handle tap / keypress ----
@@ -672,8 +691,13 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
           }
         });
 
-        // Position
-        const sorted = [...runners].sort((a, b) => b.x - a.x);
+        // Position — finished runners ranked by finishTime, then non-finished by x
+        const sorted = [...runners].sort((a, b) => {
+          if (a.finished && b.finished) return a.finishTime - b.finishTime;
+          if (a.finished) return -1;
+          if (b.finished) return -1;
+          return b.x - a.x;
+        });
         const pIdx = sorted.findIndex((r) => r.isPlayer);
         setPlayerPosition(pIdx + 1);
 
@@ -962,7 +986,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
           <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center min-w-[90px]">
             <div className="text-xs text-slate-500 font-medium">{t.position}</div>
             <div className="text-xl font-bold text-[#4caf50]">
-              {playerPosition > 0 ? `${playerPosition}/4` : '-'}
+              {playerPosition > 0 ? `${playerPosition}/${totalLanes}` : '-'}
             </div>
           </div>
           <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center min-w-[90px]">
@@ -1011,6 +1035,23 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
                   {t.title}
                 </h2>
                 <p className="text-white/80 text-sm mb-4">{t.selectDifficulty}</p>
+
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <span className="text-white/80 text-sm font-medium">{t.opponents}:</span>
+                  {Array.from({ length: MAX_OPPONENTS - MIN_OPPONENTS + 1 }, (_, i) => i + MIN_OPPONENTS).map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => { playClick(); setOpponentCount(n); }}
+                      className={`w-7 h-7 rounded-full text-sm font-bold transition-transform hover:scale-110 ${
+                        opponentCount === n
+                          ? 'bg-white text-slate-800 scale-110'
+                          : 'bg-white/20 text-white/90'
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
 
                 <div className="flex items-center justify-center gap-2 mb-3">
                   <span className="text-white/80 text-sm font-medium">{t.playerColor}:</span>
@@ -1075,7 +1116,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
                     {playerWon ? t.winner : t.youLost}
                   </h2>
                   <div className="text-lg text-slate-500 mb-1">
-                    {t.position}: {playerPosition}/4
+                    {t.position}: {playerPosition}/{totalLanes}
                   </div>
                   <div className="text-3xl font-bold text-[#d32f2f] mb-2 font-mono">
                     {player?.finishTime

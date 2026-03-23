@@ -132,6 +132,22 @@ const BackgammonGame = dynamic(
   }
 );
 
+const PingPongGame = dynamic(
+  () => import('@/features/games/ping-pong/PingPongGame'),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
+const NascarCarsGame = dynamic(
+  () => import('@/features/games/nascar-cars/NascarCarsGame'),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
 function GameLoadingSkeleton() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-peach-glow-light via-white to-sky-bubble-light flex items-center justify-center">
@@ -184,6 +200,10 @@ export function GameLoader({ slug }: GameLoaderProps) {
       return <ChessGame />;
     case 'backgammon':
       return <BackgammonGame />;
+    case 'ping-pong':
+      return <PingPongGame locale={locale} />;
+    case 'nascar-cars':
+      return <NascarCarsGame locale={locale} />;
     default:
       return null;
   }

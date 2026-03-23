@@ -3,6 +3,8 @@ import { checkersConfig } from '../checkers/game.config';
 import { reversiConfig } from '../reversi/game.config';
 import { chessConfig } from '../chess/game.config';
 import { backgammonConfig } from '../backgammon/game.config';
+import { pingPongConfig } from '../ping-pong/game.config';
+import { nascarCarsConfig } from '../nascar-cars/game.config';
 
 // Re-export types
 export type { GameConfig, GameCategory } from './types';
@@ -208,6 +210,8 @@ export const gameRegistry: Record<string, GameConfig> = {
   'reversi': reversiConfig,
   'chess': chessConfig,
   'backgammon': backgammonConfig,
+  'ping-pong': pingPongConfig,
+  'nascar-cars': nascarCarsConfig,
 };
 
 /**

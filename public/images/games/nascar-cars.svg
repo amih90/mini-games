@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Background - sky -->
+  <rect width="200" height="200" rx="24" fill="#0ea5e9"/>
+  <!-- Grass -->
+  <ellipse cx="100" cy="130" rx="85" ry="50" fill="#22c55e"/>
+  <!-- Track oval -->
+  <ellipse cx="100" cy="120" rx="70" ry="40" fill="#64748b" stroke="#94a3b8" stroke-width="3"/>
+  <ellipse cx="100" cy="120" rx="50" ry="25" fill="#22c55e"/>
+  <!-- Lane markings -->
+  <ellipse cx="100" cy="120" rx="60" ry="32" fill="none" stroke="white" stroke-width="1" stroke-dasharray="8 6"/>
+  <!-- Checkered flag -->
+  <rect x="130" y="75" width="4" height="20" fill="#854d0e"/>
+  <rect x="134" y="68" width="16" height="12" fill="white"/>
+  <rect x="134" y="68" width="4" height="4" fill="black"/>
+  <rect x="142" y="68" width="4" height="4" fill="black"/>
+  <rect x="138" y="72" width="4" height="4" fill="black"/>
+  <rect x="146" y="72" width="4" height="4" fill="black"/>
+  <rect x="134" y="76" width="4" height="4" fill="black"/>
+  <rect x="142" y="76" width="4" height="4" fill="black"/>
+  <!-- Player car (yellow, Pixar-style) -->
+  <g transform="translate(65,108)">
+    <rect x="0" y="2" width="20" height="10" rx="5" fill="#fbbf24"/>
+    <rect x="3" y="-2" width="14" height="8" rx="4" fill="#f59e0b"/>
+    <!-- Eyes -->
+    <circle cx="14" cy="1" r="3" fill="white"/>
+    <circle cx="15" cy="1" r="1.5" fill="black"/>
+    <!-- Wheels -->
+    <circle cx="4" cy="13" r="3" fill="#1e293b"/>
+    <circle cx="16" cy="13" r="3" fill="#1e293b"/>
+  </g>
+  <!-- AI car (red) -->
+  <g transform="translate(110,100)">
+    <rect x="0" y="2" width="16" height="8" rx="4" fill="#ef4444"/>
+    <rect x="2" y="-1" width="12" height="6" rx="3" fill="#dc2626"/>
+    <circle cx="3" cy="11" r="2.5" fill="#1e293b"/>
+    <circle cx="13" cy="11" r="2.5" fill="#1e293b"/>
+  </g>
+  <!-- AI car (blue) -->
+  <g transform="translate(45,120)">
+    <rect x="0" y="2" width="14" height="7" rx="3" fill="#3b82f6"/>
+    <rect x="2" y="-1" width="10" height="5" rx="2" fill="#2563eb"/>
+    <circle cx="3" cy="10" r="2" fill="#1e293b"/>
+    <circle cx="11" cy="10" r="2" fill="#1e293b"/>
+  </g>
+  <!-- Stadium -->
+  <rect x="10" y="55" width="25" height="15" rx="2" fill="#6366f1" opacity="0.7"/>
+  <rect x="165" y="55" width="25" height="15" rx="2" fill="#6366f1" opacity="0.7"/>
+  <!-- Title -->
+  <text x="100" y="185" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="12" fill="white">NASCAR 3D</text>
+  <!-- Decorative -->
+  <text x="15" y="30" font-size="18">🏎️</text>
+  <text x="165" y="30" font-size="14">🏆</text>
+</svg>
