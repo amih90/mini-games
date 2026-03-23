@@ -11,12 +11,12 @@ import { useRetroSounds } from '@/hooks/useRetroSounds';
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-const GRID_SIZE = 20;
-const CELL_SIZE = 24;
-const SPEED_INCREASE = 5;
+const CANVAS_SIZE = 480;
+const DEFAULT_GRID_SIZE = 20;
+const DEFAULT_CELL_SIZE = 24;
 
 type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
-type Difficulty = 'easy' | 'medium' | 'hard';
+type Difficulty = 'learn' | 'easy' | 'medium' | 'hard';
 
 interface Position {
   x: number;
@@ -27,12 +27,18 @@ interface DifficultySettings {
   initialSpeed: number;
   minSpeed: number;
   obstacleMul: number;
+  gridSize: number;
+  cellSize: number;
+  speedIncrease: number;
+  winScore: number;
+  maxLevel: number;
 }
 
 const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
-  easy:   { initialSpeed: 200, minSpeed: 100, obstacleMul: 0.5 },
-  medium: { initialSpeed: 150, minSpeed: 60,  obstacleMul: 1.0 },
-  hard:   { initialSpeed: 100, minSpeed: 40,  obstacleMul: 1.5 },
+  learn:  { initialSpeed: 400, minSpeed: 350, obstacleMul: 0, gridSize: 10, cellSize: 48, speedIncrease: 1, winScore: 50,  maxLevel: 1 },
+  easy:   { initialSpeed: 200, minSpeed: 100, obstacleMul: 0.5, gridSize: 20, cellSize: 24, speedIncrease: 5, winScore: 250, maxLevel: 5 },
+  medium: { initialSpeed: 150, minSpeed: 60,  obstacleMul: 1.0, gridSize: 20, cellSize: 24, speedIncrease: 5, winScore: 250, maxLevel: 5 },
+  hard:   { initialSpeed: 100, minSpeed: 40,  obstacleMul: 1.5, gridSize: 20, cellSize: 24, speedIncrease: 5, winScore: 250, maxLevel: 5 },
 };
 
 // ---------------------------------------------------------------------------
@@ -53,6 +59,8 @@ const translations: Record<string, Record<string, string>> = {
     levelUp: 'Level Up!',
     resume: 'Resume',
     difficulty: 'Choose Difficulty',
+    learn: 'Learn',
+    learnDesc: 'Big & slow, perfect for little kids!',
     easy: 'Easy',
     medium: 'Medium',
     hard: 'Hard',
@@ -79,6 +87,8 @@ const translations: Record<string, Record<string, string>> = {
     levelUp: 'שלב חדש!',
     resume: 'המשך',
     difficulty: 'בחרו רמת קושי',
+    learn: 'למידה',
+    learnDesc: 'גדול ואיטי, מושלם לילדים קטנים!',
     easy: 'קל',
     medium: 'בינוני',
     hard: 'קשה',
@@ -105,6 +115,8 @@ const translations: Record<string, Record<string, string>> = {
     levelUp: '升级！',
     resume: '继续',
     difficulty: '选择难度',
+    learn: '学习',
+    learnDesc: '大而慢，非常适合小朋友！',
     easy: '简单',
     medium: '中等',
     hard: '困难',
@@ -131,6 +143,8 @@ const translations: Record<string, Record<string, string>> = {
     levelUp: '¡Nuevo nivel!',
     resume: 'Continuar',
     difficulty: 'Elige la dificultad',
+    learn: 'Aprender',
+    learnDesc: 'Grande y lento, ¡perfecto para los más pequeños!',
     easy: 'Fácil',
     medium: 'Medio',
     hard: 'Difícil',
@@ -348,6 +362,7 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
 
     const snake = snakeRef.current;
     const food = foodRef.current;
+    const gs = settings.gridSize;
     const numObstacles = Math.min(
       Math.round((currentLevel - 1) * 2 * settings.obstacleMul),
       12,
@@ -360,8 +375,8 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
 
       do {
         newObstacle = {
-          x: Math.floor(Math.random() * GRID_SIZE),
-          y: Math.floor(Math.random() * GRID_SIZE),
+          x: Math.floor(Math.random() * gs),
+          y: Math.floor(Math.random() * gs),
         };
         attempts++;
       } while (
@@ -383,12 +398,13 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
   const spawnFood = useCallback(() => {
     const snake = snakeRef.current;
     const obstacles = obstaclesRef.current;
+    const gs = getDiffSettings().gridSize;
     let newFood: Position;
 
     do {
       newFood = {
-        x: Math.floor(Math.random() * GRID_SIZE),
-        y: Math.floor(Math.random() * GRID_SIZE),
+        x: Math.floor(Math.random() * gs),
+        y: Math.floor(Math.random() * gs),
       };
     } while (
       snake.some(seg => seg.x === newFood.x && seg.y === newFood.y) ||
@@ -396,11 +412,12 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
     );
 
     foodRef.current = newFood;
-  }, []);
+  }, [getDiffSettings]);
 
   const resetGame = useCallback(() => {
     const settings = getDiffSettings();
-    snakeRef.current = [{ x: 10, y: 10 }];
+    const center = Math.floor(settings.gridSize / 2);
+    snakeRef.current = [{ x: center, y: center }];
     directionRef.current = 'RIGHT';
     nextDirectionRef.current = 'RIGHT';
     speedRef.current = settings.initialSpeed;
@@ -435,11 +452,12 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
   const handleGameOver = useCallback(() => {
     setGameState('gameover');
     playGameOver();
+    const settings = DIFFICULTY_SETTINGS[difficultyRef.current];
     setScore(currentScore => {
       if (currentScore > highScore) {
         setHighScore(currentScore);
         localStorage.setItem('snake-highscore', currentScore.toString());
-        if (currentScore >= 250) {
+        if (currentScore >= settings.winScore) {
           setShowWin(true);
           playWin();
         }
@@ -472,10 +490,10 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
     }
 
     // Wall collision (wrap around)
-    if (head.x < 0) head.x = GRID_SIZE - 1;
-    if (head.x >= GRID_SIZE) head.x = 0;
-    if (head.y < 0) head.y = GRID_SIZE - 1;
-    if (head.y >= GRID_SIZE) head.y = 0;
+    if (head.x < 0) head.x = settings.gridSize - 1;
+    if (head.x >= settings.gridSize) head.x = 0;
+    if (head.y < 0) head.y = settings.gridSize - 1;
+    if (head.y >= settings.gridSize) head.y = 0;
 
     // Self collision
     if (snake.some(seg => seg.x === head.x && seg.y === head.y)) {
@@ -501,13 +519,13 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
       const newScore = score + 10;
       setScore(newScore);
       setSnakeLength(snake.length);
-      speedRef.current = Math.max(settings.minSpeed, speedRef.current - SPEED_INCREASE);
+      speedRef.current = Math.max(settings.minSpeed, speedRef.current - settings.speedIncrease);
       spawnFood();
       playPowerUp();
 
       // Level up every 50 points
       const newLevel = Math.floor(newScore / 50) + 1;
-      if (newLevel > level && newLevel <= 5) {
+      if (newLevel > level && newLevel <= settings.maxLevel) {
         setLevel(newLevel);
         playLevelUp();
         spawnObstacles(newLevel);
@@ -537,8 +555,11 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
   // Draw game
   // ------------------------------------------------------------------
   const draw = useCallback((ctx: CanvasRenderingContext2D) => {
-    const width = GRID_SIZE * CELL_SIZE;
-    const height = GRID_SIZE * CELL_SIZE;
+    const settings = getDiffSettings();
+    const gs = settings.gridSize;
+    const cs = settings.cellSize;
+    const width = gs * cs;
+    const height = gs * cs;
 
     // Background
     const gradient = ctx.createLinearGradient(0, 0, width, height);
@@ -550,24 +571,24 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
     // Grid pattern
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
-    for (let x = 0; x <= GRID_SIZE; x++) {
+    for (let x = 0; x <= gs; x++) {
       ctx.beginPath();
-      ctx.moveTo(x * CELL_SIZE, 0);
-      ctx.lineTo(x * CELL_SIZE, height);
+      ctx.moveTo(x * cs, 0);
+      ctx.lineTo(x * cs, height);
       ctx.stroke();
     }
-    for (let y = 0; y <= GRID_SIZE; y++) {
+    for (let y = 0; y <= gs; y++) {
       ctx.beginPath();
-      ctx.moveTo(0, y * CELL_SIZE);
-      ctx.lineTo(width, y * CELL_SIZE);
+      ctx.moveTo(0, y * cs);
+      ctx.lineTo(width, y * cs);
       ctx.stroke();
     }
 
     // Draw food (apple)
     const food = foodRef.current;
-    const foodX = food.x * CELL_SIZE + CELL_SIZE / 2;
-    const foodY = food.y * CELL_SIZE + CELL_SIZE / 2;
-    const foodRadius = CELL_SIZE / 2 - 3;
+    const foodX = food.x * cs + cs / 2;
+    const foodY = food.y * cs + cs / 2;
+    const foodRadius = cs / 2 - 3;
 
     ctx.shadowColor = '#ef4444';
     ctx.shadowBlur = 15;
@@ -595,8 +616,8 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
     const dir = directionRef.current;
 
     snake.forEach((segment, index) => {
-      const x = segment.x * CELL_SIZE;
-      const y = segment.y * CELL_SIZE;
+      const x = segment.x * cs;
+      const y = segment.y * cs;
       const padding = 2;
 
       const hue = 120 + (index * 2) % 40;
@@ -607,37 +628,37 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
       ctx.fillStyle = `hsl(${hue}, 70%, ${lightness}%)`;
 
       if (index === 0) {
-        const headSize = CELL_SIZE - padding * 2;
+        const headSize = cs - padding * 2;
         ctx.beginPath();
         ctx.roundRect(x + padding, y + padding, headSize, headSize, 6);
         ctx.fill();
 
         // Eyes
         ctx.fillStyle = 'white';
-        const eyeSize = 4;
-        const eyeOffset = 5;
+        const eyeSize = Math.max(3, cs / 6);
+        const eyeOffset = Math.max(4, cs / 5);
 
-        let eye1X = x + CELL_SIZE / 2 - eyeOffset;
-        let eye1Y = y + CELL_SIZE / 2 - 2;
-        let eye2X = x + CELL_SIZE / 2 + eyeOffset;
-        let eye2Y = y + CELL_SIZE / 2 - 2;
+        let eye1X = x + cs / 2 - eyeOffset;
+        let eye1Y = y + cs / 2 - 2;
+        let eye2X = x + cs / 2 + eyeOffset;
+        let eye2Y = y + cs / 2 - 2;
 
         if (dir === 'UP') {
-          eye1Y = y + 6;
-          eye2Y = y + 6;
+          eye1Y = y + cs * 0.25;
+          eye2Y = y + cs * 0.25;
         } else if (dir === 'DOWN') {
-          eye1Y = y + CELL_SIZE - 10;
-          eye2Y = y + CELL_SIZE - 10;
+          eye1Y = y + cs * 0.75;
+          eye2Y = y + cs * 0.75;
         } else if (dir === 'LEFT') {
-          eye1X = x + 6;
-          eye2X = x + 6;
-          eye1Y = y + CELL_SIZE / 2 - eyeOffset;
-          eye2Y = y + CELL_SIZE / 2 + eyeOffset;
+          eye1X = x + cs * 0.25;
+          eye2X = x + cs * 0.25;
+          eye1Y = y + cs / 2 - eyeOffset;
+          eye2Y = y + cs / 2 + eyeOffset;
         } else {
-          eye1X = x + CELL_SIZE - 10;
-          eye2X = x + CELL_SIZE - 10;
-          eye1Y = y + CELL_SIZE / 2 - eyeOffset;
-          eye2Y = y + CELL_SIZE / 2 + eyeOffset;
+          eye1X = x + cs * 0.75;
+          eye2X = x + cs * 0.75;
+          eye1Y = y + cs / 2 - eyeOffset;
+          eye2Y = y + cs / 2 + eyeOffset;
         }
 
         ctx.beginPath();
@@ -647,11 +668,11 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
 
         ctx.fillStyle = '#1a1a2e';
         ctx.beginPath();
-        ctx.arc(eye1X, eye1Y, 2, 0, Math.PI * 2);
-        ctx.arc(eye2X, eye2Y, 2, 0, Math.PI * 2);
+        ctx.arc(eye1X, eye1Y, eyeSize / 2, 0, Math.PI * 2);
+        ctx.arc(eye2X, eye2Y, eyeSize / 2, 0, Math.PI * 2);
         ctx.fill();
       } else {
-        const segSize = CELL_SIZE - padding * 2 - 1;
+        const segSize = cs - padding * 2 - 1;
         ctx.beginPath();
         ctx.roundRect(x + padding + 0.5, y + padding + 0.5, segSize, segSize, 4);
         ctx.fill();
@@ -664,17 +685,17 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
     // Draw obstacles
     const obstacles = obstaclesRef.current;
     obstacles.forEach((obstacle) => {
-      const x = obstacle.x * CELL_SIZE;
-      const y = obstacle.y * CELL_SIZE;
+      const x = obstacle.x * cs;
+      const y = obstacle.y * cs;
       const padding = 2;
-      const obstacleSize = CELL_SIZE - padding * 2;
+      const obstacleSize = cs - padding * 2;
 
       ctx.shadowColor = '#64748b';
       ctx.shadowBlur = 8;
 
       const obstGradient = ctx.createRadialGradient(
-        x + CELL_SIZE / 2, y + CELL_SIZE / 2, 0,
-        x + CELL_SIZE / 2, y + CELL_SIZE / 2, obstacleSize / 2,
+        x + cs / 2, y + cs / 2, 0,
+        x + cs / 2, y + cs / 2, obstacleSize / 2,
       );
       obstGradient.addColorStop(0, '#64748b');
       obstGradient.addColorStop(1, '#334155');
@@ -696,7 +717,7 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
     });
 
     ctx.shadowBlur = 0;
-  }, []);
+  }, [getDiffSettings]);
 
   // ------------------------------------------------------------------
   // Keyboard controls
@@ -768,8 +789,9 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
       if (snake.length === 0) return;
 
       const head = snake[0];
-      const headCenterX = (head.x + 0.5) * CELL_SIZE;
-      const headCenterY = (head.y + 0.5) * CELL_SIZE;
+      const cs = getDiffSettings().cellSize;
+      const headCenterX = (head.x + 0.5) * cs;
+      const headCenterY = (head.y + 0.5) * cs;
 
       const dx = mouseX - headCenterX;
       const dy = mouseY - headCenterY;
@@ -903,8 +925,10 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const width = GRID_SIZE * CELL_SIZE;
-    const height = GRID_SIZE * CELL_SIZE;
+    const cs = DEFAULT_CELL_SIZE;
+    const gs = DEFAULT_GRID_SIZE;
+    const width = CANVAS_SIZE;
+    const height = CANVAS_SIZE;
 
     const gradient = ctx.createLinearGradient(0, 0, width, height);
     gradient.addColorStop(0, '#1e3a2f');
@@ -914,67 +938,68 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
 
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
-    for (let x = 0; x <= GRID_SIZE; x++) {
+    for (let x = 0; x <= gs; x++) {
       ctx.beginPath();
-      ctx.moveTo(x * CELL_SIZE, 0);
-      ctx.lineTo(x * CELL_SIZE, height);
+      ctx.moveTo(x * cs, 0);
+      ctx.lineTo(x * cs, height);
       ctx.stroke();
     }
-    for (let y = 0; y <= GRID_SIZE; y++) {
+    for (let y = 0; y <= gs; y++) {
       ctx.beginPath();
-      ctx.moveTo(0, y * CELL_SIZE);
-      ctx.lineTo(width, y * CELL_SIZE);
+      ctx.moveTo(0, y * cs);
+      ctx.lineTo(width, y * cs);
       ctx.stroke();
     }
 
     // Demo snake
+    const center = Math.floor(gs / 2);
     const demoSnake = [
-      { x: 10, y: 10 },
-      { x: 9, y: 10 },
-      { x: 8, y: 10 },
-      { x: 7, y: 10 },
-      { x: 6, y: 10 },
-      { x: 5, y: 10 },
+      { x: center, y: center },
+      { x: center - 1, y: center },
+      { x: center - 2, y: center },
+      { x: center - 3, y: center },
+      { x: center - 4, y: center },
+      { x: center - 5, y: center },
     ];
 
     demoSnake.forEach((segment, index) => {
-      const x = segment.x * CELL_SIZE;
-      const y = segment.y * CELL_SIZE;
+      const x = segment.x * cs;
+      const y = segment.y * cs;
       const padding = 2;
       const hue = 120 + index * 5;
       const lightness = 50 - (index / demoSnake.length) * 15;
 
       ctx.fillStyle = `hsl(${hue}, 70%, ${lightness}%)`;
       ctx.beginPath();
-      ctx.roundRect(x + padding, y + padding, CELL_SIZE - padding * 2, CELL_SIZE - padding * 2, index === 0 ? 6 : 4);
+      ctx.roundRect(x + padding, y + padding, cs - padding * 2, cs - padding * 2, index === 0 ? 6 : 4);
       ctx.fill();
 
       if (index === 0) {
         ctx.fillStyle = 'white';
         ctx.beginPath();
-        ctx.arc(x + CELL_SIZE - 10, y + CELL_SIZE / 2 - 4, 4, 0, Math.PI * 2);
-        ctx.arc(x + CELL_SIZE - 10, y + CELL_SIZE / 2 + 4, 4, 0, Math.PI * 2);
+        ctx.arc(x + cs - 10, y + cs / 2 - 4, 4, 0, Math.PI * 2);
+        ctx.arc(x + cs - 10, y + cs / 2 + 4, 4, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = '#1a1a2e';
         ctx.beginPath();
-        ctx.arc(x + CELL_SIZE - 10, y + CELL_SIZE / 2 - 4, 2, 0, Math.PI * 2);
-        ctx.arc(x + CELL_SIZE - 10, y + CELL_SIZE / 2 + 4, 2, 0, Math.PI * 2);
+        ctx.arc(x + cs - 10, y + cs / 2 - 4, 2, 0, Math.PI * 2);
+        ctx.arc(x + cs - 10, y + cs / 2 + 4, 2, 0, Math.PI * 2);
         ctx.fill();
       }
     });
 
     // Apple
-    const appleX = 14 * CELL_SIZE + CELL_SIZE / 2;
-    const appleY = 10 * CELL_SIZE + CELL_SIZE / 2;
+    const appleX = (center + 4) * cs + cs / 2;
+    const appleY = center * cs + cs / 2;
     ctx.fillStyle = '#ef4444';
     ctx.beginPath();
-    ctx.arc(appleX, appleY, CELL_SIZE / 2 - 3, 0, Math.PI * 2);
+    ctx.arc(appleX, appleY, cs / 2 - 3, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#78350f';
-    ctx.fillRect(appleX - 1, appleY - CELL_SIZE / 2 + 2, 3, 5);
+    ctx.fillRect(appleX - 1, appleY - cs / 2 + 2, 3, 5);
     ctx.fillStyle = '#22c55e';
     ctx.beginPath();
-    ctx.ellipse(appleX + 4, appleY - CELL_SIZE / 2 + 4, 4, 2, Math.PI / 4, 0, Math.PI * 2);
+    ctx.ellipse(appleX + 4, appleY - cs / 2 + 4, 4, 2, Math.PI / 4, 0, Math.PI * 2);
     ctx.fill();
   }, [gameState]);
 
@@ -999,7 +1024,7 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
   // Difficulty label with emoji
   // ------------------------------------------------------------------
   const difficultyLabel = difficulty
-    ? `${difficulty === 'easy' ? '🟢' : difficulty === 'medium' ? '🟡' : '🔴'} ${t[difficulty]}`
+    ? `${difficulty === 'learn' ? '🌟' : difficulty === 'easy' ? '🟢' : difficulty === 'medium' ? '🟡' : '🔴'} ${t[difficulty]}`
     : '';
 
   // ------------------------------------------------------------------
@@ -1015,8 +1040,8 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
         <div className="relative">
           <canvas
             ref={canvasRef}
-            width={GRID_SIZE * CELL_SIZE}
-            height={GRID_SIZE * CELL_SIZE}
+            width={CANVAS_SIZE}
+            height={CANVAS_SIZE}
             className="rounded-xl shadow-2xl border-4 border-[#22c55e]/30 cursor-pointer max-w-full"
             style={{ touchAction: 'none' }}
           />
@@ -1043,6 +1068,15 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
                 </h2>
                 <p className="text-white/80 text-sm mb-4">{t.difficulty}</p>
                 <div className="flex flex-col gap-3 w-56">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => startWithDifficulty('learn')}
+                    className="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-full shadow-lg text-lg min-h-[48px]"
+                  >
+                    🌟 {t.learn}
+                    <span className="block text-xs font-normal opacity-80">{t.learnDesc}</span>
+                  </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
