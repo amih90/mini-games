@@ -36,6 +36,17 @@ export function GameCarousel({ games, locale, title }: GameCarouselProps) {
   const gameEmojis: Record<string, string> = {
     'color-match': '🎨',
     'memory-cards': '🃏',
+    'shape-builder': '🏗️',
+    'pattern-maker': '🔮',
+    'number-muncher': '🔢',
+    'rhyme-time': '🎵',
+    'letter-soup': '🍜',
+    'size-sorter': '📏',
+    'weather-dress-up': '🌤️',
+    'plant-grower': '🌱',
+    'fraction-pizza': '🍕',
+    'mirror-draw': '🪞',
+    'match-pairs': '🔗',
   };
 
   return (

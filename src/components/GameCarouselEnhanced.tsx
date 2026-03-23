@@ -40,6 +40,17 @@ export function GameCarouselEnhanced({ games, locale, title }: GameCarouselProps
     'flappy-bird': '🐤',
     'chicken-invaders': '🐔',
     'tetris': '🧱',
+    'shape-builder': '🏗️',
+    'pattern-maker': '🔮',
+    'number-muncher': '🔢',
+    'rhyme-time': '🎵',
+    'letter-soup': '🍜',
+    'size-sorter': '📏',
+    'weather-dress-up': '🌤️',
+    'plant-grower': '🌱',
+    'fraction-pizza': '🍕',
+    'mirror-draw': '🪞',
+    'match-pairs': '🔗',
   };
 
   const gameGradients: Record<string, string> = {
@@ -48,6 +59,17 @@ export function GameCarouselEnhanced({ games, locale, title }: GameCarouselProps
     'flappy-bird': 'from-[#f7941d] to-[#fbbf24]',
     'chicken-invaders': 'from-[#e53935] to-[#ef5350]',
     'tetris': 'from-[#a855f7] to-[#c084fc]',
+    'shape-builder': 'from-[#f59e0b] to-[#fbbf24]',
+    'pattern-maker': 'from-[#8b5cf6] to-[#a78bfa]',
+    'number-muncher': 'from-[#10b981] to-[#34d399]',
+    'rhyme-time': 'from-[#ec4899] to-[#f472b6]',
+    'letter-soup': 'from-[#f97316] to-[#fb923c]',
+    'size-sorter': 'from-[#6366f1] to-[#818cf8]',
+    'weather-dress-up': 'from-[#0ea5e9] to-[#38bdf8]',
+    'plant-grower': 'from-[#22c55e] to-[#4ade80]',
+    'fraction-pizza': 'from-[#ef4444] to-[#f87171]',
+    'mirror-draw': 'from-[#14b8a6] to-[#2dd4bf]',
+    'match-pairs': 'from-[#8b5cf6] to-[#a78bfa]',
   };
 
   return (

@@ -30,6 +30,10 @@ export function GamesPageContent() {
     memory: { emoji: '🧠', color: '#9c27b0', gradient: 'from-purple-500 to-pink-500' },
     math: { emoji: '🔢', color: '#00a4e4', gradient: 'from-blue-500 to-cyan-500' },
     reaction: { emoji: '⚡', color: '#f7941d', gradient: 'from-yellow-500 to-amber-500' },
+    shapes: { emoji: '🔷', color: '#f59e0b', gradient: 'from-amber-500 to-yellow-500' },
+    patterns: { emoji: '🔮', color: '#8b5cf6', gradient: 'from-violet-500 to-indigo-500' },
+    language: { emoji: '📖', color: '#10b981', gradient: 'from-green-500 to-emerald-500' },
+    science: { emoji: '🔬', color: '#06b6d4', gradient: 'from-cyan-500 to-sky-500' },
     'ages-3-5': { emoji: '👶', color: '#ec4399', gradient: 'from-pink-500 to-rose-500' },
     'ages-6-8': { emoji: '🧒', color: '#26a69a', gradient: 'from-teal-500 to-emerald-500' },
     arcade: { emoji: '👾', color: '#7c3aed', gradient: 'from-violet-500 to-purple-500' },
@@ -42,6 +46,17 @@ export function GamesPageContent() {
     'flappy-bird': '🐤',
     'chicken-invaders': '🐔',
     'tetris': '🧱',
+    'shape-builder': '🏗️',
+    'pattern-maker': '🔮',
+    'number-muncher': '🔢',
+    'rhyme-time': '🎵',
+    'letter-soup': '🍜',
+    'size-sorter': '📏',
+    'weather-dress-up': '🌤️',
+    'plant-grower': '🌱',
+    'fraction-pizza': '🍕',
+    'mirror-draw': '🪞',
+    'match-pairs': '🔗',
   };
 
   return (
