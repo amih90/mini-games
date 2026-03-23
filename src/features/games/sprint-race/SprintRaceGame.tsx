@@ -88,6 +88,15 @@ const AI_RUNNERS_BASE = [
   { name: 'Dash', color: '#ff9800', baseMax: 4.5 },
 ];
 
+const PLAYER_COLORS = [
+  { hex: '#4caf50', label: '🟢' },
+  { hex: '#2196f3', label: '🔵' },
+  { hex: '#e91e63', label: '🩷' },
+  { hex: '#ff9800', label: '🟠' },
+  { hex: '#9c27b0', label: '🟣' },
+  { hex: '#00bcd4', label: '🩵' },
+];
+
 // ---------------------------------------------------------------------------
 // Translations
 // ---------------------------------------------------------------------------
@@ -119,6 +128,7 @@ const translations: Record<string, Record<string, string>> = {
     you: 'YOU',
     sprint: 'Sprint!',
     difficulty: 'Difficulty',
+    playerColor: 'Your Color',
   },
   he: {
     title: 'מרוץ ספרינט',
@@ -146,6 +156,7 @@ const translations: Record<string, Record<string, string>> = {
     you: 'את/ה',
     sprint: '!רוץ',
     difficulty: 'קושי',
+    playerColor: 'הצבע שלך',
   },
   zh: {
     title: '短跑比赛',
@@ -173,6 +184,7 @@ const translations: Record<string, Record<string, string>> = {
     you: '你',
     sprint: '冲刺！',
     difficulty: '难度',
+    playerColor: '你的颜色',
   },
   es: {
     title: 'Carrera de Velocidad',
@@ -200,6 +212,7 @@ const translations: Record<string, Record<string, string>> = {
     you: 'TÚ',
     sprint: '¡Sprint!',
     difficulty: 'Dificultad',
+    playerColor: 'Tu Color',
   },
 };
 
@@ -361,6 +374,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
   const [showInstructions, setShowInstructions] = useState(true);
   const [playerWon, setPlayerWon] = useState(false);
   const [canvasWidth, setCanvasWidth] = useState(CANVAS_WIDTH);
+  const [playerColor, setPlayerColor] = useState(PLAYER_COLORS[0].hex);
 
   const [bestTime, setBestTime] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -402,7 +416,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
 
   // ---- Initialise runners ----
   const initRunners = useCallback(
-    (diff: Difficulty) => {
+    (diff: Difficulty, color: string) => {
       const settings = DIFFICULTY_SETTINGS[diff];
       const runners: Runner[] = [
         {
@@ -413,7 +427,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
           frame: 0,
           isPlayer: true,
           name: t.you,
-          color: '#4caf50',
+          color,
           finished: false,
           finishTime: 0,
         },
@@ -440,7 +454,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
   // ---- Start race (countdown) ----
   const startRace = useCallback(
     (diff: Difficulty) => {
-      initRunners(diff);
+      initRunners(diff, playerColor);
       setGamePhase('countdown');
       setCountdown(3);
       setRaceTime(0);
@@ -450,7 +464,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
       lastTapRef.current = 0;
       frameCountRef.current = 0;
     },
-    [initRunners],
+    [initRunners, playerColor],
   );
 
   // ---- Handle tap / keypress ----
@@ -997,6 +1011,23 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
                   {t.title}
                 </h2>
                 <p className="text-white/80 text-sm mb-4">{t.selectDifficulty}</p>
+
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <span className="text-white/80 text-sm font-medium">{t.playerColor}:</span>
+                  {PLAYER_COLORS.map((c) => (
+                    <button
+                      key={c.hex}
+                      onClick={() => { playClick(); setPlayerColor(c.hex); }}
+                      className="w-8 h-8 rounded-full border-2 transition-transform hover:scale-110"
+                      style={{
+                        backgroundColor: c.hex,
+                        borderColor: playerColor === c.hex ? '#fff' : 'transparent',
+                        transform: playerColor === c.hex ? 'scale(1.15)' : undefined,
+                      }}
+                      title={c.label}
+                    />
+                  ))}
+                </div>
 
                 <div className="flex flex-col gap-2 w-[260px]">
                   {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => {

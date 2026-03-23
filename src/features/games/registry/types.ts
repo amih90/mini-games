@@ -6,7 +6,7 @@ export type GameCategory =
   | 'ages-3-5'
   | 'ages-6-8';
 
-export type GameEngine = 'react' | 'phaser' | 'canvas';
+export type GameEngine = 'react' | 'phaser' | 'canvas' | 'r3f';
 
 export interface AgeRange {
   min: number;

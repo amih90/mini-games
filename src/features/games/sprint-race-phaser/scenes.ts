@@ -387,6 +387,15 @@ const H = 500;
 const TRACK_TOP = 90;
 const START_X = 70;
 
+const PLAYER_COLORS = [
+  { hex: 0x2196f3, label: '🔵' },
+  { hex: 0x4caf50, label: '🟢' },
+  { hex: 0xe91e63, label: '🩷' },
+  { hex: 0xff9800, label: '🟠' },
+  { hex: 0x9c27b0, label: '🟣' },
+  { hex: 0x00bcd4, label: '🩵' },
+];
+
 /* ================================================================== */
 /*  Visual helpers                                                     */
 /* ================================================================== */
@@ -407,6 +416,13 @@ function fillGradientV(g: Phaser.GameObjects.Graphics, x: number, y: number, w: 
   }
 }
 
+function darkenColor(color: number, factor: number): number {
+  const r = (color >> 16) & 0xff;
+  const g = (color >> 8) & 0xff;
+  const b = color & 0xff;
+  return (Math.floor(r * factor) << 16) | (Math.floor(g * factor) << 8) | Math.floor(b * factor);
+}
+
 /* ================================================================== */
 /*  Menu Scene                                                         */
 /* ================================================================== */
@@ -415,10 +431,14 @@ export class MenuScene extends Phaser.Scene {
   private locale!: string;
   private stars: { x: number; y: number; speed: number; alpha: number; size: number }[] = [];
   private starGfx!: Phaser.GameObjects.Graphics;
+  private playerColor: number = PLAYER_COLORS[0].hex;
 
   constructor() { super({ key: 'MenuScene' }); }
 
-  init(data: { locale?: string }) { this.locale = data.locale || 'en'; }
+  init(data: { locale?: string; playerColor?: number }) {
+    this.locale = data.locale || 'en';
+    if (data.playerColor !== undefined) this.playerColor = data.playerColor;
+  }
 
   create() {
     sfx.unlock();
@@ -542,7 +562,7 @@ export class MenuScene extends Phaser.Scene {
       });
       hitRect.on('pointerdown', () => {
         sfx.click();
-        this.scene.start('RaceScene', { eventType: ev, locale: this.locale });
+        this.scene.start('RaceScene', { eventType: ev, locale: this.locale, playerColor: this.playerColor });
       });
     });
 
@@ -553,6 +573,34 @@ export class MenuScene extends Phaser.Scene {
     this.add.text(cx, H - 35, t(this.locale, 'howToPlay'), {
       fontFamily: 'sans-serif', fontSize: '14px', color: '#90caf9',
     }).setOrigin(0.5);
+
+    /* ====== Player color picker ====== */
+    const cpY = H - 80;
+    const cpStartX = cx - ((PLAYER_COLORS.length - 1) * 30) / 2;
+    const selRing = this.add.graphics().setDepth(2);
+    const drawSelRing = (px: number) => {
+      selRing.clear();
+      selRing.lineStyle(3, 0xffd700, 1);
+      selRing.strokeCircle(px, cpY, 14);
+    };
+    const initialIdx = PLAYER_COLORS.findIndex(c => c.hex === this.playerColor);
+    drawSelRing(cpStartX + (initialIdx >= 0 ? initialIdx : 0) * 30);
+
+    PLAYER_COLORS.forEach((c, i) => {
+      const px = cpStartX + i * 30;
+      const circle = this.add.graphics().setDepth(1);
+      circle.fillStyle(c.hex, 1);
+      circle.fillCircle(px, cpY, 11);
+      circle.lineStyle(2, 0xffffff, 0.6);
+      circle.strokeCircle(px, cpY, 11);
+      const hitArea = this.add.circle(px, cpY, 13, 0x000000, 0)
+        .setInteractive({ useHandCursor: true });
+      hitArea.on('pointerdown', () => {
+        sfx.click();
+        this.playerColor = c.hex;
+        drawSelRing(px);
+      });
+    });
 
     /* Running silhouette at bottom */
     const silGfx = this.add.graphics().setDepth(1).setAlpha(0.12);
@@ -668,13 +716,15 @@ export class RaceScene extends Phaser.Scene {
   private resultShown = false;
   private falseStartFlag = false;
   private cdPhase = 0;
+  private playerColor: number = PLAYER_COLORS[0].hex;
 
   constructor() { super({ key: 'RaceScene' }); }
 
-  init(data: { eventType: EventType; locale: string }) {
+  init(data: { eventType: EventType; locale: string; playerColor?: number }) {
     this.eventType = data.eventType || '100m';
     this.locale = data.locale || 'en';
     this.ev = EVENTS[this.eventType];
+    this.playerColor = data.playerColor ?? PLAYER_COLORS[0].hex;
     this.phase = 'countdown';
     this.runners = [];
     this.tapCount = 0;
@@ -1013,7 +1063,7 @@ export class RaceScene extends Phaser.Scene {
   /* ====== RUNNERS ====== */
 
   private createRunners() {
-    this.runners.push(this.makeRunner(t(this.locale, 'you'), 0x2196f3, 0xffdbac, 0x1565c0, 0, this.ev.playerMax, true, 0));
+    this.runners.push(this.makeRunner(t(this.locale, 'you'), this.playerColor, 0xffdbac, darkenColor(this.playerColor, 0.5), 0, this.ev.playerMax, true, 0));
     const shuffled = [...AI_POOL].sort(() => Math.random() - 0.5);
     for (let i = 0; i < this.ev.aiCount; i++) {
       const ai = shuffled[i % shuffled.length];
@@ -1758,11 +1808,11 @@ export class RaceScene extends Phaser.Scene {
     };
 
     makeBtn(W / 2 - bw - bg, t(this.locale, 'raceAgain'), 0x388e3c, 0x4caf50, () =>
-      this.scene.start('RaceScene', { eventType: this.eventType, locale: this.locale }));
+      this.scene.start('RaceScene', { eventType: this.eventType, locale: this.locale, playerColor: this.playerColor }));
     const ni = (EVENT_ORDER.indexOf(this.eventType) + 1) % EVENT_ORDER.length;
     makeBtn(W / 2, t(this.locale, 'nextEvent'), 0x1565c0, 0x1976d2, () =>
-      this.scene.start('RaceScene', { eventType: EVENT_ORDER[ni], locale: this.locale }));
+      this.scene.start('RaceScene', { eventType: EVENT_ORDER[ni], locale: this.locale, playerColor: this.playerColor }));
     makeBtn(W / 2 + bw + bg, t(this.locale, 'menu'), 0x616161, 0x757575, () =>
-      this.scene.start('MenuScene', { locale: this.locale }));
+      this.scene.start('MenuScene', { locale: this.locale, playerColor: this.playerColor }));
   }
 }
