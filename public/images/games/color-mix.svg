@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <rect width="200" height="200" rx="20" fill="#FFF7ED"/>
+  <!-- Red circle -->
+  <circle cx="65" cy="70" r="35" fill="#EF4444" opacity="0.85"/>
+  <!-- Blue circle -->
+  <circle cx="135" cy="70" r="35" fill="#3B82F6" opacity="0.85"/>
+  <!-- Yellow circle -->
+  <circle cx="100" cy="120" r="35" fill="#FACC15" opacity="0.85"/>
+  <!-- Overlap: Red+Blue = Purple -->
+  <circle cx="100" cy="70" r="15" fill="#A855F7" opacity="0.7"/>
+  <!-- Overlap: Red+Yellow = Orange -->
+  <circle cx="75" cy="100" r="15" fill="#F97316" opacity="0.7"/>
+  <!-- Overlap: Blue+Yellow = Green -->
+  <circle cx="125" cy="100" r="15" fill="#22C55E" opacity="0.7"/>
+  <!-- Center -->
+  <circle cx="100" cy="90" r="8" fill="#78716C" opacity="0.5"/>
+  <!-- Test tube icon -->
+  <text x="100" y="175" text-anchor="middle" font-size="28">🧪</text>
+</svg>

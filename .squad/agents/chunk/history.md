@@ -1,4 +1,4 @@
-# Ralph — History
+# Chunk — History
 
 ## Core Context
 
@@ -7,5 +7,3 @@
 - User: Ami Hollander
 
 ## Learnings
-
-- Team initialized on 2026-03-23 with Goonies-themed cast

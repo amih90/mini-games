@@ -6,13 +6,15 @@ How to decide who handles what.
 
 | Work Type | Route To | Examples |
 |-----------|----------|----------|
-| {domain 1} | {Name} | {example tasks} |
-| {domain 2} | {Name} | {example tasks} |
-| {domain 3} | {Name} | {example tasks} |
-| Code review | {Name} | Review PRs, check quality, suggest improvements |
-| Testing | {Name} | Write tests, find edge cases, verify fixes |
-| Scope & priorities | {Name} | What to build next, trade-offs, decisions |
+| UI / Components / Styling | Data | React components, Tailwind CSS, animations, layouts, kid-friendly UI |
+| Game Logic / Mechanics | Chunk | Game state, physics, scoring, game loops, new game features |
+| Architecture / Scope | Mikey | System design, feature scoping, trade-offs, tech decisions |
+| Code review | Mikey | Review PRs, check quality, approve/reject changes |
+| Testing | Mouth | Write tests, find edge cases, verify fixes, quality gates |
+| i18n / Localization | Data | Translation files, next-intl integration, locale routing |
+| Scope & priorities | Mikey | What to build next, trade-offs, decisions |
 | Session logging | Scribe | Automatic — never needs routing |
+| Backlog / Triage | Ralph | Work queue monitoring, issue intake |
 
 ## Issue Routing
 

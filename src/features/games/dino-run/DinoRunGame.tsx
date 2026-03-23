@@ -104,6 +104,23 @@ const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
 
 const MILESTONE_INTERVAL = 500;
 
+interface DinoColor {
+  name: string;
+  primary: string;
+  dark: string;
+}
+
+const DINO_COLORS: DinoColor[] = [
+  { name: 'green', primary: '#22c55e', dark: '#16a34a' },
+  { name: 'blue', primary: '#3b82f6', dark: '#2563eb' },
+  { name: 'red', primary: '#ef4444', dark: '#dc2626' },
+  { name: 'purple', primary: '#a855f7', dark: '#9333ea' },
+  { name: 'orange', primary: '#f97316', dark: '#ea580c' },
+  { name: 'pink', primary: '#ec4899', dark: '#db2777' },
+];
+
+const DEFAULT_DINO_COLOR = DINO_COLORS[0];
+
 // ---------------------------------------------------------------------------
 // Translations
 // ---------------------------------------------------------------------------
@@ -130,6 +147,7 @@ const translations: Record<string, Record<string, string>> = {
     milestone: 'Nice! +500!',
     level: 'Level',
     speed: 'Speed',
+    pickColor: 'Pick your dino color',
   },
   he: {
     title: 'דינו רץ',
@@ -152,6 +170,7 @@ const translations: Record<string, Record<string, string>> = {
     milestone: '!יפה! 500+',
     level: 'שלב',
     speed: 'מהירות',
+    pickColor: 'בחר צבע לדינו',
   },
   zh: {
     title: '恐龙快跑',
@@ -174,6 +193,7 @@ const translations: Record<string, Record<string, string>> = {
     milestone: '不错！+500！',
     level: '关卡',
     speed: '速度',
+    pickColor: '选择恐龙颜色',
   },
   es: {
     title: 'Dino Run',
@@ -196,6 +216,7 @@ const translations: Record<string, Record<string, string>> = {
     milestone: '¡Bien! +500!',
     level: 'Nivel',
     speed: 'Velocidad',
+    pickColor: 'Elige el color de tu dino',
   },
 };
 
@@ -399,17 +420,19 @@ function drawDino(
   y: number,
   isDucking: boolean,
   isJumping: boolean,
-  frame: number
+  frame: number,
+  primaryColor: string = '#22c55e',
+  darkColor: string = '#16a34a'
 ) {
   ctx.save();
   ctx.translate(x, y);
 
   if (isDucking) {
-    ctx.fillStyle = '#22c55e';
+    ctx.fillStyle = primaryColor;
     ctx.beginPath();
     ctx.roundRect(0, DINO_HEIGHT / 2, DINO_WIDTH + 10, DINO_HEIGHT / 2 - 5, 10);
     ctx.fill();
-    ctx.fillStyle = '#16a34a';
+    ctx.fillStyle = darkColor;
     ctx.beginPath();
     ctx.arc(DINO_WIDTH + 5, DINO_HEIGHT / 2 + 10, 12, 0, Math.PI * 2);
     ctx.fill();
@@ -422,11 +445,11 @@ function drawDino(
     ctx.arc(DINO_WIDTH + 9, DINO_HEIGHT / 2 + 7, 2, 0, Math.PI * 2);
     ctx.fill();
   } else {
-    ctx.fillStyle = '#22c55e';
+    ctx.fillStyle = primaryColor;
     ctx.beginPath();
     ctx.roundRect(5, 15, 30, 35, 8);
     ctx.fill();
-    ctx.fillStyle = '#16a34a';
+    ctx.fillStyle = darkColor;
     ctx.beginPath();
     ctx.roundRect(20, 0, 24, 20, 6);
     ctx.fill();
@@ -438,13 +461,13 @@ function drawDino(
     ctx.beginPath();
     ctx.arc(35, 8, 2, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#16a34a';
+    ctx.strokeStyle = darkColor;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(38, 14);
     ctx.lineTo(44, 14);
     ctx.stroke();
-    ctx.fillStyle = '#16a34a';
+    ctx.fillStyle = darkColor;
     if (isJumping) {
       ctx.fillRect(10, 45, 8, 10);
       ctx.fillRect(25, 45, 8, 10);
@@ -453,14 +476,14 @@ function drawDino(
       ctx.fillRect(10, 45 + legOffset, 8, 10 - legOffset);
       ctx.fillRect(25, 45 + (5 - legOffset), 8, 10 - (5 - legOffset));
     }
-    ctx.fillStyle = '#22c55e';
+    ctx.fillStyle = primaryColor;
     ctx.beginPath();
     ctx.moveTo(5, 25);
     ctx.lineTo(-10, 20);
     ctx.lineTo(-5, 30);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = '#16a34a';
+    ctx.fillStyle = darkColor;
     ctx.fillRect(28, 28, 5, 8);
   }
 
@@ -591,6 +614,16 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
   });
   const [currentLevel, setCurrentLevel] = useState(1);
   const [showMilestone, setShowMilestone] = useState(false);
+  const [dinoColor, setDinoColor] = useState<DinoColor>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('dino-run-color');
+      if (saved) {
+        const found = DINO_COLORS.find((c) => c.name === saved);
+        if (found) return found;
+      }
+    }
+    return DEFAULT_DINO_COLOR;
+  });
 
   // ---- Mutable refs (no re-render) ----
   const dinoRef = useRef({
@@ -613,6 +646,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
   const cloudsRef = useRef<Cloud[]>([]);
   const settingsRef = useRef<DifficultySettings>(DIFFICULTY_SETTINGS.medium);
   const gameStateRef = useRef<GameState>('menu');
+  const dinoColorRef = useRef<DinoColor>(dinoColor);
   const isDuckingKeyHeld = useRef(false);
 
   // Keep refs synced
@@ -933,7 +967,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
         }
       }
 
-      drawDino(ctx, dino.x, dino.y, dino.isDucking, dino.isJumping, dino.frame);
+      drawDino(ctx, dino.x, dino.y, dino.isDucking, dino.isJumping, dino.frame, dinoColorRef.current.primary, dinoColorRef.current.dark);
       drawHUD(ctx, scoreRef.current, highScoreRef.current, t.score, t.highScore, isRtl);
 
       gameLoopRef.current = requestAnimationFrame(loop);
@@ -971,8 +1005,8 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
     drawSky(ctx);
     drawClouds(ctx, cloudsRef.current, 0);
     drawGround(ctx, 0);
-    drawDino(ctx, 80, GROUND_Y - DINO_HEIGHT, false, false, 0);
-  }, [gameState]);
+    drawDino(ctx, 80, GROUND_Y - DINO_HEIGHT, false, false, 0, dinoColorRef.current.primary, dinoColorRef.current.dark);
+  }, [gameState, dinoColor]);
 
   // -----------------------------------------------------------------------
   // Difficulty selector handler
@@ -1051,6 +1085,30 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                   🦖
                 </motion.div>
                 <h2 className="text-2xl font-bold text-white mb-1 drop-shadow-lg">{t.title}</h2>
+
+                <p className="text-white/70 text-xs mb-1">{t.pickColor}</p>
+                <div className="flex gap-2 mb-3">
+                  {DINO_COLORS.map((c) => (
+                    <motion.button
+                      key={c.name}
+                      whileHover={{ scale: 1.2 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => {
+                        setDinoColor(c);
+                        dinoColorRef.current = c;
+                        localStorage.setItem('dino-run-color', c.name);
+                        playClick();
+                      }}
+                      className="w-8 h-8 rounded-full transition-all min-h-[32px] min-w-[32px]"
+                      style={{
+                        backgroundColor: c.primary,
+                        boxShadow: dinoColor.name === c.name ? `0 0 0 3px white, 0 0 0 5px ${c.primary}` : 'none',
+                      }}
+                      aria-label={c.name}
+                    />
+                  ))}
+                </div>
+
                 <p className="text-white/80 text-sm mb-4">{t.selectDifficulty}</p>
 
                 <div className="flex flex-col sm:flex-row gap-3">
@@ -1098,7 +1156,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                 <div className="bg-white rounded-3xl p-6 sm:p-8 text-center shadow-2xl max-w-xs w-full mx-4">
                   <div className="text-5xl mb-3">💥</div>
                   <h2 className="text-2xl font-bold text-slate-800 mb-2">{t.gameOver}</h2>
-                  <div className="text-4xl font-bold text-[#22c55e] mb-1 font-mono">{score}</div>
+                  <div className="text-4xl font-bold mb-1 font-mono" style={{ color: dinoColor.primary }}>{score}</div>
                   {score >= highScore && score > 0 && (
                     <div className="text-base text-[#f97316] font-bold mb-2">{t.newHighScore}</div>
                   )}
@@ -1107,7 +1165,8 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => startGame(difficulty)}
-                      className="px-8 py-3 bg-[#22c55e] hover:bg-[#16a34a] text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
+                      className="px-8 py-3 text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
+                      style={{ backgroundColor: dinoColor.primary }}
                     >
                       {t.playAgain}
                     </motion.button>

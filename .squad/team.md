@@ -12,6 +12,12 @@
 
 | Name | Role | Charter | Status |
 |------|------|---------|--------|
+| 🏗️ Mikey | Lead | [charter](agents/mikey/charter.md) | ✅ Active |
+| ⚛️ Data | Frontend Dev | [charter](agents/data/charter.md) | ✅ Active |
+| 🔧 Chunk | Game Dev | [charter](agents/chunk/charter.md) | ✅ Active |
+| 🧪 Mouth | Tester | [charter](agents/mouth/charter.md) | ✅ Active |
+| 📋 Scribe | Scribe (silent) | [charter](agents/scribe/charter.md) | ✅ Active |
+| 🔄 Ralph | Monitor | [charter](agents/ralph/charter.md) | ✅ Active |
 
 
 ## Coding Agent
@@ -51,3 +57,6 @@
 
 - **Project:** mini-games
 - **Created:** 2026-03-23
+- **Stack:** Next.js, React, TypeScript, Tailwind CSS, next-intl (i18n)
+- **Description:** A kids' mini-games platform with multiple browser-based games
+- **User:** Ami Hollander

@@ -156,6 +156,14 @@ const SprintRacePhaserGame = dynamic(
   }
 );
 
+const ColorMixGame = dynamic(
+  () => import('@/features/games/color-mix/ColorMixGame').then((mod) => mod.ColorMixGame),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
 function GameLoadingSkeleton() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-peach-glow-light via-white to-sky-bubble-light flex items-center justify-center">
@@ -214,6 +222,8 @@ export function GameLoader({ slug }: GameLoaderProps) {
       return <NascarCarsGame locale={locale} />;
     case 'sprint-race-phaser':
       return <SprintRacePhaserGame />;
+    case 'color-mix':
+      return <ColorMixGame />;
     default:
       return null;
   }

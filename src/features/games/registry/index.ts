@@ -6,6 +6,7 @@ import { backgammonConfig } from '../backgammon/game.config';
 import { pingPongConfig } from '../ping-pong/game.config';
 import { nascarCarsConfig } from '../nascar-cars/game.config';
 import { sprintRacePhaserConfig } from '../sprint-race-phaser/game.config';
+import { colorMixConfig } from '../color-mix/game.config';
 
 // Re-export types
 export type { GameConfig, GameCategory } from './types';
@@ -214,6 +215,7 @@ export const gameRegistry: Record<string, GameConfig> = {
   'ping-pong': pingPongConfig,
   'nascar-cars': nascarCarsConfig,
   'sprint-race-phaser': sprintRacePhaserConfig,
+  'color-mix': colorMixConfig,
 };
 
 /**

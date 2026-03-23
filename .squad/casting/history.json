@@ -1,0 +1,18 @@
+{
+  "snapshots": [
+    {
+      "timestamp": "2026-03-23",
+      "event": "initial-casting",
+      "universe": "The Goonies",
+      "assignments": {
+        "mikey": { "role": "Lead", "reason": "Natural leader — scope, decisions, code review" },
+        "data": { "role": "Frontend Dev", "reason": "Gadget inventor — React, UI, animations, components" },
+        "chunk": { "role": "Game Dev", "reason": "Heart of the team — game logic, mechanics, state management" },
+        "mouth": { "role": "Tester", "reason": "Sharp tongue — tests, quality, edge cases" },
+        "scribe": { "role": "Scribe", "reason": "Silent memory — decisions, session logs" },
+        "ralph": { "role": "Monitor", "reason": "Watchful eye — work queue, backlog" }
+      },
+      "castBy": "Ami Hollander"
+    }
+  ]
+}

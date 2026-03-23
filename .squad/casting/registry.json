@@ -1,0 +1,60 @@
+{
+  "agents": {
+    "mikey": {
+      "name": "Mikey",
+      "role": "Lead",
+      "emoji": "🏗️",
+      "charter": ".squad/agents/mikey/charter.md",
+      "history": ".squad/agents/mikey/history.md",
+      "universe": "The Goonies",
+      "status": "active"
+    },
+    "data": {
+      "name": "Data",
+      "role": "Frontend Dev",
+      "emoji": "⚛️",
+      "charter": ".squad/agents/data/charter.md",
+      "history": ".squad/agents/data/history.md",
+      "universe": "The Goonies",
+      "status": "active"
+    },
+    "chunk": {
+      "name": "Chunk",
+      "role": "Game Dev",
+      "emoji": "🔧",
+      "charter": ".squad/agents/chunk/charter.md",
+      "history": ".squad/agents/chunk/history.md",
+      "universe": "The Goonies",
+      "status": "active"
+    },
+    "mouth": {
+      "name": "Mouth",
+      "role": "Tester",
+      "emoji": "🧪",
+      "charter": ".squad/agents/mouth/charter.md",
+      "history": ".squad/agents/mouth/history.md",
+      "universe": "The Goonies",
+      "status": "active"
+    },
+    "scribe": {
+      "name": "Scribe",
+      "role": "Scribe",
+      "emoji": "📋",
+      "charter": ".squad/agents/scribe/charter.md",
+      "history": ".squad/agents/scribe/history.md",
+      "universe": "The Goonies",
+      "status": "active",
+      "mode": "background"
+    },
+    "ralph": {
+      "name": "Ralph",
+      "role": "Monitor",
+      "emoji": "🔄",
+      "charter": ".squad/agents/ralph/charter.md",
+      "history": ".squad/agents/ralph/history.md",
+      "universe": "The Goonies",
+      "status": "active",
+      "mode": "monitor"
+    }
+  }
+}

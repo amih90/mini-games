@@ -525,6 +525,29 @@ export function useRetroSounds() {
     }
   }, [isMuted]);
 
+  /**
+   * Play a drop/place sound - descending tone
+   */
+  const playDrop = useCallback(() => {
+    if (isMuted || !audioContextRef.current) return;
+    try {
+      const ctx = audioContextRef.current;
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(600, ctx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.15);
+      gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+      oscillator.start(ctx.currentTime);
+      oscillator.stop(ctx.currentTime + 0.2);
+    } catch (error) {
+      // Ignore
+    }
+  }, [isMuted]);
+
   const toggleMute = useCallback(() => {
     setIsMuted((prev) => {
       const newValue = !prev;
@@ -557,5 +580,6 @@ export function useRetroSounds() {
     playFlip,
     playMatch,
     playCountdown,
+    playDrop,
   };
 }

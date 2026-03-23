@@ -1,16 +1,11 @@
-# Project Context
-
-- **Project:** mini-games
-- **Created:** 2026-03-23
+# Scribe — History
 
 ## Core Context
 
-Agent Scribe initialized and ready for work.
-
-## Recent Updates
-
-📌 Team initialized on 2026-03-23
+- Project: mini-games (kids' game platform)
+- Stack: Next.js, React, TypeScript, Tailwind CSS, next-intl
+- User: Ami Hollander
 
 ## Learnings
 
-Initial setup complete.
+- Team initialized on 2026-03-23 with Goonies-themed cast
