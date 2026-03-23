@@ -434,13 +434,6 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
     playClick();
   }, [resetGame, playClick]);
 
-  const selectDifficulty = useCallback((diff: Difficulty) => {
-    setDifficulty(diff);
-    difficultyRef.current = diff;
-    playClick();
-    // After selecting difficulty, go to idle (ready to start)
-  }, [playClick]);
-
   const startWithDifficulty = useCallback((diff: Difficulty) => {
     difficultyRef.current = diff;
     setDifficulty(diff);
@@ -822,7 +815,7 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('click', handleClick);
     };
-  }, [gameState, difficulty, startGame, setDirection]);
+  }, [gameState, difficulty, startGame, setDirection, getDiffSettings]);
 
   // ------------------------------------------------------------------
   // Touch / swipe controls
