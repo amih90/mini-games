@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GameWrapper } from '../shared/GameWrapper';
 import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
+import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 
 // ---------------------------------------------------------------------------
@@ -471,6 +472,8 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
     },
     [playClick]
   );
+
+  usePlayAgainKey(gameState === 'gameover', useCallback(() => { playClick(); startGame(difficulty); }, [playClick, startGame, difficulty]));
 
   // ---------------------------------------------------------------------------
   // Whack logic

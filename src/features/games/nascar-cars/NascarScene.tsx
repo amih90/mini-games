@@ -3,7 +3,6 @@
 import { useRef, useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Text, Sky } from '@react-three/drei';
-import { Bloom, EffectComposer } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { Car, AI_CAR_COLORS } from './Car';
 import { Track, getTrackPosition } from './Track';
@@ -176,10 +175,7 @@ export function NascarScene({
         </Text>
       )}
 
-      {/* Post-processing */}
-      <EffectComposer>
-        <Bloom intensity={0.3} luminanceThreshold={0.9} luminanceSmoothing={0.9} />
-      </EffectComposer>
+
     </>
   );
 }

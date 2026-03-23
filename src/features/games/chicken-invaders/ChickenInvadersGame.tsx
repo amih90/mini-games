@@ -6,6 +6,7 @@ import { GameWrapper } from '../shared/GameWrapper';
 import { WinModal } from '../shared/WinModal';
 import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
+import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 
 // ---------------------------------------------------------------------------
@@ -1063,6 +1064,8 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
     setLevel(1);
     setShowWin(false);
   }, []);
+
+  usePlayAgainKey(gameState === 'gameover', restartGame);
 
   // -----------------------------------------------------------------------
   // Render

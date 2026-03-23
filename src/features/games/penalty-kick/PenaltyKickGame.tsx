@@ -6,6 +6,7 @@ import { GameWrapper } from '../shared/GameWrapper';
 import { WinModal } from '../shared/WinModal';
 import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
+import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 
 // ---------------------------------------------------------------------------
@@ -845,6 +846,8 @@ export default function PenaltyKickGame({ locale = 'en' }: PenaltyKickGameProps)
     setPhase('aiming');
     playClick();
   }, [playClick]);
+
+  usePlayAgainKey(gameState === 'gameover' && !showWin, restartGame);
 
   // ---- Difficulty level number (for LevelDisplay) --------------------------
   const levelNum = difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3;

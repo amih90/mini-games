@@ -6,6 +6,7 @@ import { useLocale } from 'next-intl';
 import { GameWrapper } from '@/features/games/shared/GameWrapper';
 import { WinModal } from '@/features/games/shared/WinModal';
 import { InstructionsModal } from '@/features/games/shared/InstructionsModal';
+import { usePlayAgainKey } from '@/features/games/shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { useChessGame, Difficulty, Piece, PieceColor } from './useChessGame';
 
@@ -480,6 +481,8 @@ export function ChessGame() {
     resetGame();
     setCursorPos({ row: 7, col: 4 });
   }, [resetGame, playClick]);
+
+  usePlayAgainKey(gameOver && winner !== 'white', handleReset);
 
   /* ---- keyboard navigation --------------------------------------- */
   const handleKeyDown = useCallback(

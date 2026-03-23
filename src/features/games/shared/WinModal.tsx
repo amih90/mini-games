@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { KidButton } from '@/components/ui/KidButton';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { useEffect } from 'react';
+import { usePlayAgainKey } from './usePlayAgainKey';
 
 interface WinModalProps {
   isOpen: boolean;
@@ -17,6 +18,8 @@ interface WinModalProps {
 export function WinModal({ isOpen, onPlayAgain, onClose, score, moves }: WinModalProps) {
   const t = useTranslations('common');
   const { playSuccess } = useRetroSounds();
+
+  usePlayAgainKey(isOpen, onPlayAgain);
 
   useEffect(() => {
     if (isOpen) {

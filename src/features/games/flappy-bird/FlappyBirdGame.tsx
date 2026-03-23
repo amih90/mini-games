@@ -6,6 +6,7 @@ import { GameWrapper } from '../shared/GameWrapper';
 import { WinModal } from '../shared/WinModal';
 import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
+import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 
 // ---------------------------------------------------------------------------
@@ -770,6 +771,8 @@ export default function FlappyBirdGame({ locale = 'en' }: FlappyBirdGameProps) {
     birdRef.current = { y: CANVAS_HEIGHT / 2, velocity: 0 };
     pipesRef.current = [];
   }, []);
+
+  usePlayAgainKey(gameState === 'gameover' && !showWin, restartGame);
 
   // -----------------------------------------------------------------------
   // Difficulty selection

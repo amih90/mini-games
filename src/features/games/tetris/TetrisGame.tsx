@@ -6,6 +6,7 @@ import { GameWrapper } from '../shared/GameWrapper';
 import { WinModal } from '../shared/WinModal';
 import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
+import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 
 // ---------------------------------------------------------------------------
@@ -602,6 +603,8 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
     scoreRef.current = 0;
     levelRef.current = 1;
   }, []);
+
+  usePlayAgainKey(gameState === 'gameover' && !showWin, restartGame);
 
   // --------------------------------------------------------------------------
   // Drawing helpers

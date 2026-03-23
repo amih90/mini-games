@@ -3,7 +3,6 @@
 import { useRef, useCallback, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Text, RoundedBox } from '@react-three/drei';
-import { Bloom, EffectComposer } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { GAME_CONSTANTS, GameState } from './usePingPongGame';
 
@@ -148,7 +147,6 @@ function ScoreDisplay({
         color="#4fc3f7"
         anchorX="center"
         anchorY="middle"
-        font="/fonts/inter-bold.woff"
       >
         {`${playerLabel}: ${playerScore}`}
       </Text>
@@ -158,7 +156,6 @@ function ScoreDisplay({
         color="#ef5350"
         anchorX="center"
         anchorY="middle"
-        font="/fonts/inter-bold.woff"
       >
         {`${aiLabel}: ${aiScore}`}
       </Text>
@@ -307,14 +304,7 @@ export function PingPongScene({
       {/* Score display */}
       <ScoreDisplay playerScore={playerScoreDisplay} aiScore={aiScoreDisplay} locale={locale} />
 
-      {/* Post-processing */}
-      <EffectComposer>
-        <Bloom
-          intensity={0.4}
-          luminanceThreshold={0.8}
-          luminanceSmoothing={0.9}
-        />
-      </EffectComposer>
+
     </>
   );
 }

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GameWrapper } from '../shared/GameWrapper';
 import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
+import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 
 // ---------------------------------------------------------------------------
@@ -719,6 +720,8 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
     },
     [generateClouds, playClick]
   );
+
+  usePlayAgainKey(gameState === 'gameover', useCallback(() => startGame(difficulty), [startGame, difficulty]));
 
   // Jump
   const jump = useCallback(() => {
