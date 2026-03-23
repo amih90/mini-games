@@ -81,22 +81,22 @@ const MEDIUM_RECIPES = ALL_RECIPES.filter(r =>
 
 const DIFFICULTY_CONFIG: Record<Difficulty, DifficultyConfig> = {
   easy: {
-    totalLevels: 2,
-    challengesPerLevel: 3,
+    totalLevels: 3,
+    challengesPerLevel: 8,
     availableColors: ['red', 'blue', 'yellow'],
     recipes: EASY_RECIPES,
     scoreMultiplier: 1,
   },
   medium: {
     totalLevels: 3,
-    challengesPerLevel: 4,
+    challengesPerLevel: 10,
     availableColors: ['red', 'blue', 'yellow', 'white'],
     recipes: MEDIUM_RECIPES,
     scoreMultiplier: 2,
   },
   hard: {
-    totalLevels: 3,
-    challengesPerLevel: 5,
+    totalLevels: 4,
+    challengesPerLevel: 12,
     availableColors: ['red', 'blue', 'yellow', 'white', 'black'],
     recipes: ALL_RECIPES,
     scoreMultiplier: 3,
@@ -791,9 +791,9 @@ export function ColorMixGame() {
 
       <FeedbackOverlay type={feedback} strings={strings} />
 
-      <div className="flex flex-col items-center gap-4 sm:gap-6 p-4 sm:p-6 pb-8 min-h-[80vh]" dir={isRtl ? 'rtl' : 'ltr'}>
+      <div className="flex flex-col items-center gap-4 sm:gap-6 p-4 sm:p-6 pb-8 min-h-[80vh] w-full max-w-3xl mx-auto" dir={isRtl ? 'rtl' : 'ltr'}>
         {/* HUD: Level + Score + Challenge counter */}
-        <div className="flex items-center justify-between w-full max-w-xl">
+        <div className="flex items-center justify-between w-full">
           <LevelDisplay level={level} isRtl={isRtl} locale={locale} />
           <div className="flex items-center gap-4">
             <div className="px-4 py-2 bg-white/80 rounded-full shadow font-bold text-gray-700">
@@ -822,7 +822,7 @@ export function ColorMixGame() {
         </div>
 
         {/* Color palette */}
-        <div className="flex flex-wrap justify-center gap-3 sm:gap-4 max-w-md">
+        <div className="flex justify-center gap-3 sm:gap-5">
           {availableColors.map(color => (
             <PaintTube
               key={color.id}
