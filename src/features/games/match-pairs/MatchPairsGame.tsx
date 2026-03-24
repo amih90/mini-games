@@ -588,14 +588,14 @@ export function MatchPairsGame() {
                       whileHover={{ scale: matched.has(idx) ? 1 : 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handleLeftTap(idx)}
-                      className={`py-3 px-3 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2 ${
+                      className={`py-3 px-3 rounded-xl font-bold shadow-sm transition-all flex flex-col items-center justify-center gap-1 ${
                         matched.has(idx) ? 'bg-emerald-200 text-emerald-500 opacity-60' :
                         selectedLeft === idx ? 'bg-teal-400 text-white ring-2 ring-teal-600' :
                         'bg-white text-teal-800 hover:bg-teal-50'
                       }`}
                     >
-                      <span className="text-3xl sm:text-4xl leading-none">{emoji}</span>
-                      <span className="text-sm sm:text-base">{label}</span>
+                      <span className="text-5xl sm:text-6xl leading-none">{emoji}</span>
+                      <span className="text-xs sm:text-sm leading-tight">{label}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -607,13 +607,13 @@ export function MatchPairsGame() {
                       whileHover={{ scale: matched.has(idx) ? 1 : 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handleRightTap(idx)}
-                      className={`py-3 px-3 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2 ${
+                      className={`py-3 px-3 rounded-xl font-bold shadow-sm transition-all flex flex-col items-center justify-center gap-1 ${
                         matched.has(idx) ? 'bg-emerald-200 text-emerald-500 opacity-60' :
                         'bg-white text-cyan-800 hover:bg-cyan-50'
                       }`}
                     >
-                      <span className="text-3xl sm:text-4xl leading-none">{emoji}</span>
-                      <span className="text-sm sm:text-base">{label}</span>
+                      <span className="text-5xl sm:text-6xl leading-none">{emoji}</span>
+                      <span className="text-xs sm:text-sm leading-tight">{label}</span>
                     </motion.button>
                   ))}
                 </div>
