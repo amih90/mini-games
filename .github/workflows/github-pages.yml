@@ -32,6 +32,14 @@ jobs:
         env:
           GITHUB_PAGES: 'true'
 
+      - name: Verify build output
+        run: |
+          test -d out || { echo "::error::Build output directory 'out' not found"; exit 1; }
+          test -f out/index.html || { echo "::error::index.html missing from build output"; exit 1; }
+          PAGE_COUNT=$(find out -name '*.html' | wc -l)
+          echo "Generated $PAGE_COUNT HTML pages"
+          test "$PAGE_COUNT" -gt 10 || { echo "::error::Too few pages ($PAGE_COUNT), expected more than 10"; exit 1; }
+
       - name: Add .nojekyll
         run: touch out/.nojekyll
 

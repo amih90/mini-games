@@ -430,13 +430,15 @@ function TargetDisplay({
 function FeedbackOverlay({
   type,
   strings,
+  wrongMixResult,
 }: {
   type: 'correct' | 'wrong' | null;
   strings: Record<string, string>;
+  wrongMixResult?: { hex: string; name: string; emoji: string } | null;
 }) {
   return (
     <AnimatePresence>
-      {type && (
+      {type === 'correct' && (
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -447,18 +449,30 @@ function FeedbackOverlay({
             initial={{ y: 50 }}
             animate={{ y: 0 }}
             exit={{ y: -50 }}
-            className={`
-              text-center px-8 py-5 sm:px-12 sm:py-8 rounded-2xl sm:rounded-3xl shadow-2xl mx-4
-              ${type === 'correct' ? 'bg-green-100 border-4 border-green-400' : 'bg-red-100 border-4 border-red-400'}
-            `}
+            className="text-center px-8 py-5 sm:px-12 sm:py-8 rounded-2xl sm:rounded-3xl shadow-2xl mx-4 bg-green-100 border-4 border-green-400"
           >
-            <span className="text-4xl sm:text-6xl block mb-2">
-              {type === 'correct' ? '🎉' : '🤔'}
-            </span>
-            <span className={`text-2xl font-bold ${type === 'correct' ? 'text-green-700' : 'text-red-700'}`}>
-              {type === 'correct' ? strings.correct : strings.wrong}
-            </span>
+            <span className="text-4xl sm:text-6xl block mb-2">🎉</span>
+            <span className="text-2xl font-bold text-green-700">{strings.correct}</span>
           </motion.div>
+        </motion.div>
+      )}
+      {type === 'wrong' && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 flex items-center justify-center pointer-events-none z-50"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-7xl sm:text-8xl">❌</span>
+            {wrongMixResult && (
+              <span
+                className="inline-block w-12 h-12 sm:w-16 sm:h-16 rounded-full border-4 border-white shadow-lg"
+                style={{ backgroundColor: wrongMixResult.hex }}
+                title={wrongMixResult.name}
+              />
+            )}
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
@@ -712,7 +726,7 @@ export function ColorMixGame() {
             setSelected([]);
             setMixResult(null);
             setIsAnimating(false);
-          }, 1500);
+          }, 800);
         }
       }, 600);
     }, 600);
@@ -850,7 +864,7 @@ export function ColorMixGame() {
         locale={locale}
       />
 
-      <FeedbackOverlay type={feedback} strings={strings} />
+      <FeedbackOverlay type={feedback} strings={strings} wrongMixResult={feedback === 'wrong' ? mixResult : null} />
 
       <div className="flex flex-col items-center gap-2 sm:gap-6 p-2 sm:p-6 pb-4 sm:pb-8 min-h-[80vh] w-full max-w-3xl mx-auto" dir={direction}>
         {/* HUD: Level + Score + Challenge counter */}

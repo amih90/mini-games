@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations, useLocale } from 'next-intl';
 import { GameWrapper } from '../shared/GameWrapper';
@@ -30,6 +30,7 @@ interface DifficultyConfig {
   scoreMultiplier: number;
 }
 
+// ── Animal + Food pairs ──
 const ANIMAL_PAIRS: PairDef[] = [
   { item: 'Dog', itemEmoji: '🐶', match: 'Bone', matchEmoji: '🦴', category: 'food' },
   { item: 'Cat', itemEmoji: '🐱', match: 'Fish', matchEmoji: '🐟', category: 'food' },
@@ -37,8 +38,15 @@ const ANIMAL_PAIRS: PairDef[] = [
   { item: 'Monkey', itemEmoji: '🐵', match: 'Banana', matchEmoji: '🍌', category: 'food' },
   { item: 'Bear', itemEmoji: '🐻', match: 'Honey', matchEmoji: '🍯', category: 'food' },
   { item: 'Mouse', itemEmoji: '🐭', match: 'Cheese', matchEmoji: '🧀', category: 'food' },
+  { item: 'Panda', itemEmoji: '🐼', match: 'Bamboo', matchEmoji: '🎋', category: 'food' },
+  { item: 'Squirrel', itemEmoji: '🐿️', match: 'Acorn', matchEmoji: '🌰', category: 'food' },
+  { item: 'Cow', itemEmoji: '🐄', match: 'Grass', matchEmoji: '🌾', category: 'food' },
+  { item: 'Pig', itemEmoji: '🐷', match: 'Apple', matchEmoji: '🍎', category: 'food' },
+  { item: 'Owl', itemEmoji: '🦉', match: 'Mouse', matchEmoji: '🐭', category: 'food' },
+  { item: 'Koala', itemEmoji: '🐨', match: 'Leaf', matchEmoji: '🍃', category: 'food' },
 ];
 
+// ── Animal + Home pairs ──
 const HOME_PAIRS: PairDef[] = [
   { item: 'Bird', itemEmoji: '🐦', match: 'Nest', matchEmoji: '🪺', category: 'home' },
   { item: 'Fish', itemEmoji: '🐟', match: 'Water', matchEmoji: '🌊', category: 'home' },
@@ -46,8 +54,15 @@ const HOME_PAIRS: PairDef[] = [
   { item: 'Bee', itemEmoji: '🐝', match: 'Hive', matchEmoji: '🐝', category: 'home' },
   { item: 'Penguin', itemEmoji: '🐧', match: 'Ice', matchEmoji: '🧊', category: 'home' },
   { item: 'Snail', itemEmoji: '🐌', match: 'Shell', matchEmoji: '🐚', category: 'home' },
+  { item: 'Fox', itemEmoji: '🦊', match: 'Den', matchEmoji: '🕳️', category: 'home' },
+  { item: 'Ant', itemEmoji: '🐜', match: 'Hill', matchEmoji: '⛰️', category: 'home' },
+  { item: 'Bat', itemEmoji: '🦇', match: 'Cave', matchEmoji: '🪨', category: 'home' },
+  { item: 'Frog', itemEmoji: '🐸', match: 'Pond', matchEmoji: '🪷', category: 'home' },
+  { item: 'Eagle', itemEmoji: '🦅', match: 'Mountain', matchEmoji: '🏔️', category: 'home' },
+  { item: 'Horse', itemEmoji: '🐴', match: 'Barn', matchEmoji: '🏠', category: 'home' },
 ];
 
+// ── Profession + Tool pairs ──
 const TOOL_PAIRS: PairDef[] = [
   { item: 'Chef', itemEmoji: '👨‍🍳', match: 'Pan', matchEmoji: '🍳', category: 'tool' },
   { item: 'Doctor', itemEmoji: '👩‍⚕️', match: 'Stethoscope', matchEmoji: '🩺', category: 'tool' },
@@ -55,12 +70,123 @@ const TOOL_PAIRS: PairDef[] = [
   { item: 'Farmer', itemEmoji: '🧑‍🌾', match: 'Tractor', matchEmoji: '🚜', category: 'tool' },
   { item: 'Astronaut', itemEmoji: '🧑‍🚀', match: 'Rocket', matchEmoji: '🚀', category: 'tool' },
   { item: 'Firefighter', itemEmoji: '🧑‍🚒', match: 'Truck', matchEmoji: '🚒', category: 'tool' },
+  { item: 'Teacher', itemEmoji: '🧑‍🏫', match: 'Book', matchEmoji: '📚', category: 'tool' },
+  { item: 'Musician', itemEmoji: '🧑‍🎤', match: 'Guitar', matchEmoji: '🎸', category: 'tool' },
+  { item: 'Scientist', itemEmoji: '🧑‍🔬', match: 'Microscope', matchEmoji: '🔬', category: 'tool' },
+  { item: 'Pilot', itemEmoji: '👨‍✈️', match: 'Airplane', matchEmoji: '✈️', category: 'tool' },
+  { item: 'Builder', itemEmoji: '👷', match: 'Hammer', matchEmoji: '🔨', category: 'tool' },
+  { item: 'Police', itemEmoji: '👮', match: 'Badge', matchEmoji: '🛡️', category: 'tool' },
 ];
 
+// ── Baby Animal pairs (who's my baby?) ──
+const BABY_PAIRS: PairDef[] = [
+  { item: 'Chicken', itemEmoji: '🐔', match: 'Chick', matchEmoji: '🐣', category: 'baby' },
+  { item: 'Duck', itemEmoji: '🦆', match: 'Duckling', matchEmoji: '🐥', category: 'baby' },
+  { item: 'Dog', itemEmoji: '🐕', match: 'Puppy', matchEmoji: '🐶', category: 'baby' },
+  { item: 'Cat', itemEmoji: '🐈', match: 'Kitten', matchEmoji: '🐱', category: 'baby' },
+  { item: 'Sheep', itemEmoji: '🐑', match: 'Lamb', matchEmoji: '🐏', category: 'baby' },
+  { item: 'Kangaroo', itemEmoji: '🦘', match: 'Joey', matchEmoji: '🦘', category: 'baby' },
+  { item: 'Whale', itemEmoji: '🐋', match: 'Calf', matchEmoji: '🐳', category: 'baby' },
+  { item: 'Butterfly', itemEmoji: '🦋', match: 'Caterpillar', matchEmoji: '🐛', category: 'baby' },
+  { item: 'Frog', itemEmoji: '🐸', match: 'Tadpole', matchEmoji: '🐸', category: 'baby' },
+  { item: 'Lion', itemEmoji: '🦁', match: 'Cub', matchEmoji: '🐱', category: 'baby' },
+];
+
+// ── Sport + Equipment pairs ──
+const SPORT_PAIRS: PairDef[] = [
+  { item: 'Soccer', itemEmoji: '⚽', match: 'Goal', matchEmoji: '🥅', category: 'sport' },
+  { item: 'Basketball', itemEmoji: '🏀', match: 'Hoop', matchEmoji: '🏀', category: 'sport' },
+  { item: 'Tennis', itemEmoji: '🎾', match: 'Racket', matchEmoji: '🏸', category: 'sport' },
+  { item: 'Swimming', itemEmoji: '🏊', match: 'Pool', matchEmoji: '🌊', category: 'sport' },
+  { item: 'Baseball', itemEmoji: '⚾', match: 'Bat', matchEmoji: '🏏', category: 'sport' },
+  { item: 'Skiing', itemEmoji: '⛷️', match: 'Snow', matchEmoji: '❄️', category: 'sport' },
+  { item: 'Cycling', itemEmoji: '🚴', match: 'Bicycle', matchEmoji: '🚲', category: 'sport' },
+  { item: 'Archery', itemEmoji: '🏹', match: 'Target', matchEmoji: '🎯', category: 'sport' },
+  { item: 'Surfing', itemEmoji: '🏄', match: 'Wave', matchEmoji: '🌊', category: 'sport' },
+  { item: 'Fencing', itemEmoji: '🤺', match: 'Sword', matchEmoji: '⚔️', category: 'sport' },
+];
+
+// ── Weather + What to wear/bring ──
+const WEATHER_PAIRS: PairDef[] = [
+  { item: 'Rain', itemEmoji: '🌧️', match: 'Umbrella', matchEmoji: '☂️', category: 'weather' },
+  { item: 'Sun', itemEmoji: '☀️', match: 'Sunglasses', matchEmoji: '🕶️', category: 'weather' },
+  { item: 'Snow', itemEmoji: '🌨️', match: 'Scarf', matchEmoji: '🧣', category: 'weather' },
+  { item: 'Wind', itemEmoji: '💨', match: 'Kite', matchEmoji: '🪁', category: 'weather' },
+  { item: 'Cold', itemEmoji: '🥶', match: 'Coat', matchEmoji: '🧥', category: 'weather' },
+  { item: 'Hot', itemEmoji: '🥵', match: 'Ice Cream', matchEmoji: '🍦', category: 'weather' },
+  { item: 'Night', itemEmoji: '🌙', match: 'Flashlight', matchEmoji: '🔦', category: 'weather' },
+  { item: 'Storm', itemEmoji: '⛈️', match: 'Boots', matchEmoji: '🥾', category: 'weather' },
+];
+
+// ── Vehicle + Where it goes ──
+const VEHICLE_PAIRS: PairDef[] = [
+  { item: 'Car', itemEmoji: '🚗', match: 'Road', matchEmoji: '🛣️', category: 'vehicle' },
+  { item: 'Boat', itemEmoji: '⛵', match: 'Sea', matchEmoji: '🌊', category: 'vehicle' },
+  { item: 'Plane', itemEmoji: '✈️', match: 'Sky', matchEmoji: '☁️', category: 'vehicle' },
+  { item: 'Train', itemEmoji: '🚂', match: 'Track', matchEmoji: '🛤️', category: 'vehicle' },
+  { item: 'Submarine', itemEmoji: '🚢', match: 'Ocean', matchEmoji: '🐙', category: 'vehicle' },
+  { item: 'Helicopter', itemEmoji: '🚁', match: 'Helipad', matchEmoji: '🏥', category: 'vehicle' },
+  { item: 'Ambulance', itemEmoji: '🚑', match: 'Hospital', matchEmoji: '🏥', category: 'vehicle' },
+  { item: 'Bus', itemEmoji: '🚌', match: 'Stop', matchEmoji: '🚏', category: 'vehicle' },
+];
+
+// ── Country + Flag pairs ──
+const FLAG_PAIRS: PairDef[] = [
+  { item: 'USA', itemEmoji: '🗽', match: 'Flag', matchEmoji: '🇺🇸', category: 'flag' },
+  { item: 'Japan', itemEmoji: '🗾', match: 'Flag', matchEmoji: '🇯🇵', category: 'flag' },
+  { item: 'Brazil', itemEmoji: '🎉', match: 'Flag', matchEmoji: '🇧🇷', category: 'flag' },
+  { item: 'France', itemEmoji: '🗼', match: 'Flag', matchEmoji: '🇫🇷', category: 'flag' },
+  { item: 'Italy', itemEmoji: '🍕', match: 'Flag', matchEmoji: '🇮🇹', category: 'flag' },
+  { item: 'China', itemEmoji: '🏯', match: 'Flag', matchEmoji: '🇨🇳', category: 'flag' },
+  { item: 'UK', itemEmoji: '💂', match: 'Flag', matchEmoji: '🇬🇧', category: 'flag' },
+  { item: 'Australia', itemEmoji: '🦘', match: 'Flag', matchEmoji: '🇦🇺', category: 'flag' },
+  { item: 'Mexico', itemEmoji: '🌮', match: 'Flag', matchEmoji: '🇲🇽', category: 'flag' },
+  { item: 'India', itemEmoji: '🕌', match: 'Flag', matchEmoji: '🇮🇳', category: 'flag' },
+];
+
+// ── Fruit + Color pairs ──
+const FRUIT_PAIRS: PairDef[] = [
+  { item: 'Strawberry', itemEmoji: '🍓', match: 'Red', matchEmoji: '🔴', category: 'fruit' },
+  { item: 'Blueberry', itemEmoji: '🫐', match: 'Blue', matchEmoji: '🔵', category: 'fruit' },
+  { item: 'Lemon', itemEmoji: '🍋', match: 'Yellow', matchEmoji: '🟡', category: 'fruit' },
+  { item: 'Orange', itemEmoji: '🍊', match: 'Orange', matchEmoji: '🟠', category: 'fruit' },
+  { item: 'Grapes', itemEmoji: '🍇', match: 'Purple', matchEmoji: '🟣', category: 'fruit' },
+  { item: 'Lime', itemEmoji: '🍈', match: 'Green', matchEmoji: '🟢', category: 'fruit' },
+  { item: 'Coconut', itemEmoji: '🥥', match: 'White', matchEmoji: '⚪', category: 'fruit' },
+  { item: 'Blackberry', itemEmoji: '🫐', match: 'Black', matchEmoji: '⚫', category: 'fruit' },
+];
+
+// ── Music + Instrument pairs ──
+const MUSIC_PAIRS: PairDef[] = [
+  { item: 'Orchestra', itemEmoji: '🎼', match: 'Violin', matchEmoji: '🎻', category: 'music' },
+  { item: 'Rock', itemEmoji: '🤘', match: 'Guitar', matchEmoji: '🎸', category: 'music' },
+  { item: 'Jazz', itemEmoji: '🎷', match: 'Saxophone', matchEmoji: '🎷', category: 'music' },
+  { item: 'March', itemEmoji: '🎺', match: 'Trumpet', matchEmoji: '🎺', category: 'music' },
+  { item: 'Percussion', itemEmoji: '🥁', match: 'Drums', matchEmoji: '🥁', category: 'music' },
+  { item: 'Piano', itemEmoji: '🎹', match: 'Keys', matchEmoji: '🎹', category: 'music' },
+];
+
+// ── Space pairs ──
+const SPACE_PAIRS: PairDef[] = [
+  { item: 'Earth', itemEmoji: '🌍', match: 'Moon', matchEmoji: '🌙', category: 'space' },
+  { item: 'Sun', itemEmoji: '☀️', match: 'Star', matchEmoji: '⭐', category: 'space' },
+  { item: 'Saturn', itemEmoji: '🪐', match: 'Rings', matchEmoji: '💫', category: 'space' },
+  { item: 'Astronaut', itemEmoji: '🧑‍🚀', match: 'Spacesuit', matchEmoji: '👨‍🚀', category: 'space' },
+  { item: 'Telescope', itemEmoji: '🔭', match: 'Stars', matchEmoji: '🌟', category: 'space' },
+  { item: 'Alien', itemEmoji: '👽', match: 'UFO', matchEmoji: '🛸', category: 'space' },
+  { item: 'Comet', itemEmoji: '☄️', match: 'Tail', matchEmoji: '✨', category: 'space' },
+  { item: 'Rocket', itemEmoji: '🚀', match: 'Launch', matchEmoji: '🔥', category: 'space' },
+];
+
+// ── All pools by difficulty ──
+const EASY_POOL = [...ANIMAL_PAIRS, ...BABY_PAIRS, ...FRUIT_PAIRS, ...WEATHER_PAIRS];
+const MEDIUM_POOL = [...EASY_POOL, ...HOME_PAIRS, ...SPORT_PAIRS, ...VEHICLE_PAIRS, ...MUSIC_PAIRS];
+const HARD_POOL = [...MEDIUM_POOL, ...TOOL_PAIRS, ...FLAG_PAIRS, ...SPACE_PAIRS];
+
 const DIFFICULTY_CONFIG: Record<Difficulty, DifficultyConfig> = {
-  easy: { totalLevels: 3, pairsPerLevel: 3, pool: ANIMAL_PAIRS, scoreMultiplier: 1 },
-  medium: { totalLevels: 4, pairsPerLevel: 4, pool: [...ANIMAL_PAIRS, ...HOME_PAIRS], scoreMultiplier: 1.5 },
-  hard: { totalLevels: 5, pairsPerLevel: 5, pool: [...ANIMAL_PAIRS, ...HOME_PAIRS, ...TOOL_PAIRS], scoreMultiplier: 2 },
+  easy: { totalLevels: 5, pairsPerLevel: 3, pool: EASY_POOL, scoreMultiplier: 1 },
+  medium: { totalLevels: 6, pairsPerLevel: 4, pool: MEDIUM_POOL, scoreMultiplier: 1.5 },
+  hard: { totalLevels: 8, pairsPerLevel: 5, pool: HARD_POOL, scoreMultiplier: 2 },
 };
 
 function shuffle<T>(arr: T[]): T[] {
@@ -72,10 +198,44 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+// ── Pair history: avoids showing the same pairs repeatedly ──
+const HISTORY_KEY = 'match-pairs-history';
+const MAX_HISTORY = 60;
+
+function pairKey(p: PairDef): string {
+  return `${p.itemEmoji}→${p.matchEmoji}`;
+}
+
+function getHistory(): string[] {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function addToHistory(pairs: PairDef[]): void {
+  try {
+    const history = getHistory();
+    const newKeys = pairs.map(pairKey);
+    const updated = [...history, ...newKeys].slice(-MAX_HISTORY);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+  } catch { /* localStorage unavailable */ }
+}
+
+function pickFreshPairs(pool: PairDef[], count: number): PairDef[] {
+  const history = new Set(getHistory());
+  const unseen = pool.filter(p => !history.has(pairKey(p)));
+  const seen = pool.filter(p => history.has(pairKey(p)));
+
+  // Prefer unseen, fill with shuffled seen if not enough
+  const candidates = [...shuffle(unseen), ...shuffle(seen)];
+  return candidates.slice(0, count);
+}
+
 const UI_STRINGS: Record<string, Record<string, string>> = {
   en: {
     title: 'Match Pairs',
-    description: 'Match animals to their food, homes, or tools!',
+    description: 'Match pairs: animals, sports, weather, space, and more!',
     easy: '😊 Easy', medium: '🤔 Medium', hard: '🔥 Hard',
     tapInstruction: 'Tap an item on the left, then its match on the right!',
     levelComplete: 'Level {n} Complete!',
@@ -84,7 +244,7 @@ const UI_STRINGS: Record<string, Record<string, string>> = {
   },
   he: {
     title: 'התאמת זוגות',
-    description: 'התאימו חיות לאוכל, לבתים או לכלים שלהם!',
+    description: 'התאימו זוגות: חיות, ספורט, מזג אוויר, חלל ועוד!',
     easy: '😊 קל', medium: '🤔 בינוני', hard: '🔥 קשה',
     tapInstruction: 'הקישו על פריט בצד שמאל, ואז על ההתאמה בצד ימין!',
     levelComplete: 'שלב {n} הושלם!',
@@ -93,7 +253,7 @@ const UI_STRINGS: Record<string, Record<string, string>> = {
   },
   zh: {
     title: '配对游戏',
-    description: '将动物与它们的食物、家或工具配对！',
+    description: '配对挑战：动物、运动、天气、太空等等！',
     easy: '😊 简单', medium: '🤔 中等', hard: '🔥 困难',
     tapInstruction: '点击左边的项目，然后点击右边的匹配项！',
     levelComplete: '第{n}关完成！',
@@ -102,7 +262,7 @@ const UI_STRINGS: Record<string, Record<string, string>> = {
   },
   es: {
     title: 'Emparejar',
-    description: '¡Empareja animales con su comida, hogar o herramientas!',
+    description: '¡Empareja: animales, deportes, clima, espacio y más!',
     easy: '😊 Fácil', medium: '🤔 Medio', hard: '🔥 Difícil',
     tapInstruction: '¡Toca un elemento a la izquierda, luego su pareja a la derecha!',
     levelComplete: '¡Nivel {n} Completado!',
@@ -182,14 +342,36 @@ export function MatchPairsGame() {
 
   const config = DIFFICULTY_CONFIG[difficulty];
 
+  // Track which pairs were used this session so we don't repeat within one game
+  const sessionUsed = useRef<Set<string>>(new Set());
+
   const { leftItems, rightItems, pairs } = useMemo(() => {
-    const picked = shuffle(config.pool).slice(0, config.pairsPerLevel);
+    const history = new Set(getHistory());
+    const usedThisSession = sessionUsed.current;
+
+    // Priority: 1) unseen + not used this session, 2) unseen, 3) not used this session, 4) anything
+    const fresh = config.pool.filter(p => !history.has(pairKey(p)) && !usedThisSession.has(pairKey(p)));
+    const unseenOnly = config.pool.filter(p => !history.has(pairKey(p)));
+    const sessionFresh = config.pool.filter(p => !usedThisSession.has(pairKey(p)));
+    const candidates = fresh.length >= config.pairsPerLevel ? shuffle(fresh) :
+      unseenOnly.length >= config.pairsPerLevel ? shuffle(unseenOnly) :
+      sessionFresh.length >= config.pairsPerLevel ? shuffle(sessionFresh) :
+      shuffle(config.pool);
+
+    const picked = candidates.slice(0, config.pairsPerLevel);
+
+    // Record what we picked
+    picked.forEach(p => usedThisSession.add(pairKey(p)));
+    addToHistory(picked);
+
     const left = picked.map((p, i) => ({ idx: i, label: p.item, emoji: p.itemEmoji }));
     const right = shuffle(picked.map((p, i) => ({ idx: i, label: p.match, emoji: p.matchEmoji })));
     return { leftItems: left, rightItems: right, pairs: picked };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config, level, phase]);
 
   const handleStart = useCallback((d: Difficulty) => {
+    sessionUsed.current = new Set();
     setDifficulty(d);
     setPhase('playing');
     setLevel(1);
