@@ -183,6 +183,102 @@ const EASY_POOL = [...ANIMAL_PAIRS, ...BABY_PAIRS, ...FRUIT_PAIRS, ...WEATHER_PA
 const MEDIUM_POOL = [...EASY_POOL, ...HOME_PAIRS, ...SPORT_PAIRS, ...VEHICLE_PAIRS, ...MUSIC_PAIRS];
 const HARD_POOL = [...MEDIUM_POOL, ...TOOL_PAIRS, ...FLAG_PAIRS, ...SPACE_PAIRS];
 
+// ── Localized pair item names ──
+const PAIR_NAMES: Record<string, Record<string, string>> = {
+  en: {
+    Dog:'Dog',Cat:'Cat',Rabbit:'Rabbit',Monkey:'Monkey',Bear:'Bear',Mouse:'Mouse',Panda:'Panda',Squirrel:'Squirrel',Cow:'Cow',Pig:'Pig',Owl:'Owl',Koala:'Koala',
+    Bone:'Bone',Fish:'Fish',Carrot:'Carrot',Banana:'Banana',Honey:'Honey',Cheese:'Cheese',Bamboo:'Bamboo',Acorn:'Acorn',Grass:'Grass',Apple:'Apple',Leaf:'Leaf',
+    Bird:'Bird',Spider:'Spider',Bee:'Bee',Penguin:'Penguin',Snail:'Snail',Fox:'Fox',Ant:'Ant',Bat:'Bat',Frog:'Frog',Eagle:'Eagle',Horse:'Horse',
+    Nest:'Nest',Water:'Water',Web:'Web',Hive:'Hive',Ice:'Ice',Shell:'Shell',Den:'Den',Hill:'Hill',Cave:'Cave',Pond:'Pond',Mountain:'Mountain',Barn:'Barn',
+    Chef:'Chef',Doctor:'Doctor',Artist:'Artist',Farmer:'Farmer',Astronaut:'Astronaut',Firefighter:'Firefighter',Teacher:'Teacher',Musician:'Musician',Scientist:'Scientist',Pilot:'Pilot',Builder:'Builder',Police:'Police',
+    Pan:'Pan',Stethoscope:'Stethoscope',Palette:'Palette',Tractor:'Tractor',Rocket:'Rocket',Truck:'Truck',Book:'Book',Guitar:'Guitar',Microscope:'Microscope',Airplane:'Airplane',Hammer:'Hammer',Badge:'Badge',
+    Chicken:'Chicken',Duck:'Duck',Sheep:'Sheep',Kangaroo:'Kangaroo',Whale:'Whale',Butterfly:'Butterfly',Lion:'Lion',
+    Chick:'Chick',Duckling:'Duckling',Puppy:'Puppy',Kitten:'Kitten',Lamb:'Lamb',Joey:'Joey',Calf:'Calf',Caterpillar:'Caterpillar',Tadpole:'Tadpole',Cub:'Cub',
+    Soccer:'Soccer',Basketball:'Basketball',Tennis:'Tennis',Swimming:'Swimming',Baseball:'Baseball',Skiing:'Skiing',Cycling:'Cycling',Archery:'Archery',Surfing:'Surfing',Fencing:'Fencing',
+    Goal:'Goal',Hoop:'Hoop',Racket:'Racket',Pool:'Pool',Bicycle:'Bicycle',Target:'Target',Wave:'Wave',Sword:'Sword',Snow:'Snow',
+    Rain:'Rain',Sun:'Sun',Wind:'Wind',Cold:'Cold',Hot:'Hot',Night:'Night',Storm:'Storm',
+    Umbrella:'Umbrella',Sunglasses:'Sunglasses',Scarf:'Scarf',Kite:'Kite',Coat:'Coat','Ice Cream':'Ice Cream',Flashlight:'Flashlight',Boots:'Boots',
+    Car:'Car',Boat:'Boat',Plane:'Plane',Train:'Train',Submarine:'Submarine',Helicopter:'Helicopter',Ambulance:'Ambulance',Bus:'Bus',
+    Road:'Road',Sea:'Sea',Sky:'Sky',Track:'Track',Ocean:'Ocean',Helipad:'Helipad',Hospital:'Hospital',Stop:'Stop',
+    USA:'USA',Japan:'Japan',Brazil:'Brazil',France:'France',Italy:'Italy',China:'China',UK:'UK',Australia:'Australia',Mexico:'Mexico',India:'India',Flag:'Flag',
+    Strawberry:'Strawberry',Blueberry:'Blueberry',Lemon:'Lemon',Orange:'Orange',Grapes:'Grapes',Lime:'Lime',Coconut:'Coconut',Blackberry:'Blackberry',
+    Red:'Red',Blue:'Blue',Yellow:'Yellow',Purple:'Purple',Green:'Green',White:'White',Black:'Black',
+    Orchestra:'Orchestra',Rock:'Rock',Jazz:'Jazz',March:'March',Percussion:'Percussion',Piano:'Piano',
+    Violin:'Violin',Saxophone:'Saxophone',Trumpet:'Trumpet',Drums:'Drums',Keys:'Keys',
+    Earth:'Earth',Saturn:'Saturn',Telescope:'Telescope',Alien:'Alien',Comet:'Comet',
+    Moon:'Moon',Star:'Star',Rings:'Rings',Spacesuit:'Spacesuit',Stars:'Stars',UFO:'UFO',Tail:'Tail',Launch:'Launch',
+  },
+  he: {
+    Dog:'כלב',Cat:'חתול',Rabbit:'ארנב',Monkey:'קוף',Bear:'דוב',Mouse:'עכבר',Panda:'פנדה',Squirrel:'סנאי',Cow:'פרה',Pig:'חזיר',Owl:'ינשוף',Koala:'קואלה',
+    Bone:'עצם',Fish:'דג',Carrot:'גזר',Banana:'בננה',Honey:'דבש',Cheese:'גבינה',Bamboo:'במבוק',Acorn:'בלוט',Grass:'דשא',Apple:'תפוח',Leaf:'עלה',
+    Bird:'ציפור',Spider:'עכביש',Bee:'דבורה',Penguin:'פינגווין',Snail:'חילזון',Fox:'שועל',Ant:'נמלה',Bat:'עטלף',Frog:'צפרדע',Eagle:'נשר',Horse:'סוס',
+    Nest:'קן',Water:'מים',Web:'רשת',Hive:'כוורת',Ice:'קרח',Shell:'צדף',Den:'מאורה',Hill:'גבעה',Cave:'מערה',Pond:'בריכה',Mountain:'הר',Barn:'אורווה',
+    Chef:'שף',Doctor:'רופא',Artist:'אמן',Farmer:'חקלאי',Astronaut:'אסטרונאוט',Firefighter:'כבאי',Teacher:'מורה',Musician:'מוזיקאי',Scientist:'מדען',Pilot:'טייס',Builder:'בנאי',Police:'שוטר',
+    Pan:'מחבת',Stethoscope:'סטטוסקופ',Palette:'פלטה',Tractor:'טרקטור',Rocket:'רקטה',Truck:'משאית',Book:'ספר',Guitar:'גיטרה',Microscope:'מיקרוסקופ',Airplane:'מטוס',Hammer:'פטיש',Badge:'תג',
+    Chicken:'תרנגולת',Duck:'ברווז',Sheep:'כבשה',Kangaroo:'קנגורו',Whale:'לווייתן',Butterfly:'פרפר',Lion:'אריה',
+    Chick:'אפרוח',Duckling:'ברווזון',Puppy:'גור',Kitten:'חתלתול',Lamb:'טלה',Joey:'גור קנגורו',Calf:'עגל',Caterpillar:'זחל',Tadpole:'ראשן',Cub:'גור',
+    Soccer:'כדורגל',Basketball:'כדורסל',Tennis:'טניס',Swimming:'שחייה',Baseball:'בייסבול',Skiing:'סקי',Cycling:'רכיבה',Archery:'קשתות',Surfing:'גלישה',Fencing:'סיוף',
+    Goal:'שער',Hoop:'סל',Racket:'מחבט',Pool:'בריכה',Bicycle:'אופניים',Target:'מטרה',Wave:'גל',Sword:'חרב',Snow:'שלג',
+    Rain:'גשם',Sun:'שמש',Wind:'רוח',Cold:'קור',Hot:'חום',Night:'לילה',Storm:'סערה',
+    Umbrella:'מטרייה',Sunglasses:'משקפי שמש',Scarf:'צעיף',Kite:'עפיפון',Coat:'מעיל','Ice Cream':'גלידה',Flashlight:'פנס',Boots:'מגפיים',
+    Car:'מכונית',Boat:'סירה',Plane:'מטוס',Train:'רכבת',Submarine:'צוללת',Helicopter:'מסוק',Ambulance:'אמבולנס',Bus:'אוטובוס',
+    Road:'כביש',Sea:'ים',Sky:'שמיים',Track:'מסילה',Ocean:'אוקיינוס',Helipad:'מנחת',Hospital:'בית חולים',Stop:'תחנה',
+    USA:'ארה"ב',Japan:'יפן',Brazil:'ברזיל',France:'צרפת',Italy:'איטליה',China:'סין',UK:'בריטניה',Australia:'אוסטרליה',Mexico:'מקסיקו',India:'הודו',Flag:'דגל',
+    Strawberry:'תות',Blueberry:'אוכמנית',Lemon:'לימון',Orange:'תפוז',Grapes:'ענבים',Lime:'ליים',Coconut:'קוקוס',Blackberry:'אוכמנית',
+    Red:'אדום',Blue:'כחול',Yellow:'צהוב',Purple:'סגול',Green:'ירוק',White:'לבן',Black:'שחור',
+    Orchestra:'תזמורת',Rock:'רוק',Jazz:'ג\'אז',March:'מצעד',Percussion:'כלי הקשה',Piano:'פסנתר',
+    Violin:'כינור',Saxophone:'סקסופון',Trumpet:'חצוצרה',Drums:'תופים',Keys:'קלידים',
+    Earth:'כדור הארץ',Saturn:'שבתאי',Telescope:'טלסקופ',Alien:'חייזר',Comet:'שביט',
+    Moon:'ירח',Star:'כוכב',Rings:'טבעות',Spacesuit:'חליפת חלל',Stars:'כוכבים',UFO:'עב"ם',Tail:'זנב',Launch:'שיגור',
+  },
+  zh: {
+    Dog:'狗',Cat:'猫',Rabbit:'兔子',Monkey:'猴子',Bear:'熊',Mouse:'老鼠',Panda:'熊猫',Squirrel:'松鼠',Cow:'牛',Pig:'猪',Owl:'猫头鹰',Koala:'考拉',
+    Bone:'骨头',Fish:'鱼',Carrot:'胡萝卜',Banana:'香蕉',Honey:'蜂蜜',Cheese:'奶酪',Bamboo:'竹子',Acorn:'橡子',Grass:'草',Apple:'苹果',Leaf:'叶子',
+    Bird:'鸟',Spider:'蜘蛛',Bee:'蜜蜂',Penguin:'企鹅',Snail:'蜗牛',Fox:'狐狸',Ant:'蚂蚁',Bat:'蝙蝠',Frog:'青蛙',Eagle:'老鹰',Horse:'马',
+    Nest:'巢',Water:'水',Web:'网',Hive:'蜂巢',Ice:'冰',Shell:'壳',Den:'洞穴',Hill:'山丘',Cave:'洞',Pond:'池塘',Mountain:'山',Barn:'马棚',
+    Chef:'厨师',Doctor:'医生',Artist:'画家',Farmer:'农民',Astronaut:'宇航员',Firefighter:'消防员',Teacher:'老师',Musician:'音乐家',Scientist:'科学家',Pilot:'飞行员',Builder:'建筑工',Police:'警察',
+    Pan:'锅',Stethoscope:'听诊器',Palette:'调色板',Tractor:'拖拉机',Rocket:'火箭',Truck:'消防车',Book:'书',Guitar:'吉他',Microscope:'显微镜',Airplane:'飞机',Hammer:'锤子',Badge:'徽章',
+    Chicken:'母鸡',Duck:'鸭子',Sheep:'绵羊',Kangaroo:'袋鼠',Whale:'鲸鱼',Butterfly:'蝴蝶',Lion:'狮子',
+    Chick:'小鸡',Duckling:'小鸭',Puppy:'小狗',Kitten:'小猫',Lamb:'小羊',Joey:'小袋鼠',Calf:'小牛',Caterpillar:'毛毛虫',Tadpole:'蝌蚪',Cub:'幼崽',
+    Soccer:'足球',Basketball:'篮球',Tennis:'网球',Swimming:'游泳',Baseball:'棒球',Skiing:'滑雪',Cycling:'骑车',Archery:'射箭',Surfing:'冲浪',Fencing:'击剑',
+    Goal:'球门',Hoop:'篮筐',Racket:'球拍',Pool:'泳池',Bicycle:'自行车',Target:'靶',Wave:'浪',Sword:'剑',Snow:'雪',
+    Rain:'雨',Sun:'太阳',Wind:'风',Cold:'冷',Hot:'热',Night:'夜晚',Storm:'暴风',
+    Umbrella:'雨伞',Sunglasses:'太阳镜',Scarf:'围巾',Kite:'风筝',Coat:'外套','Ice Cream':'冰淇淋',Flashlight:'手电筒',Boots:'靴子',
+    Car:'汽车',Boat:'船',Plane:'飞机',Train:'火车',Submarine:'潜艇',Helicopter:'直升机',Ambulance:'救护车',Bus:'公交车',
+    Road:'公路',Sea:'海',Sky:'天空',Track:'铁轨',Ocean:'海洋',Helipad:'停机坪',Hospital:'医院',Stop:'站台',
+    USA:'美国',Japan:'日本',Brazil:'巴西',France:'法国',Italy:'意大利',China:'中国',UK:'英国',Australia:'澳大利亚',Mexico:'墨西哥',India:'印度',Flag:'国旗',
+    Strawberry:'草莓',Blueberry:'蓝莓',Lemon:'柠檬',Orange:'橙子',Grapes:'葡萄',Lime:'青柠',Coconut:'椰子',Blackberry:'黑莓',
+    Red:'红',Blue:'蓝',Yellow:'黄',Purple:'紫',Green:'绿',White:'白',Black:'黑',
+    Orchestra:'管弦乐',Rock:'摇滚',Jazz:'爵士',March:'进行曲',Percussion:'打击乐',Piano:'钢琴',
+    Violin:'小提琴',Saxophone:'萨克斯',Trumpet:'小号',Drums:'鼓',Keys:'琴键',
+    Earth:'地球',Saturn:'土星',Telescope:'望远镜',Alien:'外星人',Comet:'彗星',
+    Moon:'月亮',Star:'星星',Rings:'星环',Spacesuit:'太空服',Stars:'星星',UFO:'飞碟',Tail:'尾巴',Launch:'发射',
+  },
+  es: {
+    Dog:'Perro',Cat:'Gato',Rabbit:'Conejo',Monkey:'Mono',Bear:'Oso',Mouse:'Ratón',Panda:'Panda',Squirrel:'Ardilla',Cow:'Vaca',Pig:'Cerdo',Owl:'Búho',Koala:'Koala',
+    Bone:'Hueso',Fish:'Pez',Carrot:'Zanahoria',Banana:'Plátano',Honey:'Miel',Cheese:'Queso',Bamboo:'Bambú',Acorn:'Bellota',Grass:'Hierba',Apple:'Manzana',Leaf:'Hoja',
+    Bird:'Pájaro',Spider:'Araña',Bee:'Abeja',Penguin:'Pingüino',Snail:'Caracol',Fox:'Zorro',Ant:'Hormiga',Bat:'Murciélago',Frog:'Rana',Eagle:'Águila',Horse:'Caballo',
+    Nest:'Nido',Water:'Agua',Web:'Telaraña',Hive:'Colmena',Ice:'Hielo',Shell:'Concha',Den:'Madriguera',Hill:'Colina',Cave:'Cueva',Pond:'Estanque',Mountain:'Montaña',Barn:'Establo',
+    Chef:'Chef',Doctor:'Doctor',Artist:'Artista',Farmer:'Granjero',Astronaut:'Astronauta',Firefighter:'Bombero',Teacher:'Maestro',Musician:'Músico',Scientist:'Científico',Pilot:'Piloto',Builder:'Constructor',Police:'Policía',
+    Pan:'Sartén',Stethoscope:'Estetoscopio',Palette:'Paleta',Tractor:'Tractor',Rocket:'Cohete',Truck:'Camión',Book:'Libro',Guitar:'Guitarra',Microscope:'Microscopio',Airplane:'Avión',Hammer:'Martillo',Badge:'Placa',
+    Chicken:'Gallina',Duck:'Pato',Sheep:'Oveja',Kangaroo:'Canguro',Whale:'Ballena',Butterfly:'Mariposa',Lion:'León',
+    Chick:'Pollito',Duckling:'Patito',Puppy:'Cachorro',Kitten:'Gatito',Lamb:'Cordero',Joey:'Cría',Calf:'Ternero',Caterpillar:'Oruga',Tadpole:'Renacuajo',Cub:'Cachorro',
+    Soccer:'Fútbol',Basketball:'Baloncesto',Tennis:'Tenis',Swimming:'Natación',Baseball:'Béisbol',Skiing:'Esquí',Cycling:'Ciclismo',Archery:'Tiro con arco',Surfing:'Surf',Fencing:'Esgrima',
+    Goal:'Portería',Hoop:'Aro',Racket:'Raqueta',Pool:'Piscina',Bicycle:'Bicicleta',Target:'Diana',Wave:'Ola',Sword:'Espada',Snow:'Nieve',
+    Rain:'Lluvia',Sun:'Sol',Wind:'Viento',Cold:'Frío',Hot:'Calor',Night:'Noche',Storm:'Tormenta',
+    Umbrella:'Paraguas',Sunglasses:'Gafas de sol',Scarf:'Bufanda',Kite:'Cometa',Coat:'Abrigo','Ice Cream':'Helado',Flashlight:'Linterna',Boots:'Botas',
+    Car:'Coche',Boat:'Barco',Plane:'Avión',Train:'Tren',Submarine:'Submarino',Helicopter:'Helicóptero',Ambulance:'Ambulancia',Bus:'Autobús',
+    Road:'Carretera',Sea:'Mar',Sky:'Cielo',Track:'Vía',Ocean:'Océano',Helipad:'Helipuerto',Hospital:'Hospital',Stop:'Parada',
+    USA:'EE.UU.',Japan:'Japón',Brazil:'Brasil',France:'Francia',Italy:'Italia',China:'China',UK:'R. Unido',Australia:'Australia',Mexico:'México',India:'India',Flag:'Bandera',
+    Strawberry:'Fresa',Blueberry:'Arándano',Lemon:'Limón',Orange:'Naranja',Grapes:'Uvas',Lime:'Lima',Coconut:'Coco',Blackberry:'Mora',
+    Red:'Rojo',Blue:'Azul',Yellow:'Amarillo',Purple:'Morado',Green:'Verde',White:'Blanco',Black:'Negro',
+    Orchestra:'Orquesta',Rock:'Rock',Jazz:'Jazz',March:'Marcha',Percussion:'Percusión',Piano:'Piano',
+    Violin:'Violín',Saxophone:'Saxofón',Trumpet:'Trompeta',Drums:'Tambores',Keys:'Teclas',
+    Earth:'Tierra',Saturn:'Saturno',Telescope:'Telescopio',Alien:'Alien',Comet:'Cometa',
+    Moon:'Luna',Star:'Estrella',Rings:'Anillos',Spacesuit:'Traje espacial',Stars:'Estrellas',UFO:'OVNI',Tail:'Cola',Launch:'Lanzamiento',
+  },
+};
+
 const DIFFICULTY_CONFIG: Record<Difficulty, DifficultyConfig> = {
   easy: { totalLevels: 5, pairsPerLevel: 3, pool: EASY_POOL, scoreMultiplier: 1 },
   medium: { totalLevels: 6, pairsPerLevel: 4, pool: MEDIUM_POOL, scoreMultiplier: 1.5 },
@@ -364,8 +460,9 @@ export function MatchPairsGame() {
     picked.forEach(p => usedThisSession.add(pairKey(p)));
     addToHistory(picked);
 
-    const left = picked.map((p, i) => ({ idx: i, label: p.item, emoji: p.itemEmoji }));
-    const right = shuffle(picked.map((p, i) => ({ idx: i, label: p.match, emoji: p.matchEmoji })));
+    const names = PAIR_NAMES[locale] || PAIR_NAMES.en;
+    const left = picked.map((p, i) => ({ idx: i, label: names[p.item] || p.item, emoji: p.itemEmoji }));
+    const right = shuffle(picked.map((p, i) => ({ idx: i, label: names[p.match] || p.match, emoji: p.matchEmoji })));
     return { leftItems: left, rightItems: right, pairs: picked };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config, level, phase]);
@@ -491,13 +588,14 @@ export function MatchPairsGame() {
                       whileHover={{ scale: matched.has(idx) ? 1 : 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handleLeftTap(idx)}
-                      className={`py-3 px-3 rounded-xl font-bold text-lg shadow-sm transition-all ${
+                      className={`py-3 px-3 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2 ${
                         matched.has(idx) ? 'bg-emerald-200 text-emerald-500 opacity-60' :
                         selectedLeft === idx ? 'bg-teal-400 text-white ring-2 ring-teal-600' :
                         'bg-white text-teal-800 hover:bg-teal-50'
                       }`}
                     >
-                      <span className="mr-1">{emoji}</span> {label}
+                      <span className="text-3xl sm:text-4xl leading-none">{emoji}</span>
+                      <span className="text-sm sm:text-base">{label}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -509,12 +607,13 @@ export function MatchPairsGame() {
                       whileHover={{ scale: matched.has(idx) ? 1 : 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handleRightTap(idx)}
-                      className={`py-3 px-3 rounded-xl font-bold text-lg shadow-sm transition-all ${
+                      className={`py-3 px-3 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2 ${
                         matched.has(idx) ? 'bg-emerald-200 text-emerald-500 opacity-60' :
                         'bg-white text-cyan-800 hover:bg-cyan-50'
                       }`}
                     >
-                      <span className="mr-1">{emoji}</span> {label}
+                      <span className="text-3xl sm:text-4xl leading-none">{emoji}</span>
+                      <span className="text-sm sm:text-base">{label}</span>
                     </motion.button>
                   ))}
                 </div>
