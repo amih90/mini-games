@@ -6,6 +6,8 @@ import { GameWrapper } from '../shared/GameWrapper';
 import { WinModal } from '../shared/WinModal';
 import { InstructionsModal } from '../shared/InstructionsModal';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -357,7 +359,8 @@ const instructionsData: Record<
 
 export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
   const t = translations[locale] || translations.en;
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const instrData = instructionsData[locale] || instructionsData.en;
 
   // ---- Refs ----
@@ -979,7 +982,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
 
   return (
     <GameWrapper title={t.title} onInstructionsClick={() => setShowInstructions(true)}>
-      <div className="flex flex-col items-center gap-4" dir={isRtl ? 'rtl' : 'ltr'}>
+      <div className="flex flex-col items-center gap-4" dir={direction}>
         {/* Stats bar */}
         <div className="flex flex-wrap justify-center gap-3 mb-1">
           <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center min-w-[90px]">

@@ -9,6 +9,8 @@ import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 type GamePhase = 'menu' | 'playing' | 'levelComplete' | 'won';
@@ -98,10 +100,26 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+const UI_STRINGS: Record<string, Record<string, string>> = {
+  en: { title: 'Shape Builder', description: 'Pick the right shapes to build each object!', easy: '😊 Easy', medium: '🤔 Medium', hard: '🔥 Hard', buildThis: 'Build this:', needs: 'Needs {n} shapes', tapToAdd: 'Tap shapes to add:', yourShapes: 'Your shapes (tap to remove):', empty: 'Empty — pick shapes above!', clear: '🗑️ Clear', check: '✅ Check!', levelComplete: 'Level {n} Complete!', score: 'Score', nextLevel: 'Next Level →' },
+  he: { title: 'בונה הצורות', description: 'בחרו את הצורות הנכונות לבנות כל דבר!', easy: '😊 קל', medium: '🤔 בינוני', hard: '🔥 קשה', buildThis: 'בנו את זה:', needs: 'צריך {n} צורות', tapToAdd: 'לחצו על צורות להוספה:', yourShapes: 'הצורות שלכם (לחצו להסרה):', empty: 'ריק — בחרו צורות למעלה!', clear: '🗑️ נקה', check: '✅ בדיקה!', levelComplete: 'שלב {n} הושלם!', score: 'ניקוד', nextLevel: 'שלב הבא →' },
+  zh: { title: '形状建造师', description: '选择正确的形状来建造每个物体！', easy: '😊 简单', medium: '🤔 中等', hard: '🔥 困难', buildThis: '建造这个：', needs: '需要{n}个形状', tapToAdd: '点击形状添加：', yourShapes: '你的形状（点击移除）：', empty: '空的——从上面选形状！', clear: '🗑️ 清除', check: '✅ 检查！', levelComplete: '第{n}关完成！', score: '分数', nextLevel: '下一关 →' },
+  es: { title: 'Constructor de Formas', description: '¡Elige las formas correctas para construir cada objeto!', easy: '😊 Fácil', medium: '🤔 Medio', hard: '🔥 Difícil', buildThis: 'Construye esto:', needs: 'Necesita {n} formas', tapToAdd: 'Toca formas para agregar:', yourShapes: 'Tus formas (toca para quitar):', empty: '¡Vacío — elige formas arriba!', clear: '🗑️ Limpiar', check: '✅ ¡Revisar!', levelComplete: '¡Nivel {n} Completado!', score: 'Puntos', nextLevel: 'Siguiente Nivel →' },
+};
+
+const INSTRUCTIONS_DATA: Record<string, { instructions: { icon: string; title: string; description: string }[]; controls: { icon: string; description: string }[]; tip: string }> = {
+  en: { instructions: [{ icon: '🔍', title: 'Look at the Target', description: 'See the object you need to build.' }, { icon: '🔷', title: 'Pick Shapes', description: 'Tap shapes from the palette that match.' }, { icon: '✅', title: 'Complete It', description: 'Select all the right shapes to finish!' }], controls: [{ icon: '👆', description: 'Tap a shape to add it' }, { icon: '👆', description: 'Tap a placed shape to remove it' }, { icon: '✅', description: 'Hit Check when ready' }], tip: 'Count the shapes needed — the number must match exactly!' },
+  he: { instructions: [{ icon: '🔍', title: 'הסתכלו על המטרה', description: 'ראו את העצם שצריך לבנות.' }, { icon: '🔷', title: 'בחרו צורות', description: 'לחצו על צורות מהפלטה שמתאימות.' }, { icon: '✅', title: 'השלימו', description: 'בחרו את כל הצורות הנכונות לסיים!' }], controls: [{ icon: '👆', description: 'לחצו על צורה להוספה' }, { icon: '👆', description: 'לחצו על צורה מונחת להסרה' }, { icon: '✅', description: 'לחצו בדיקה כשמוכנים' }], tip: 'ספרו את הצורות הנדרשות — המספר חייב להתאים בדיוק!' },
+  zh: { instructions: [{ icon: '🔍', title: '看目标', description: '看看你需要建造的物体。' }, { icon: '🔷', title: '选择形状', description: '从调色板中点击匹配的形状。' }, { icon: '✅', title: '完成它', description: '选择所有正确的形状来完成！' }], controls: [{ icon: '👆', description: '点击形状添加' }, { icon: '👆', description: '点击已放置的形状移除' }, { icon: '✅', description: '准备好后点击检查' }], tip: '数一数需要的形状——数量必须精确匹配！' },
+  es: { instructions: [{ icon: '🔍', title: 'Mira el Objetivo', description: 'Ve el objeto que necesitas construir.' }, { icon: '🔷', title: 'Elige Formas', description: 'Toca las formas de la paleta que coincidan.' }, { icon: '✅', title: 'Complétalo', description: '¡Selecciona todas las formas correctas para terminar!' }], controls: [{ icon: '👆', description: 'Toca una forma para agregarla' }, { icon: '👆', description: 'Toca una forma colocada para quitarla' }, { icon: '✅', description: 'Presiona Revisar cuando estés listo' }], tip: '¡Cuenta las formas necesarias — el número debe coincidir exactamente!' },
+};
+
 export function ShapeBuilderGame() {
   const t = useTranslations();
   const locale = useLocale();
-  const isRtl = locale === 'he';
+  const strings = UI_STRINGS[locale] || UI_STRINGS.en;
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const { playClick, playSuccess, playDrop } = useRetroSounds();
 
   const [phase, setPhase] = useState<GamePhase>('menu');
@@ -211,13 +229,13 @@ export function ShapeBuilderGame() {
   usePlayAgainKey(phase === 'won', handlePlayAgain);
 
   return (
-    <GameWrapper title="Shape Builder" onInstructionsClick={() => setShowInstructions(true)}>
-      <div className={`min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-3 sm:p-6 ${isRtl ? 'rtl' : 'ltr'}`}>
+    <GameWrapper title={strings.title} onInstructionsClick={() => setShowInstructions(true)}>
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-4 sm:p-8" dir={direction}>
 
         {/* HUD */}
         {phase === 'playing' && (
-          <div className="flex justify-between items-center mb-3 max-w-lg mx-auto">
-            <LevelDisplay level={level} isRtl={isRtl} locale={locale} />
+          <div className="flex justify-between items-center mb-3 max-w-2xl mx-auto">
+            <LevelDisplay level={level} />
             <div className="flex gap-2">
               {streak >= 2 && (
                 <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs font-bold">
@@ -242,24 +260,24 @@ export function ShapeBuilderGame() {
               className="flex flex-col items-center gap-4 pt-12"
             >
               <span className="text-7xl">🏗️</span>
-              <h2 className="text-3xl font-bold text-amber-800">Shape Builder</h2>
+              <h2 className="text-3xl font-bold text-amber-800">{strings.title}</h2>
               <p className="text-amber-600 text-center max-w-xs">
-                Pick the right shapes to build each object!
+                {strings.description}
               </p>
-              <div className="flex flex-col gap-2 w-48">
+              <div className="flex flex-col gap-3 w-56">
                 {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
                   <motion.button
                     key={d}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleStart(d)}
-                    className={`py-2 px-4 rounded-xl font-bold text-white shadow-md ${
+                    className={`py-3 px-6 rounded-xl font-bold text-lg text-white shadow-md ${
                       d === 'easy' ? 'bg-green-400 hover:bg-green-500' :
                       d === 'medium' ? 'bg-yellow-400 hover:bg-yellow-500 text-yellow-900' :
                       'bg-red-400 hover:bg-red-500'
                     }`}
                   >
-                    {d === 'easy' ? '😊 Easy' : d === 'medium' ? '🤔 Medium' : '🔥 Hard'}
+                    {strings[d]}
                   </motion.button>
                 ))}
               </div>
@@ -273,21 +291,21 @@ export function ShapeBuilderGame() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="max-w-lg mx-auto"
+              className="max-w-2xl mx-auto"
             >
               {/* Target */}
               <div className="bg-white/80 rounded-2xl p-4 mb-4 text-center shadow-sm">
-                <p className="text-sm text-amber-600 mb-1">Build this:</p>
+                <p className="text-sm text-amber-600 mb-1">{strings.buildThis}</p>
                 <span className="text-5xl">{currentTarget.emoji}</span>
                 <p className="text-lg font-bold text-amber-800 mt-1">{currentTarget.name}</p>
                 <p className="text-xs text-amber-500">
-                  Needs {currentTarget.recipe.length} shapes
+                  {strings.needs.replace('{n}', String(currentTarget.recipe.length))}
                 </p>
               </div>
 
               {/* Shape palette */}
               <div className="bg-white/60 rounded-2xl p-3 mb-4">
-                <p className="text-xs text-amber-500 mb-2 text-center">Tap shapes to add:</p>
+                <p className="text-xs text-amber-500 mb-2 text-center">{strings.tapToAdd}</p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {config.shapes.map((shape) => (
                     <motion.button
@@ -295,10 +313,10 @@ export function ShapeBuilderGame() {
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={() => handleShapeTap(shape.id)}
-                      className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-xl shadow-sm flex flex-col items-center justify-center hover:bg-amber-50 transition-colors"
+                      className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-xl shadow-md flex flex-col items-center justify-center hover:bg-amber-50 transition-colors"
                     >
-                      <span className="text-2xl">{shape.emoji}</span>
-                      <span className="text-[10px] text-amber-600">{shape.name}</span>
+                      <span className="text-4xl sm:text-5xl">{shape.emoji}</span>
+                      <span className="text-xs sm:text-sm text-amber-600">{shape.name}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -306,7 +324,7 @@ export function ShapeBuilderGame() {
 
               {/* Building area */}
               <div className="bg-white/80 rounded-2xl p-3 mb-4 min-h-[80px]">
-                <p className="text-xs text-amber-500 mb-2 text-center">Your shapes (tap to remove):</p>
+                <p className="text-xs text-amber-500 mb-2 text-center">{strings.yourShapes}</p>
                 <div className="flex flex-wrap justify-center gap-2">
                   <AnimatePresence>
                     {selectedShapes.map((shapeId, idx) => {
@@ -319,15 +337,15 @@ export function ShapeBuilderGame() {
                           exit={{ scale: 0 }}
                           whileTap={{ scale: 0.8 }}
                           onClick={() => handleRemoveShape(idx)}
-                          className="w-12 h-12 bg-amber-50 rounded-lg flex items-center justify-center shadow-sm"
+                          className="w-16 h-16 bg-amber-50 rounded-xl flex items-center justify-center shadow-md"
                         >
-                          <span className="text-xl">{shape?.emoji}</span>
+                          <span className="text-3xl">{shape?.emoji}</span>
                         </motion.button>
                       );
                     })}
                   </AnimatePresence>
                   {selectedShapes.length === 0 && (
-                    <p className="text-amber-300 text-sm py-3">Empty — pick shapes above!</p>
+                    <p className="text-amber-300 text-sm py-3">{strings.empty}</p>
                   )}
                 </div>
               </div>
@@ -338,18 +356,18 @@ export function ShapeBuilderGame() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setSelectedShapes([])}
-                  className="px-4 py-2 rounded-xl bg-gray-200 text-gray-600 font-bold text-sm"
+                  className="px-5 py-3 rounded-xl bg-gray-200 text-gray-600 font-bold text-base"
                 >
-                  🗑️ Clear
+                  {strings.clear}
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleCheck}
                   disabled={selectedShapes.length === 0 || !!feedback}
-                  className="px-6 py-2 rounded-xl bg-amber-500 text-white font-bold shadow-md disabled:opacity-50"
+                  className="px-8 py-3 rounded-xl bg-amber-500 text-white font-bold text-lg shadow-md disabled:opacity-50"
                 >
-                  ✅ Check!
+                  {strings.check}
                 </motion.button>
               </div>
 
@@ -369,7 +387,7 @@ export function ShapeBuilderGame() {
                 )}
               </AnimatePresence>
 
-              <p className="text-center text-xs text-amber-400 mt-3">
+              <p className="text-center text-sm text-amber-400 mt-3">
                 {challengeIndex + 1} / {config.challengesPerLevel}
               </p>
             </motion.div>
@@ -385,15 +403,15 @@ export function ShapeBuilderGame() {
               className="flex flex-col items-center gap-4 pt-16"
             >
               <span className="text-7xl">🌟</span>
-              <h2 className="text-2xl font-bold text-amber-800">Level {level} Complete!</h2>
-              <p className="text-amber-600">Score: {score}</p>
+              <h2 className="text-2xl font-bold text-amber-800">{strings.levelComplete.replace('{n}', String(level))}</h2>
+              <p className="text-amber-600">{strings.score}: {score}</p>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleNextLevel}
                 className="px-6 py-3 bg-amber-500 text-white rounded-xl font-bold shadow-md"
               >
-                Next Level →
+                {strings.nextLevel}
               </motion.button>
             </motion.div>
           )}
@@ -404,18 +422,8 @@ export function ShapeBuilderGame() {
         <InstructionsModal
           isOpen={showInstructions}
           onClose={() => setShowInstructions(false)}
-          title="Shape Builder"
-          instructions={[
-            { icon: '🔍', title: 'Look at the Target', description: 'See the outline of the object you need to build.' },
-            { icon: '🔷', title: 'Pick Shapes', description: 'Tap shapes from the palette that match the ones needed.' },
-            { icon: '✅', title: 'Complete It', description: 'Select all the right shapes to finish building!' },
-          ]}
-          controls={[
-            { icon: '👆', description: 'Tap a shape to add it' },
-            { icon: '👆', description: 'Tap a placed shape to remove it' },
-            { icon: '✅', description: 'Hit Check when ready' },
-          ]}
-          tip="Count the shapes needed before building — the number of shapes must match exactly!"
+          title={strings.title}
+          {...(INSTRUCTIONS_DATA[locale] || INSTRUCTIONS_DATA.en)}
           locale={locale}
         />
       </div>

@@ -8,6 +8,8 @@ import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 
 // ─── Constants ───────────────────────────────────────────────
 const CANVAS_WIDTH = 480;
@@ -278,7 +280,8 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
   } = useRetroSounds();
 
   const t = translations[locale] || translations.en;
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const instrData = instructionsData[locale] || instructionsData.en;
 
   // ─── Helpers ─────────────────────────────────────────────
@@ -694,7 +697,7 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
         {/* Top stats row */}
         {gameState !== 'menu' && (
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <LevelDisplay level={level} locale={locale} isRtl={isRtl} />
+            <LevelDisplay level={level} />
             <div className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full shadow-md">
               <span className="text-sm font-medium text-slate-500">{t.score}:</span>
               <span className="text-lg font-bold text-[#3b82f6]">{score}</span>

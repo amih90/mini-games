@@ -1,11 +1,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useLocale } from 'next-intl';
 
 interface LevelDisplayProps {
   level: number;
-  isRtl?: boolean;
-  locale?: string;
 }
 
 const levelLabels: Record<string, string> = {
@@ -18,7 +17,8 @@ const levelLabels: Record<string, string> = {
 /**
  * Visual display for current game level
  */
-export function LevelDisplay({ level, isRtl = false, locale = 'en' }: LevelDisplayProps) {
+export function LevelDisplay({ level }: LevelDisplayProps) {
+  const locale = useLocale();
   return (
     <motion.div
       initial={{ scale: 0 }}

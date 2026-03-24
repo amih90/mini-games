@@ -16,7 +16,8 @@ export const backgammonPhaserConfig: GameConfig = {
   },
   categories: ['math', 'memory'],
   ageRange: { min: 8, max: 12 },
-  thumbnail: '/images/games/backgammon.svg',
+  icon: '🎲',
+  thumbnail: '/images/games/screenshots/backgammon-phaser.png',
   engine: 'phaser',
   i18nNamespace: 'backgammonPhaser',
 };

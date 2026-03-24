@@ -2,6 +2,7 @@ import { GameConfig } from '../registry/types';
 
 export const tetrisConfig: GameConfig = {
   slug: 'tetris',
+  icon: '🧱',
   title: {
     en: 'Tetris',
     he: 'טטריס',

@@ -6,7 +6,8 @@ export const fractionPizzaConfig: GameConfig = {
   description: { en: 'Slice the pizza into the right fractions!', he: 'חתכו את הפיצה לשברים הנכונים!', zh: '把披萨切成正确的分数！', es: '¡Corta la pizza en las fracciones correctas!' },
   categories: ['math', 'ages-6-8'],
   ageRange: { min: 5, max: 9 },
-  thumbnail: '/images/games/fraction-pizza.svg',
+  icon: '🍕',
+  thumbnail: '/images/games/screenshots/fraction-pizza.png',
   engine: 'react',
   i18nNamespace: 'fractionPizza',
 };

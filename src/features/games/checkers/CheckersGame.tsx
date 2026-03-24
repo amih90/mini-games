@@ -7,6 +7,8 @@ import { GameWrapper } from '@/features/games/shared/GameWrapper';
 import { WinModal } from '@/features/games/shared/WinModal';
 import { InstructionsModal } from '@/features/games/shared/InstructionsModal';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 import { useCheckersGame, Difficulty } from './useCheckersGame';
 
 // ---------------------------------------------------------------------------
@@ -168,7 +170,8 @@ const instructionsData: Record<
 export function CheckersGame() {
   const t = useTranslations('checkers');
   const locale = useLocale();
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
 
   const {
     board,
@@ -354,7 +357,7 @@ export function CheckersGame() {
     >
       <div
         className={`flex flex-col items-center gap-6 p-4 ${isRtl ? 'direction-rtl' : ''}`}
-        dir={isRtl ? 'rtl' : 'ltr'}
+        dir={direction}
       >
         {/* Difficulty Selector */}
         <div className="flex flex-col items-center gap-2">

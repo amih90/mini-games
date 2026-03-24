@@ -8,6 +8,8 @@ import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -407,7 +409,8 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
 
   // i18n helpers
   const t = translations[locale] || translations.en;
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const instrData = instructionsData[locale] || instructionsData.en;
 
   // Game state
@@ -1090,7 +1093,7 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
               <div className="text-xs text-slate-500 font-medium">{t.highScore}</div>
               <div className="text-xl font-bold text-[#f7941d]">{Math.max(highScore, score)}</div>
             </div>
-            <LevelDisplay level={level} locale={locale} isRtl={isRtl} />
+            <LevelDisplay level={level} />
             <div className="bg-white/90 rounded-2xl px-4 py-2 shadow-lg">
               <div className="text-xs text-slate-500 font-medium">{t.lives}</div>
               <div className="text-xl font-bold text-[#ec4399]">

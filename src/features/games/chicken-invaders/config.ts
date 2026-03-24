@@ -2,6 +2,7 @@ import { GameConfig } from '../registry/types';
 
 export const chickenInvadersConfig: GameConfig = {
   slug: 'chicken-invaders',
+  icon: '🐔',
   title: {
     en: 'Chicken Invaders',
     he: 'פולשי התרנגולות',

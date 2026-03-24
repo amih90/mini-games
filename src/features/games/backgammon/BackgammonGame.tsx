@@ -7,6 +7,8 @@ import { GameWrapper } from '@/features/games/shared/GameWrapper';
 import { WinModal } from '@/features/games/shared/WinModal';
 import { InstructionsModal } from '@/features/games/shared/InstructionsModal';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 import { useBackgammonGame, Difficulty } from './useBackgammonGame';
 
 /* ------------------------------------------------------------------ */
@@ -173,7 +175,8 @@ const instructionsData: Record<
 export function BackgammonGame() {
   const t = useTranslations('backgammon');
   const locale = useLocale();
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
 
   const {
     playMove,

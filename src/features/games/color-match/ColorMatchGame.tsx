@@ -9,6 +9,8 @@ import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 
 // ────────────────────────────────────────────────────────────────────
 // Types
@@ -287,7 +289,8 @@ function ShapeIcon({ shape, color, size }: { shape: ShapeType; color: string; si
 export function ColorMatchGame() {
   const t = useTranslations('colorMatch');
   const locale = useLocale();
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
 
   const { playClick, playMatch, playHit, playLevelUp, playWin, playGameOver } =
     useRetroSounds();
@@ -678,7 +681,7 @@ export function ColorMatchGame() {
         >
           {/* ── Score bar ── */}
           <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-            <LevelDisplay level={level} locale={locale} />
+            <LevelDisplay level={level} />
 
             <div className="flex items-center gap-4">
               {/* Timer */}

@@ -15,7 +15,8 @@ export const chessConfig: GameConfig = {
     min: 8,
     max: 12,
   },
-  thumbnail: '/images/games/chess.svg',
+  icon: '♚',
+  thumbnail: '/images/games/screenshots/chess.png',
   engine: 'react',
   i18nNamespace: 'chess',
 };

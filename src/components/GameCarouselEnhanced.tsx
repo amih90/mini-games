@@ -34,25 +34,6 @@ export function GameCarouselEnhanced({ games, locale, title }: GameCarouselProps
     });
   };
 
-  const gameEmojis: Record<string, string> = {
-    'color-match': '🎨',
-    'memory-cards': '🃏',
-    'flappy-bird': '🐤',
-    'chicken-invaders': '🐔',
-    'tetris': '🧱',
-    'shape-builder': '🏗️',
-    'pattern-maker': '🔮',
-    'number-muncher': '🔢',
-    'rhyme-time': '🎵',
-    'letter-soup': '🍜',
-    'size-sorter': '📏',
-    'weather-dress-up': '🌤️',
-    'plant-grower': '🌱',
-    'fraction-pizza': '🍕',
-    'mirror-draw': '🪞',
-    'match-pairs': '🔗',
-  };
-
   const gameGradients: Record<string, string> = {
     'color-match': 'from-[#00a4e4] to-[#4fc3f7]',
     'memory-cards': 'from-[#ec4399] to-[#f472b6]',
@@ -128,7 +109,6 @@ export function GameCarouselEnhanced({ games, locale, title }: GameCarouselProps
               key={game.slug}
               game={game}
               locale={locale}
-              emoji={gameEmojis[game.slug] || '🎮'}
               gradient={gameGradients[game.slug] || 'from-[#6cbe45] to-[#4ade80]'}
               index={index}
             />
@@ -159,13 +139,13 @@ export function GameCarouselEnhanced({ games, locale, title }: GameCarouselProps
 interface GameCardEnhancedProps {
   game: GameConfig;
   locale: Locale;
-  emoji: string;
   gradient: string;
   index: number;
 }
 
-function GameCardEnhanced({ game, locale, emoji, gradient, index }: GameCardEnhancedProps) {
+function GameCardEnhanced({ game, locale, gradient, index }: GameCardEnhancedProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [thumbnailError, setThumbnailError] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // 3D tilt effect
@@ -271,7 +251,7 @@ function GameCardEnhanced({ game, locale, emoji, gradient, index }: GameCardEnha
               transition={{ duration: 1.5, repeat: Infinity }}
             />
 
-            {/* Emoji with effects */}
+            {/* Thumbnail / Icon fallback */}
             <motion.div
               animate={{
                 scale: isHovered ? 1.15 : 1,
@@ -279,18 +259,28 @@ function GameCardEnhanced({ game, locale, emoji, gradient, index }: GameCardEnha
                 y: isHovered ? -5 : 0,
               }}
               transition={{ duration: 0.4 }}
-              className="relative z-10"
+              className="relative z-10 w-full h-full flex items-center justify-center"
             >
-              {/* Emoji shadow/glow */}
-              <motion.span
-                className="absolute inset-0 blur-lg opacity-50"
-                style={{ fontSize: '4.5rem' }}
-              >
-                {emoji}
-              </motion.span>
-              <span className="text-7xl drop-shadow-2xl relative">
-                {emoji}
-              </span>
+              {!thumbnailError ? (
+                <img
+                  src={game.thumbnail}
+                  alt={game.title[locale]}
+                  className="w-full h-full object-cover"
+                  onError={() => setThumbnailError(true)}
+                />
+              ) : (
+                <>
+                  <motion.span
+                    className="absolute inset-0 blur-lg opacity-50 flex items-center justify-center"
+                    style={{ fontSize: '4.5rem' }}
+                  >
+                    {game.icon}
+                  </motion.span>
+                  <span className="text-7xl drop-shadow-2xl relative">
+                    {game.icon}
+                  </span>
+                </>
+              )}
             </motion.div>
 
             {/* Play Overlay */}

@@ -44,3 +44,16 @@ If you make a decision that affects other team members, write it to:
 .squad/decisions/inbox/copilot-{brief-slug}.md
 ```
 The Scribe will merge it into the shared decisions file.
+
+## Game Quality Standards
+
+Every game in this portal must meet all 6 quality requirements:
+
+1. **Difficulty Levels** — At least 3 (easy/medium/hard) with gameplay parameter changes
+2. **Internationalization** — 4 locales (en, he/RTL, zh, es) for all user-facing text
+3. **Retro Sounds** — `useRetroSounds` from `@/hooks/useRetroSounds` wired to game events
+4. **Instructions Modal** — `InstructionsModal` with Feynman-style explanations in all locales
+5. **Input Support** — Keyboard (arrows + WASD), mouse, and touch handlers
+6. **Screenshot Thumbnail** — Playwright-generated PNG at `public/images/games/screenshots/{slug}.png`, plus `icon` emoji in `game.config.ts`
+
+To audit or fix a specific game, use the **game-quality** agent (`.github/agents/game-quality.agent.md`) which loads the skill at `.copilot/skills/game-quality/SKILL.md`. Full requirement details and code patterns are in `.github/game-improvement-agent.md`.

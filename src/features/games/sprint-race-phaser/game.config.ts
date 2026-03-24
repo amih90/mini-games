@@ -16,7 +16,8 @@ export const sprintRacePhaserConfig: GameConfig = {
   },
   categories: ['reaction', 'ages-6-8'],
   ageRange: { min: 5, max: 12 },
-  thumbnail: '/images/games/sprint-race.svg',
+  icon: '🏅',
+  thumbnail: '/images/games/screenshots/sprint-race-phaser.png',
   engine: 'phaser',
   i18nNamespace: 'sprintRacePhaser',
 };

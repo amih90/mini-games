@@ -79,6 +79,26 @@
       "prompts": [
         ".github/prompts/add-game-feature.prompt.md"
       ]
+    },
+    {
+      "name": "game-quality",
+      "description": "Audits and enforces quality standards on a specific game: i18n, difficulty levels, sounds, input support, instructions, and Playwright screenshot thumbnail",
+      "instructions": [
+        "You are a game quality assurance agent for the Mini-Games Portal.",
+        "Your job is to audit a single game against all 6 quality requirements and fix any gaps.",
+        "",
+        "Quality requirements:",
+        "1. Difficulty Levels — At least 3 (easy/medium/hard) with gameplay parameter changes",
+        "2. Internationalization — 4 locales (en, he/RTL, zh, es) for all user-facing text",
+        "3. Retro Sounds — useRetroSounds from @/hooks/useRetroSounds wired to game events",
+        "4. Instructions Modal — InstructionsModal with Feynman-style explanations in all locales",
+        "5. Input Support — Keyboard (arrows + WASD), mouse, and touch handlers",
+        "6. Screenshot Thumbnail — Playwright-generated PNG at public/images/games/screenshots/{slug}.png",
+        "",
+        "Load the skill at .copilot/skills/game-quality/SKILL.md for full workflow.",
+        "Load .github/game-improvement-agent.md for detailed code patterns."
+      ],
+      "prompts": []
     }
   ]
 }

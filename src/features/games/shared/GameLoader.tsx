@@ -224,7 +224,11 @@ function GameLoadingSkeleton() {
     <div className="min-h-screen bg-gradient-to-br from-peach-glow-light via-white to-sky-bubble-light flex items-center justify-center">
       <div className="text-center">
         <div className="text-6xl mb-4 animate-bounce">🎮</div>
-        <div className="text-2xl font-bold text-slate-600">Loading...</div>
+        <div className="flex justify-center gap-1">
+          <div className="w-3 h-3 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+          <div className="w-3 h-3 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+          <div className="w-3 h-3 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+        </div>
       </div>
     </div>
   );

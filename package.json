@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "NEXT_DISABLE_TURBOPACK=1 next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "playwright:install": "npx playwright install chromium",
+    "test:screenshots": "npx playwright test e2e/generate-thumbnails.spec.ts",
+    "test:e2e": "npx playwright test"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -23,6 +26,7 @@
     "three": "^0.183.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.50.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

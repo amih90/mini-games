@@ -2,6 +2,7 @@ import { GameConfig } from '../registry/types';
 
 export const flappyBirdConfig: GameConfig = {
   slug: 'flappy-bird',
+  icon: '🐦',
   title: {
     en: 'Flappy Bird',
     he: 'ציפור מעופפת',

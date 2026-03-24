@@ -6,7 +6,8 @@ export const mirrorDrawConfig: GameConfig = {
   description: { en: 'Complete the mirror image! Match the pattern!', he: 'השלימו את תמונת המראה!', zh: '完成镜像图案！', es: '¡Completa la imagen espejo!' },
   categories: ['shapes', 'ages-3-5', 'ages-6-8'],
   ageRange: { min: 4, max: 8 },
-  thumbnail: '/images/games/mirror-draw.svg',
+  icon: '🪞',
+  thumbnail: '/images/games/screenshots/mirror-draw.png',
   engine: 'react',
   i18nNamespace: 'mirrorDraw',
 };

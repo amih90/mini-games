@@ -178,21 +178,22 @@ export default function {GameName}Game({ locale }: {GameName}GameProps) {
 }
 ```
 
-### Step 2: Create Game Thumbnail
+### Step 2: Generate Screenshot Thumbnail
 
-Create an animated SVG at `public/images/games/{game-slug}.svg`:
+After the game is working, generate a Playwright screenshot:
 
-```svg
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <!-- Background -->
-  <rect width="200" height="200" fill="#1e1e2e" rx="20"/>
-  
-  <!-- Game-specific graphics with animations -->
-  <circle cx="100" cy="100" r="20" fill="#3b82f6">
-    <animate attributeName="cy" values="100;80;100" dur="1s" repeatCount="indefinite"/>
-  </circle>
-</svg>
+```bash
+# Ensure Playwright is installed
+npm install && npx playwright install chromium
+
+# Start dev server if not running
+npm run dev &
+
+# Generate screenshot for this game
+GAME_SLUG={game-slug} npx playwright test e2e/generate-thumbnails.spec.ts
 ```
+
+This creates `public/images/games/screenshots/{game-slug}.png` (800x600 viewport).
 
 ### Step 3: Register the Game
 
@@ -204,14 +205,19 @@ Add to `src/features/games/registry/index.ts`:
   title: {
     en: 'Game Name',
     he: 'שם המשחק',
+    zh: '游戏名称',
+    es: 'Nombre del juego',
   },
   description: {
     en: 'Game description in English',
     he: 'תיאור המשחק בעברית',
+    zh: '游戏描述',
+    es: 'Descripción del juego',
   },
   categories: ['reaction', 'ages-6-8'],
   ageRange: { min: 5, max: 12 },
-  thumbnail: '/images/games/{game-slug}.svg',
+  icon: '🎮',
+  thumbnail: '/images/games/screenshots/{game-slug}.png',
   engine: 'canvas',
   i18nNamespace: '{gameName}',
 },
@@ -255,12 +261,17 @@ Add to `src/components/HomePageClient.tsx` in `heroSlides` array:
 ## Checklist
 
 - [ ] Game component created with proper TypeScript types
-- [ ] Supports keyboard controls
-- [ ] Supports mouse/touch controls
-- [ ] Has English and Hebrew translations
+- [ ] Supports keyboard (arrows + WASD), mouse, and touch controls
+- [ ] Has 4-locale translations (en, he, zh, es) with RTL support
+- [ ] At least 3 difficulty levels (easy/medium/hard)
+- [ ] `useRetroSounds` wired to game events
+- [ ] `InstructionsModal` with Feynman-style explanations in 4 locales
 - [ ] High score persists to localStorage
-- [ ] Thumbnail SVG created with animations
+- [ ] Screenshot thumbnail generated via Playwright
+- [ ] `game.config.ts` has `icon` emoji and `thumbnail` screenshot path
 - [ ] Registered in game registry
 - [ ] Added to GameLoader
 - [ ] No TypeScript errors
 - [ ] Tested on desktop and mobile
+
+For full quality requirements, run the **game-quality** agent: `.github/agents/game-quality.agent.md`

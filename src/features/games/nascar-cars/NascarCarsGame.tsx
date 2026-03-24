@@ -7,6 +7,8 @@ import { WinModal } from '../shared/WinModal';
 import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 import { R3FGameContainer } from '../shared/r3f/R3FGameContainer';
 import { NascarScene } from './NascarScene';
 import {
@@ -207,7 +209,8 @@ function saveCareerProgress(level: number) {
 // ─── Component ───────────────────────────────────────────────
 export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
   const t = translations[locale] || translations.en;
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const instData = getInstructions(locale);
   const careerLevels = CAREER_LEVELS[locale] || CAREER_LEVELS.en;
 
@@ -331,7 +334,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
       showBackButton
       onInstructionsClick={() => setShowInstructions(true)}
     >
-      <div className={`relative ${isRtl ? 'rtl' : 'ltr'}`}>
+      <div className={`relative`} dir={direction}>
         {/* ── MENU ── */}
         <AnimatePresence mode="wait">
           {phase === 'menu' && (
@@ -450,7 +453,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                   {t.lap}: {Math.min(playerLap + 1, levelConfig.laps)}/{levelConfig.laps}
                 </span>
               </div>
-              <LevelDisplay level={levelIndex + 1} locale={locale} />
+              <LevelDisplay level={levelIndex + 1} />
             </div>
 
             {/* 3D Canvas */}

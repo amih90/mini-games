@@ -6,7 +6,8 @@ export const plantGrowerConfig: GameConfig = {
   description: { en: 'Give your plant water and sun to help it grow!', he: 'תנו לצמח מים ושמש כדי שיגדל!', zh: '给植物浇水和阳光帮助它成长！', es: '¡Dale agua y sol a tu planta para que crezca!' },
   categories: ['science', 'ages-3-5'],
   ageRange: { min: 3, max: 7 },
-  thumbnail: '/images/games/plant-grower.svg',
+  icon: '🌱',
+  thumbnail: '/images/games/screenshots/plant-grower.png',
   engine: 'react',
   i18nNamespace: 'plantGrower',
 };

@@ -33,22 +33,6 @@ export function GameCarousel({ games, locale, title }: GameCarouselProps) {
     });
   };
 
-  const gameEmojis: Record<string, string> = {
-    'color-match': '🎨',
-    'memory-cards': '🃏',
-    'shape-builder': '🏗️',
-    'pattern-maker': '🔮',
-    'number-muncher': '🔢',
-    'rhyme-time': '🎵',
-    'letter-soup': '🍜',
-    'size-sorter': '📏',
-    'weather-dress-up': '🌤️',
-    'plant-grower': '🌱',
-    'fraction-pizza': '🍕',
-    'mirror-draw': '🪞',
-    'match-pairs': '🔗',
-  };
-
   return (
     <div className="relative">
       {/* Section Title */}
@@ -83,7 +67,6 @@ export function GameCarousel({ games, locale, title }: GameCarouselProps) {
               key={game.slug}
               game={game}
               locale={locale}
-              emoji={gameEmojis[game.slug] || '🎮'}
             />
           ))}
         </div>
@@ -108,11 +91,11 @@ export function GameCarousel({ games, locale, title }: GameCarouselProps) {
 interface GameCardProps {
   game: GameConfig;
   locale: Locale;
-  emoji: string;
 }
 
-function GameCard({ game, locale, emoji }: GameCardProps) {
+function GameCard({ game, locale }: GameCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [thumbnailError, setThumbnailError] = useState(false);
 
   return (
     <Link href={`/games/${game.slug}`}>
@@ -137,7 +120,7 @@ function GameCard({ game, locale, emoji }: GameCardProps) {
             isHovered ? 'shadow-2xl ring-4 ring-[#ffdd00]' : ''
           }`}
         >
-          {/* Image/Emoji Area */}
+          {/* Image/Thumbnail Area */}
           <div className="relative h-[180px] bg-gradient-to-br from-[#00a4e4] to-[#4fc3f7] flex items-center justify-center overflow-hidden">
             {/* Background Shapes */}
             <div className="absolute inset-0 opacity-20">
@@ -146,17 +129,26 @@ function GameCard({ game, locale, emoji }: GameCardProps) {
               <div className="absolute top-1/2 right-4 w-8 h-8 bg-white rounded-full" />
             </div>
 
-            {/* Emoji */}
-            <motion.span
-              animate={{
-                scale: isHovered ? 1.2 : 1,
-                rotate: isHovered ? [0, -10, 10, 0] : 0,
-              }}
-              transition={{ duration: 0.4 }}
-              className="text-7xl drop-shadow-lg relative z-10"
-            >
-              {emoji}
-            </motion.span>
+            {/* Thumbnail or Icon Fallback */}
+            {!thumbnailError ? (
+              <img
+                src={game.thumbnail}
+                alt={game.title[locale]}
+                className="w-full h-full object-cover relative z-10"
+                onError={() => setThumbnailError(true)}
+              />
+            ) : (
+              <motion.span
+                animate={{
+                  scale: isHovered ? 1.2 : 1,
+                  rotate: isHovered ? [0, -10, 10, 0] : 0,
+                }}
+                transition={{ duration: 0.4 }}
+                className="text-7xl drop-shadow-lg relative z-10"
+              >
+                {game.icon}
+              </motion.span>
+            )}
 
             {/* Play Overlay */}
             <motion.div

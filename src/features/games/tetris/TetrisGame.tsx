@@ -8,6 +8,8 @@ import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -415,7 +417,8 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
   const { playClick, playSuccess, playLevelUp, playGameOver, playHit, playPowerUp, playWin, playMove, playWhoosh } = useRetroSounds();
 
   const t = translations[locale] || translations.en;
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const instrData = instructionsData[locale] || instructionsData.en;
   const settings = difficulty ? DIFFICULTY_SETTINGS[difficulty] : DIFFICULTY_SETTINGS.medium;
   const previewCount = settings.previewCount;
@@ -1162,7 +1165,7 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
     >
       <div
         className="flex flex-col items-center"
-        dir={isRtl ? 'rtl' : 'ltr'}
+        dir={direction}
       >
         <div className="flex flex-col md:flex-row items-start justify-center gap-6">
           {/* ---- Game Board ---- */}
@@ -1281,7 +1284,7 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
 
           {/* ---- Side Panel ---- */}
           <div className="flex flex-row md:flex-col gap-4 flex-wrap justify-center">
-            <LevelDisplay level={level} isRtl={isRtl} locale={locale} />
+            <LevelDisplay level={level} />
 
             {/* Next piece(s) */}
             <div className="bg-white/90 rounded-2xl p-4 shadow-lg">

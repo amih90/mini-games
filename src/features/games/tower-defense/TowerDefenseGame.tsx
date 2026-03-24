@@ -8,6 +8,8 @@ import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -327,7 +329,8 @@ interface TowerDefenseGameProps {
 // Main component
 // ---------------------------------------------------------------------------
 export default function TowerDefenseGame({ locale = 'en' }: TowerDefenseGameProps) {
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const t = translations[locale] || translations.en;
   const instrData = instructionsData[locale] || instructionsData.en;
 
@@ -829,7 +832,7 @@ export default function TowerDefenseGame({ locale = 'en' }: TowerDefenseGameProp
         {gameState !== 'chooseDifficulty' && (
           <>
             <div className="flex flex-wrap items-center justify-center gap-4 text-sm font-bold">
-              <LevelDisplay level={wave} locale={locale} isRtl={isRtl} />
+              <LevelDisplay level={wave} />
               <span className="px-3 py-1 bg-yellow-400 rounded-full text-gray-800">
                 {'💰'} {t.gold}: {gold}
               </span>

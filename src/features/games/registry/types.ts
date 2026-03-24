@@ -35,7 +35,9 @@ export interface GameConfig {
   categories: GameCategory[];
   /** Target age range */
   ageRange: AgeRange;
-  /** Path to thumbnail image */
+  /** Emoji icon for the game (used as fallback when thumbnail is unavailable) */
+  icon: string;
+  /** Path to screenshot thumbnail image (Playwright-generated PNG) */
   thumbnail: string;
   /** Game rendering engine */
   engine: GameEngine;

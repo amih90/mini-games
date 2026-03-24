@@ -16,7 +16,8 @@ export const colorMixConfig: GameConfig = {
   },
   categories: ['colors', 'ages-3-5'],
   ageRange: { min: 3, max: 7 },
-  thumbnail: '/images/games/color-mix.svg',
+  icon: '🧪',
+  thumbnail: '/images/games/screenshots/color-mix.png',
   engine: 'react',
   i18nNamespace: 'colorMix',
 };

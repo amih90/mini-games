@@ -9,6 +9,8 @@ import { WinModal } from '../shared/WinModal';
 import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 import { MemoryCard } from './components/MemoryCard';
 
 // ---------------------------------------------------------------------------
@@ -227,7 +229,8 @@ function createCards(emojis: string[]): Card[] {
 export function MemoryCardsGame() {
   const t = useTranslations('memoryCards');
   const locale = useLocale();
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
 
   const {
     playClick,
@@ -529,14 +532,12 @@ export function MemoryCardsGame() {
     >
       <div
         className={`max-w-2xl mx-auto`}
-        dir={isRtl ? 'rtl' : 'ltr'}
+        dir={direction}
       >
         {/* Top bar: level + stats */}
         <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
           <LevelDisplay
             level={DIFFICULTY_LEVEL_MAP[difficulty]}
-            locale={locale}
-            isRtl={isRtl}
           />
 
           {/* Back to menu */}

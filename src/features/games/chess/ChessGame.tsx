@@ -8,6 +8,8 @@ import { WinModal } from '@/features/games/shared/WinModal';
 import { InstructionsModal } from '@/features/games/shared/InstructionsModal';
 import { usePlayAgainKey } from '@/features/games/shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 import { useChessGame, Difficulty, Piece, PieceColor } from './useChessGame';
 
 /* ------------------------------------------------------------------ */
@@ -312,7 +314,8 @@ const winsLabel: Record<string, string> = {
 export function ChessGame() {
   const t = useTranslations('chess');
   const locale = useLocale();
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
 
   /* ---- game hook ------------------------------------------------- */
   const {

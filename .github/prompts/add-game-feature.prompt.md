@@ -139,17 +139,24 @@ const achievements: Achievement[] = [
 
 ## Adding Sound Effects
 
-Use the existing `useSoundEffects` hook:
+Use the shared `useRetroSounds` hook:
 ```typescript
-const { playClick, playSuccess, playWin, playFlip, playMatch } = useSoundEffects();
+import { useRetroSounds } from '@/hooks/useRetroSounds';
+
+const { playClick, playSuccess, playWin, playFlip, playMatch, playLevelUp, playGameOver, playHit } = useRetroSounds();
 
 // Play on events
-playClick();   // UI interactions
-playSuccess(); // Scoring points
-playWin();     // Winning the game
-playFlip();    // Card flip / item toggle
-playMatch();   // Matching items
+playClick();    // UI interactions
+playSuccess();  // Scoring points
+playWin();      // Winning the game
+playFlip();     // Card flip / item toggle
+playMatch();    // Matching items
+playLevelUp();  // Level advancement
+playGameOver(); // Game over
+playHit();      // Collision / hit
 ```
+
+**Note:** Do NOT use `useSoundEffects` — use `useRetroSounds` from `@/hooks/useRetroSounds`.
 
 ## Adding New Translations
 
@@ -162,3 +169,14 @@ const t = {
   level: isRtl ? 'שלב' : 'Level',
 };
 ```
+
+Remember to add translations for all 4 locales (en, he, zh, es).
+
+## After Adding Features
+
+After making changes, regenerate the game's screenshot thumbnail:
+```bash
+GAME_SLUG={slug} npx playwright test e2e/generate-thumbnails.spec.ts
+```
+
+For a full quality audit, run the **game-quality** agent: `.github/agents/game-quality.agent.md`

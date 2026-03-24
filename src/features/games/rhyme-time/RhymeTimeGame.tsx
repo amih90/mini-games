@@ -9,6 +9,8 @@ import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 type GamePhase = 'menu' | 'playing' | 'levelComplete' | 'won';
@@ -71,10 +73,98 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+const UI_STRINGS: Record<string, Record<string, string>> = {
+  en: {
+    title: 'Rhyme Time',
+    description: 'Match words that rhyme!',
+    easy: '😊 Easy', medium: '🤔 Medium', hard: '🔥 Hard',
+    tapInstruction: 'Tap a word on the left, then its rhyme on the right!',
+    levelComplete: 'Level {n} Complete!',
+    score: 'Score', nextLevel: 'Next Level →',
+  },
+  he: {
+    title: 'זמן חרוזים',
+    description: 'התאימו מילים שמתחרזות!',
+    easy: '😊 קל', medium: '🤔 בינוני', hard: '🔥 קשה',
+    tapInstruction: 'הקישו על מילה בשמאל, ואז על החרוז שלה בימין!',
+    levelComplete: 'שלב {n} הושלם!',
+    score: 'ניקוד', nextLevel: 'שלב הבא →',
+  },
+  zh: {
+    title: '押韵时间',
+    description: '匹配押韵的单词！',
+    easy: '😊 简单', medium: '🤔 中等', hard: '🔥 困难',
+    tapInstruction: '点击左边的单词，然后点击右边押韵的单词！',
+    levelComplete: '第{n}关完成！',
+    score: '分数', nextLevel: '下一关 →',
+  },
+  es: {
+    title: 'Hora de Rimar',
+    description: '¡Empareja palabras que riman!',
+    easy: '😊 Fácil', medium: '🤔 Medio', hard: '🔥 Difícil',
+    tapInstruction: '¡Toca una palabra a la izquierda, luego su rima a la derecha!',
+    levelComplete: '¡Nivel {n} Completado!',
+    score: 'Puntos', nextLevel: 'Siguiente Nivel →',
+  },
+};
+
+const INSTRUCTIONS_DATA: Record<string, { instructions: { icon: string; title: string; description: string }[]; controls: { icon: string; description: string }[]; tip: string }> = {
+  en: {
+    instructions: [
+      { icon: '🎵', title: 'Listen for Rhymes', description: 'Words that sound alike at the end are rhymes!' },
+      { icon: '👆', title: 'Make a Match', description: 'Tap a word on the left, then its rhyming partner on the right.' },
+      { icon: '⭐', title: 'Match All Pairs', description: 'Find all rhyming pairs to complete the level!' },
+    ],
+    controls: [
+      { icon: '👈', description: 'Tap a word on the left to select it' },
+      { icon: '👉', description: 'Then tap the rhyming word on the right' },
+    ],
+    tip: "Listen to the ending sounds — Cat and Hat both end in '-at'!",
+  },
+  he: {
+    instructions: [
+      { icon: '🎵', title: 'הקשיבו לחרוזים', description: 'מילים שנשמעות דומות בסוף הן חרוזים!' },
+      { icon: '👆', title: 'מצאו התאמה', description: 'הקישו על מילה בשמאל, ואז על החרוז שלה בימין.' },
+      { icon: '⭐', title: 'התאימו הכל', description: 'מצאו את כל זוגות החרוזים להשלמת השלב!' },
+    ],
+    controls: [
+      { icon: '👈', description: 'הקישו על מילה בשמאל לבחירה' },
+      { icon: '👉', description: 'ואז הקישו על המילה המתחרזת בימין' },
+    ],
+    tip: "הקשיבו לצלילים בסוף — Cat ו-Hat שניהם נגמרים ב-'-at'!",
+  },
+  zh: {
+    instructions: [
+      { icon: '🎵', title: '听押韵', description: '结尾发音相似的单词就是押韵！' },
+      { icon: '👆', title: '配对', description: '点击左边的单词，然后点击右边的押韵单词。' },
+      { icon: '⭐', title: '全部配对', description: '找到所有押韵配对来完成关卡！' },
+    ],
+    controls: [
+      { icon: '👈', description: '点击左边的单词选择它' },
+      { icon: '👉', description: '然后点击右边押韵的单词' },
+    ],
+    tip: "听结尾的发音 — Cat和Hat都以'-at'结尾！",
+  },
+  es: {
+    instructions: [
+      { icon: '🎵', title: 'Escucha las Rimas', description: '¡Las palabras que suenan igual al final son rimas!' },
+      { icon: '👆', title: 'Haz una Pareja', description: 'Toca una palabra a la izquierda, luego su pareja que rima a la derecha.' },
+      { icon: '⭐', title: 'Empareja Todo', description: '¡Encuentra todas las parejas que riman para completar el nivel!' },
+    ],
+    controls: [
+      { icon: '👈', description: 'Toca una palabra a la izquierda para seleccionarla' },
+      { icon: '👉', description: 'Luego toca la palabra que rima a la derecha' },
+    ],
+    tip: "¡Escucha los sonidos finales — Cat y Hat terminan en '-at'!",
+  },
+};
+
 export function RhymeTimeGame() {
   const t = useTranslations();
   const locale = useLocale();
-  const isRtl = locale === 'he';
+  const strings = UI_STRINGS[locale] || UI_STRINGS.en;
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const { playClick, playSuccess, playDrop } = useRetroSounds();
 
   const [phase, setPhase] = useState<GamePhase>('menu');
@@ -170,17 +260,17 @@ export function RhymeTimeGame() {
   usePlayAgainKey(phase === 'won', handlePlayAgain);
 
   return (
-    <GameWrapper title="Rhyme Time" onInstructionsClick={() => setShowInstructions(true)}>
-      <div className={`min-h-screen bg-gradient-to-br from-green-50 via-lime-50 to-emerald-50 p-3 sm:p-6 ${isRtl ? 'rtl' : 'ltr'}`}>
+    <GameWrapper title={strings.title} onInstructionsClick={() => setShowInstructions(true)}>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-lime-50 to-emerald-50 p-4 sm:p-8" dir={direction}>
 
         {phase === 'playing' && (
-          <div className="flex justify-between items-center mb-3 max-w-lg mx-auto">
-            <LevelDisplay level={level} isRtl={isRtl} locale={locale} />
+          <div className="flex justify-between items-center mb-3 max-w-2xl mx-auto">
+            <LevelDisplay level={level} />
             <div className="flex gap-2">
               {streak >= 2 && (
-                <span className="bg-lime-100 text-lime-700 px-2 py-1 rounded-full text-xs font-bold">🔥 {streak}</span>
+                <span className="bg-lime-100 text-lime-700 px-3 py-1.5 rounded-full text-sm font-bold">🔥 {streak}</span>
               )}
-              <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-sm font-bold">⭐ {score}</span>
+              <span className="bg-green-100 text-green-700 px-3 py-1.5 rounded-full text-base font-bold">⭐ {score}</span>
             </div>
           </div>
         )}
@@ -189,13 +279,13 @@ export function RhymeTimeGame() {
           {phase === 'menu' && (
             <motion.div key="menu" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-4 pt-12">
               <span className="text-7xl">🎶</span>
-              <h2 className="text-3xl font-bold text-green-800">Rhyme Time</h2>
-              <p className="text-green-600 text-center max-w-xs">Match words that rhyme!</p>
-              <div className="flex flex-col gap-2 w-48">
+              <h2 className="text-3xl font-bold text-green-800">{strings.title}</h2>
+              <p className="text-green-600 text-center max-w-xs">{strings.description}</p>
+              <div className="flex flex-col gap-3 w-56">
                 {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
                   <motion.button key={d} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => handleStart(d)}
-                    className={`py-2 px-4 rounded-xl font-bold text-white shadow-md ${d === 'easy' ? 'bg-green-400 hover:bg-green-500' : d === 'medium' ? 'bg-yellow-400 hover:bg-yellow-500 text-yellow-900' : 'bg-red-400 hover:bg-red-500'}`}>
-                    {d === 'easy' ? '😊 Easy' : d === 'medium' ? '🤔 Medium' : '🔥 Hard'}
+                    className={`py-3 px-6 rounded-xl font-bold text-lg text-white shadow-md ${d === 'easy' ? 'bg-green-400 hover:bg-green-500' : d === 'medium' ? 'bg-yellow-400 hover:bg-yellow-500 text-yellow-900' : 'bg-red-400 hover:bg-red-500'}`}>
+                    {strings[d]}
                   </motion.button>
                 ))}
               </div>
@@ -203,11 +293,11 @@ export function RhymeTimeGame() {
           )}
 
           {phase === 'playing' && (
-            <motion.div key="playing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-lg mx-auto">
-              <p className="text-center text-sm text-green-600 mb-3">Tap a word on the left, then its rhyme on the right!</p>
+            <motion.div key="playing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-2xl mx-auto">
+              <p className="text-center text-base text-green-600 mb-3">{strings.tapInstruction}</p>
               <div className="grid grid-cols-2 gap-4">
                 {/* Left column */}
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   {leftWords.map(({ idx, word, emoji }) => (
                     <motion.button
                       key={idx}
@@ -225,7 +315,7 @@ export function RhymeTimeGame() {
                   ))}
                 </div>
                 {/* Right column */}
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   {rightWords.map(({ idx, word, emoji }) => (
                     <motion.button
                       key={idx}
@@ -257,10 +347,10 @@ export function RhymeTimeGame() {
           {phase === 'levelComplete' && (
             <motion.div key="levelComplete" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-4 pt-16">
               <span className="text-7xl">🌟</span>
-              <h2 className="text-2xl font-bold text-green-800">Level {level} Complete!</h2>
-              <p className="text-green-600">Score: {score}</p>
+              <h2 className="text-2xl font-bold text-green-800">{strings.levelComplete.replace('{n}', String(level))}</h2>
+              <p className="text-green-600">{strings.score}: {score}</p>
               <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleNextLevel}
-                className="px-6 py-3 bg-green-500 text-white rounded-xl font-bold shadow-md">Next Level →</motion.button>
+                className="px-6 py-3 bg-green-500 text-white rounded-xl font-bold shadow-md">{strings.nextLevel}</motion.button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -268,17 +358,8 @@ export function RhymeTimeGame() {
         <WinModal isOpen={phase === 'won'} onPlayAgain={handlePlayAgain} score={score} />
 
         <InstructionsModal isOpen={showInstructions} onClose={() => setShowInstructions(false)}
-          title="Rhyme Time"
-          instructions={[
-            { icon: '🎵', title: 'Listen for Rhymes', description: 'Words that sound alike at the end are rhymes!' },
-            { icon: '👆', title: 'Make a Match', description: 'Tap a word on the left, then its rhyming partner on the right.' },
-            { icon: '⭐', title: 'Match All Pairs', description: 'Find all rhyming pairs to complete the level!' },
-          ]}
-          controls={[
-            { icon: '👈', description: 'Tap a word on the left to select it' },
-            { icon: '👉', description: 'Then tap the rhyming word on the right' },
-          ]}
-          tip="Listen to the ending sounds — Cat and Hat both end in '-at'!"
+          title={strings.title}
+          {...(INSTRUCTIONS_DATA[locale] || INSTRUCTIONS_DATA.en)}
           locale={locale} />
       </div>
     </GameWrapper>

@@ -7,6 +7,8 @@ import { WinModal } from '../shared/WinModal';
 import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 import { R3FGameContainer } from '../shared/r3f/R3FGameContainer';
 import { PingPongScene } from './PingPongScene';
 import { usePingPongGame, Difficulty, DIFFICULTY_SETTINGS } from './usePingPongGame';
@@ -141,7 +143,8 @@ function saveHighScore(wins: number) {
 // ─── Component ───────────────────────────────────────────────
 export default function PingPongGame({ locale = 'en' }: PingPongGameProps) {
   const t = translations[locale] || translations.en;
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const instData = getInstructions(locale);
 
   const [phase, setPhase] = useState<GamePhase>('menu');
@@ -250,7 +253,7 @@ export default function PingPongGame({ locale = 'en' }: PingPongGameProps) {
       showBackButton
       onInstructionsClick={() => setShowInstructions(true)}
     >
-      <div className={`relative ${isRtl ? 'rtl' : 'ltr'}`}>
+      <div className={`relative`} dir={direction}>
         {/* ── MENU SCREEN ── */}
         <AnimatePresence mode="wait">
           {phase === 'menu' && (
@@ -312,7 +315,7 @@ export default function PingPongGame({ locale = 'en' }: PingPongGameProps) {
                 <span className="text-slate-400">vs</span>
                 <span className="text-lg font-bold text-red-400">🤖 {aiScore}</span>
               </div>
-              <LevelDisplay level={level} locale={locale} />
+              <LevelDisplay level={level} />
             </div>
 
             {/* 3D Canvas */}

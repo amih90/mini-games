@@ -12,7 +12,8 @@ export const memoryCardsConfig: GameConfig = {
   },
   categories: ['memory', 'ages-3-5', 'ages-6-8'],
   ageRange: { min: 4, max: 7 },
-  thumbnail: '/images/games/memory-cards.svg',
+  icon: '🃏',
+  thumbnail: '/images/games/screenshots/memory-cards.png',
   engine: 'react',
   i18nNamespace: 'memoryCards',
 };

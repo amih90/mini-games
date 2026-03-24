@@ -6,7 +6,8 @@ export const sizeSorterConfig: GameConfig = {
   description: { en: 'Sort items from smallest to biggest!', he: 'סדרו מהקטן לגדול!', zh: '从小到大排列物品！', es: '¡Ordena del más pequeño al más grande!' },
   categories: ['math', 'ages-3-5'],
   ageRange: { min: 3, max: 6 },
-  thumbnail: '/images/games/size-sorter.svg',
+  icon: '📏',
+  thumbnail: '/images/games/screenshots/size-sorter.png',
   engine: 'react',
   i18nNamespace: 'sizeSorter',
 };

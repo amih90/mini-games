@@ -30,7 +30,7 @@ export function GameWrapper({
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-b from-[#f7941d] via-[#ffb74d] to-[#f7941d] ${className}`}>
+    <div className={`min-h-screen flex flex-col bg-gradient-to-b from-[#f7941d] via-[#ffb74d] to-[#f7941d] ${className}`}>
       {/* Header */}
       <header className="sticky top-0 z-50 bg-[#f7941d]/95 backdrop-blur-sm border-b-4 border-[#ffdd00]">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -92,12 +92,11 @@ export function GameWrapper({
       </header>
 
       {/* Game content */}
-      <main className="container mx-auto px-4 py-6">
+      <main className="flex-1">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}
-          className="bg-white/90 rounded-3xl p-6 shadow-xl"
         >
           {children}
         </motion.div>

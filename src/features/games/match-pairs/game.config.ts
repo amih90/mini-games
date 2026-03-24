@@ -6,7 +6,8 @@ export const matchPairsConfig: GameConfig = {
   description: { en: 'Match animals to their homes and food!', he: 'התאימו חיות לבתים ולאוכל שלהן!', zh: '将动物与它们的家和食物配对！', es: '¡Empareja animales con sus hogares y comida!' },
   categories: ['science', 'memory', 'ages-3-5'],
   ageRange: { min: 3, max: 7 },
-  thumbnail: '/images/games/match-pairs.svg',
+  icon: '🔗',
+  thumbnail: '/images/games/screenshots/match-pairs.png',
   engine: 'react',
   i18nNamespace: 'matchPairs',
 };

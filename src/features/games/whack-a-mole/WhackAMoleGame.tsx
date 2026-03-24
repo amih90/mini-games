@@ -7,6 +7,8 @@ import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -383,7 +385,8 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
 
   // --- i18n ---
   const t = translations[locale] || translations.en;
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const instrData = instructionsData[locale] || instructionsData.en;
 
   // Keep refs in sync with state for use in canvas loop
@@ -992,7 +995,7 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
           <>
             {/* HUD */}
             <div className="flex flex-wrap justify-center gap-3 mb-2">
-              <LevelDisplay level={difficultyLevel[difficulty]} locale={locale} />
+              <LevelDisplay level={difficultyLevel[difficulty]} />
 
               <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center">
                 <div className="text-sm text-slate-500 font-medium">{t.score}</div>

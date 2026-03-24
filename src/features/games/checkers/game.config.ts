@@ -15,7 +15,8 @@ export const checkersConfig: GameConfig = {
     min: 6,
     max: 12,
   },
-  thumbnail: '/images/games/checkers.svg',
+  icon: '⬛',
+  thumbnail: '/images/games/screenshots/checkers.png',
   engine: 'react',
   i18nNamespace: 'checkers',
 };

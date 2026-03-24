@@ -40,25 +40,6 @@ export function GamesPageContent() {
     puzzle: { emoji: '🧩', color: '#059669', gradient: 'from-emerald-500 to-green-500' },
   };
 
-  const gameEmojis: Record<string, string> = {
-    'color-match': '🎨',
-    'memory-cards': '🃏',
-    'flappy-bird': '🐤',
-    'chicken-invaders': '🐔',
-    'tetris': '🧱',
-    'shape-builder': '🏗️',
-    'pattern-maker': '🔮',
-    'number-muncher': '🔢',
-    'rhyme-time': '🎵',
-    'letter-soup': '🍜',
-    'size-sorter': '📏',
-    'weather-dress-up': '🌤️',
-    'plant-grower': '🌱',
-    'fraction-pizza': '🍕',
-    'mirror-draw': '🪞',
-    'match-pairs': '🔗',
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a]">
       {/* Background effects */}
@@ -308,7 +289,6 @@ export function GamesPageContent() {
                     key={game.slug}
                     game={game}
                     locale={locale}
-                    emoji={gameEmojis[game.slug] || '🎮'}
                     index={index}
                     t={t}
                     categoryData={categoryData}
@@ -322,7 +302,6 @@ export function GamesPageContent() {
                     key={game.slug}
                     game={game}
                     locale={locale}
-                    emoji={gameEmojis[game.slug] || '🎮'}
                     index={index}
                     t={t}
                     categoryData={categoryData}
@@ -382,14 +361,14 @@ function SidebarItem({ isCollapsed, isActive, emoji, label, count, gradient, onC
 interface GameCardProps {
   game: ReturnType<typeof getAllGames>[0];
   locale: Locale;
-  emoji: string;
   index: number;
   t: ReturnType<typeof useTranslations>;
   categoryData: Record<string, { emoji: string; color: string; gradient: string }>;
 }
 
-function GameCard({ game, locale, emoji, index, t, categoryData }: GameCardProps) {
+function GameCard({ game, locale, index, t, categoryData }: GameCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [thumbnailError, setThumbnailError] = useState(false);
 
   return (
     <motion.div
@@ -419,7 +398,7 @@ function GameCard({ game, locale, emoji, index, t, categoryData }: GameCardProps
               }} />
             </div>
 
-            {/* Emoji */}
+            {/* Thumbnail / Icon fallback */}
             <motion.div
               className="absolute inset-0 flex items-center justify-center"
               animate={{
@@ -428,7 +407,16 @@ function GameCard({ game, locale, emoji, index, t, categoryData }: GameCardProps
               }}
               transition={{ duration: 0.3 }}
             >
-              <span className="text-7xl drop-shadow-lg">{emoji}</span>
+              {!thumbnailError ? (
+                <img
+                  src={game.thumbnail}
+                  alt={game.title[locale]}
+                  className="w-full h-full object-cover"
+                  onError={() => setThumbnailError(true)}
+                />
+              ) : (
+                <span className="text-7xl drop-shadow-lg">{game.icon}</span>
+              )}
             </motion.div>
 
             {/* Play overlay */}
@@ -493,7 +481,9 @@ function GameCard({ game, locale, emoji, index, t, categoryData }: GameCardProps
 }
 
 // Game List Item Component
-function GameListItem({ game, locale, emoji, index, t, categoryData }: GameCardProps) {
+function GameListItem({ game, locale, index, t, categoryData }: GameCardProps) {
+  const [thumbnailError, setThumbnailError] = useState(false);
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
@@ -505,9 +495,18 @@ function GameListItem({ game, locale, emoji, index, t, categoryData }: GameCardP
           className="group flex items-center gap-4 md:gap-6 p-4 bg-[#1a1a2e]/80 backdrop-blur-sm rounded-2xl border border-white/10 hover:border-[#ffdd00]/50 transition-all duration-300"
           whileHover={{ x: 8, boxShadow: '0 10px 40px -15px rgba(255, 221, 0, 0.2)' }}
         >
-          {/* Emoji */}
-          <div className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 bg-white/5 rounded-xl flex items-center justify-center">
-            <span className="text-4xl md:text-5xl">{emoji}</span>
+          {/* Thumbnail / Icon fallback */}
+          <div className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 bg-white/5 rounded-xl flex items-center justify-center overflow-hidden">
+            {!thumbnailError ? (
+              <img
+                src={game.thumbnail}
+                alt={game.title[locale]}
+                className="w-full h-full object-cover rounded-xl"
+                onError={() => setThumbnailError(true)}
+              />
+            ) : (
+              <span className="text-4xl md:text-5xl">{game.icon}</span>
+            )}
           </div>
 
           {/* Content */}

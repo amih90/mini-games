@@ -6,7 +6,8 @@ export const weatherDressUpConfig: GameConfig = {
   description: { en: 'Pick the right clothes for the weather!', he: 'בחרו בגדים מתאימים למזג האוויר!', zh: '为天气选择合适的衣服！', es: '¡Elige la ropa correcta para el clima!' },
   categories: ['science', 'ages-3-5'],
   ageRange: { min: 3, max: 6 },
-  thumbnail: '/images/games/weather-dress-up.svg',
+  icon: '🌤️',
+  thumbnail: '/images/games/screenshots/weather-dress-up.png',
   engine: 'react',
   i18nNamespace: 'weatherDressUp',
 };

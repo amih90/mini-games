@@ -7,6 +7,8 @@ import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 
 // ---------------------------------------------------------------------------
 // Types & Interfaces
@@ -583,7 +585,8 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
   const gameLoopRef = useRef<number | null>(null);
 
   const t = translations[locale] || translations.en;
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const instrData = instructionsData[locale] || instructionsData.en;
 
   const {
@@ -1024,7 +1027,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
   // -----------------------------------------------------------------------
   return (
     <GameWrapper title={t.title} onInstructionsClick={() => setShowInstructions(true)}>
-      <div className="flex flex-col items-center gap-4" dir={isRtl ? 'rtl' : 'ltr'}>
+      <div className="flex flex-col items-center gap-4" dir={direction}>
         {/* Score + Level bar */}
         <div className="flex flex-wrap items-center justify-center gap-4 mb-2">
           <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center">
@@ -1040,7 +1043,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
             </div>
           </div>
           {gameState === 'playing' && (
-            <LevelDisplay level={currentLevel} isRtl={isRtl} locale={locale} />
+            <LevelDisplay level={currentLevel} />
           )}
         </div>
 

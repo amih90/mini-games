@@ -9,6 +9,8 @@ import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 type GamePhase = 'menu' | 'playing' | 'levelComplete' | 'won';
@@ -89,10 +91,94 @@ const DIFFICULTY_CONFIG: Record<Difficulty, DifficultyConfig> = {
   },
 };
 
+const UI_STRINGS: Record<string, Record<string, string>> = {
+  en: {
+    title: 'Pattern Maker',
+    description: 'Complete the repeating patterns!',
+    easy: '😊 Easy', medium: '🤔 Medium', hard: '🔥 Hard',
+    completePattern: 'Complete the pattern:',
+    pickNext: 'Pick the next symbol (slot {x} of {y}):',
+    clear: '🗑️ Clear', check: '✅ Check!',
+    levelComplete: 'Level {n} Complete!',
+    score: 'Score', nextLevel: 'Next Level →',
+  },
+  he: {
+    title: 'יוצר דפוסים',
+    description: 'השלימו את הדפוסים החוזרים!',
+    easy: '😊 קל', medium: '🤔 בינוני', hard: '🔥 קשה',
+    completePattern: 'השלימו את הדפוס:',
+    pickNext: 'בחרו את הסמל הבא (משבצת {x} מתוך {y}):',
+    clear: '🗑️ נקה', check: '✅ בדיקה!',
+    levelComplete: 'שלב {n} הושלם!',
+    score: 'ניקוד', nextLevel: 'שלב הבא →',
+  },
+  zh: {
+    title: '图案制作',
+    description: '完成重复的图案！',
+    easy: '😊 简单', medium: '🤔 中等', hard: '🔥 困难',
+    completePattern: '完成图案：',
+    pickNext: '选择下一个符号（第{x}个，共{y}个）：',
+    clear: '🗑️ 清除', check: '✅ 检查！',
+    levelComplete: '第{n}关完成！',
+    score: '分数', nextLevel: '下一关 →',
+  },
+  es: {
+    title: 'Creador de Patrones',
+    description: '¡Completa los patrones repetitivos!',
+    easy: '😊 Fácil', medium: '🤔 Medio', hard: '🔥 Difícil',
+    completePattern: 'Completa el patrón:',
+    pickNext: 'Elige el siguiente símbolo (casilla {x} de {y}):',
+    clear: '🗑️ Limpiar', check: '✅ ¡Revisar!',
+    levelComplete: '¡Nivel {n} Completado!',
+    score: 'Puntos', nextLevel: 'Siguiente Nivel →',
+  },
+};
+
+const INSTRUCTIONS_DATA: Record<string, { instructions: { icon: string; title: string; description: string }[]; controls: { icon: string; description: string }[]; tip: string }> = {
+  en: {
+    instructions: [
+      { icon: '🔍', title: 'Study the Pattern', description: 'Look at the sequence and find the repeating rule.' },
+      { icon: '🧩', title: 'Pick the Next', description: 'Tap the item that continues the pattern correctly.' },
+      { icon: '⭐', title: 'Keep Going', description: 'Fill all the blanks to complete the level!' },
+    ],
+    controls: [{ icon: '👆', description: 'Tap the correct emoji to fill the blank spot' }],
+    tip: 'Say the pattern out loud — AB, AB, AB — to hear the rhythm!',
+  },
+  he: {
+    instructions: [
+      { icon: '🔍', title: 'חקרו את הדפוס', description: 'הסתכלו על הרצף ומצאו את החוק החוזר.' },
+      { icon: '🧩', title: 'בחרו את הבא', description: 'הקישו על הפריט שממשיך את הדפוס נכון.' },
+      { icon: '⭐', title: 'המשיכו', description: 'מלאו את כל החסר כדי להשלים את השלב!' },
+    ],
+    controls: [{ icon: '👆', description: 'הקישו על האמוג׳י הנכון למילוי המשבצת' }],
+    tip: 'אמרו את הדפוס בקול — AB, AB, AB — כדי לשמוע את הקצב!',
+  },
+  zh: {
+    instructions: [
+      { icon: '🔍', title: '研究图案', description: '观察序列，找到重复的规律。' },
+      { icon: '🧩', title: '选择下一个', description: '点击正确的图案继续序列。' },
+      { icon: '⭐', title: '继续前进', description: '填满所有空白完成关卡！' },
+    ],
+    controls: [{ icon: '👆', description: '点击正确的表情填入空白处' }],
+    tip: '大声说出图案 — AB, AB, AB — 感受节奏！',
+  },
+  es: {
+    instructions: [
+      { icon: '🔍', title: 'Estudia el Patrón', description: 'Mira la secuencia y encuentra la regla repetitiva.' },
+      { icon: '🧩', title: 'Elige el Siguiente', description: 'Toca el elemento que continúa el patrón correctamente.' },
+      { icon: '⭐', title: 'Sigue Adelante', description: '¡Llena todos los espacios para completar el nivel!' },
+    ],
+    controls: [{ icon: '👆', description: 'Toca el emoji correcto para llenar el espacio' }],
+    tip: 'Di el patrón en voz alta — AB, AB, AB — ¡para sentir el ritmo!',
+  },
+};
+
 export function PatternMakerGame() {
   const t = useTranslations();
   const locale = useLocale();
-  const isRtl = locale === 'he';
+  const strings = UI_STRINGS[locale] || UI_STRINGS.en;
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const { playClick, playSuccess, playDrop } = useRetroSounds();
 
   const [phase, setPhase] = useState<GamePhase>('menu');
@@ -207,13 +293,13 @@ export function PatternMakerGame() {
   usePlayAgainKey(phase === 'won', handlePlayAgain);
 
   return (
-    <GameWrapper title="Pattern Maker" onInstructionsClick={() => setShowInstructions(true)}>
-      <div className={`min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 p-3 sm:p-6 ${isRtl ? 'rtl' : 'ltr'}`}>
+    <GameWrapper title={strings.title} onInstructionsClick={() => setShowInstructions(true)}>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 p-4 sm:p-8" dir={direction}>
 
         {/* HUD */}
         {phase === 'playing' && (
-          <div className="flex justify-between items-center mb-3 max-w-lg mx-auto">
-            <LevelDisplay level={level} isRtl={isRtl} locale={locale} />
+          <div className="flex justify-between items-center mb-3 max-w-2xl mx-auto">
+            <LevelDisplay level={level} />
             <div className="flex gap-2">
               {streak >= 2 && (
                 <span className="bg-pink-100 text-pink-700 px-2 py-1 rounded-full text-xs font-bold">
@@ -238,24 +324,24 @@ export function PatternMakerGame() {
               className="flex flex-col items-center gap-4 pt-12"
             >
               <span className="text-7xl">🔮</span>
-              <h2 className="text-3xl font-bold text-purple-800">Pattern Maker</h2>
+              <h2 className="text-3xl font-bold text-purple-800">{strings.title}</h2>
               <p className="text-purple-600 text-center max-w-xs">
-                Complete the repeating patterns!
+                {strings.description}
               </p>
-              <div className="flex flex-col gap-2 w-48">
+              <div className="flex flex-col gap-3 w-56">
                 {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
                   <motion.button
                     key={d}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleStart(d)}
-                    className={`py-2 px-4 rounded-xl font-bold text-white shadow-md ${
+                    className={`py-3 px-6 rounded-xl font-bold text-lg text-white shadow-md ${
                       d === 'easy' ? 'bg-green-400 hover:bg-green-500' :
                       d === 'medium' ? 'bg-yellow-400 hover:bg-yellow-500 text-yellow-900' :
                       'bg-red-400 hover:bg-red-500'
                     }`}
                   >
-                    {d === 'easy' ? '😊 Easy' : d === 'medium' ? '🤔 Medium' : '🔥 Hard'}
+                    {strings[d]}
                   </motion.button>
                 ))}
               </div>
@@ -269,11 +355,11 @@ export function PatternMakerGame() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="max-w-lg mx-auto"
+              className="max-w-2xl mx-auto"
             >
               {/* Pattern display */}
               <div className="bg-white/80 rounded-2xl p-4 mb-4">
-                <p className="text-sm text-purple-600 mb-3 text-center">Complete the pattern:</p>
+                <p className="text-base text-purple-600 mb-3 text-center">{strings.completePattern}</p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {currentPattern.pattern.map((symbolIdx, pos) => {
                     const isBlank = blankPositions.includes(pos);
@@ -281,7 +367,7 @@ export function PatternMakerGame() {
                     return (
                       <div
                         key={pos}
-                        className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-xl sm:text-2xl ${
+                        className={`w-12 h-12 sm:w-14 sm:h-14 rounded-lg flex items-center justify-center text-2xl sm:text-3xl ${
                           isBlank
                             ? answer !== undefined
                               ? 'bg-purple-100 border-2 border-purple-300'
@@ -305,8 +391,8 @@ export function PatternMakerGame() {
                 const firstEmpty = blankPositions.find(pos => !answers.has(pos)) ?? blankPositions[blankPositions.length - 1];
                 return (
                   <div className="bg-white/60 rounded-2xl p-3 mb-4">
-                    <p className="text-xs text-purple-500 mb-2 text-center">
-                      Pick the next symbol (slot {blankPositions.indexOf(firstEmpty) + 1} of {blankPositions.length}):
+                    <p className="text-sm text-purple-500 mb-2 text-center">
+                      {strings.pickNext.replace('{x}', String(blankPositions.indexOf(firstEmpty) + 1)).replace('{y}', String(blankPositions.length))}
                     </p>
                     <div className="flex justify-center gap-3">
                       {currentPattern.symbols.map((sym, idx) => (
@@ -315,7 +401,7 @@ export function PatternMakerGame() {
                           whileHover={{ scale: 1.15 }}
                           whileTap={{ scale: 0.9 }}
                           onClick={() => handleSymbolTap(firstEmpty, idx)}
-                          className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-xl shadow-sm flex items-center justify-center text-2xl sm:text-3xl hover:bg-purple-50 transition-colors"
+                          className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-xl shadow-sm flex items-center justify-center text-3xl sm:text-4xl hover:bg-purple-50 transition-colors"
                         >
                           {sym}
                         </motion.button>
@@ -331,18 +417,18 @@ export function PatternMakerGame() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setAnswers(new Map())}
-                  className="px-4 py-2 rounded-xl bg-gray-200 text-gray-600 font-bold text-sm"
+                  className="px-5 py-2.5 rounded-xl bg-gray-200 text-gray-600 font-bold text-base"
                 >
-                  🗑️ Clear
+                  {strings.clear}
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleCheck}
                   disabled={!blankPositions.every(pos => answers.has(pos)) || !!feedback}
-                  className="px-6 py-2 rounded-xl bg-purple-500 text-white font-bold shadow-md disabled:opacity-50"
+                  className="px-8 py-3 rounded-xl bg-purple-500 text-white font-bold text-lg shadow-md disabled:opacity-50"
                 >
-                  ✅ Check!
+                  {strings.check}
                 </motion.button>
               </div>
 
@@ -360,7 +446,7 @@ export function PatternMakerGame() {
                 )}
               </AnimatePresence>
 
-              <p className="text-center text-xs text-purple-400 mt-3">
+              <p className="text-center text-sm text-purple-400 mt-3">
                 {challengeIndex + 1} / {config.challengesPerLevel}
               </p>
             </motion.div>
@@ -376,15 +462,15 @@ export function PatternMakerGame() {
               className="flex flex-col items-center gap-4 pt-16"
             >
               <span className="text-7xl">🌟</span>
-              <h2 className="text-2xl font-bold text-purple-800">Level {level} Complete!</h2>
-              <p className="text-purple-600">Score: {score}</p>
+              <h2 className="text-2xl font-bold text-purple-800">{strings.levelComplete.replace('{n}', String(level))}</h2>
+              <p className="text-purple-600">{strings.score}: {score}</p>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleNextLevel}
                 className="px-6 py-3 bg-purple-500 text-white rounded-xl font-bold shadow-md"
               >
-                Next Level →
+                {strings.nextLevel}
               </motion.button>
             </motion.div>
           )}
@@ -395,16 +481,8 @@ export function PatternMakerGame() {
         <InstructionsModal
           isOpen={showInstructions}
           onClose={() => setShowInstructions(false)}
-          title="Pattern Maker"
-          instructions={[
-            { icon: '🔍', title: 'Study the Pattern', description: 'Look at the sequence and find the repeating rule.' },
-            { icon: '🧩', title: 'Pick the Next', description: 'Tap the item that continues the pattern correctly.' },
-            { icon: '⭐', title: 'Keep Going', description: 'Fill all the blanks to complete the level!' },
-          ]}
-          controls={[
-            { icon: '👆', description: 'Tap the correct emoji to fill the blank spot' },
-          ]}
-          tip="Say the pattern out loud — AB, AB, AB — to hear the rhythm!"
+          title={strings.title}
+          {...(INSTRUCTIONS_DATA[locale] || INSTRUCTIONS_DATA.en)}
           locale={locale}
         />
       </div>

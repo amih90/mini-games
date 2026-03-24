@@ -8,6 +8,8 @@ import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -373,7 +375,8 @@ export default function FlappyBirdGame({ locale = 'en' }: FlappyBirdGameProps) {
     playHit,
   } = useRetroSounds();
 
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const t = translations[locale] || translations.en;
   const instrData = instructionsData[locale] || instructionsData.en;
   const settings = DIFFICULTY_SETTINGS[difficulty];
@@ -796,7 +799,7 @@ export default function FlappyBirdGame({ locale = 'en' }: FlappyBirdGameProps) {
 
   return (
     <GameWrapper title={t.title} onInstructionsClick={() => setShowInstructions(true)}>
-      <div className="flex flex-col items-center gap-6" dir={isRtl ? 'rtl' : 'ltr'}>
+      <div className="flex flex-col items-center gap-6" dir={direction}>
         {/* ---- Difficulty Selection Screen ---- */}
         {gameState === 'menu' && (
           <motion.div
@@ -848,7 +851,7 @@ export default function FlappyBirdGame({ locale = 'en' }: FlappyBirdGameProps) {
           <>
             {/* Score bar */}
             <div className="flex gap-4 text-center flex-wrap justify-center">
-              <LevelDisplay level={level} locale={locale} />
+              <LevelDisplay level={level} />
 
               <div className="bg-white/90 rounded-2xl px-6 py-3 shadow-lg">
                 <div className="text-sm text-slate-500 font-medium">{t.score}</div>

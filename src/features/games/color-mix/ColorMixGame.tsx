@@ -9,6 +9,8 @@ import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 
 // ────────────────────────────────────────────────────────────────────
 // Types
@@ -547,7 +549,8 @@ function CelebrationParticles({ color }: { color: string }) {
 export function ColorMixGame() {
   const t = useTranslations('common');
   const locale = useLocale();
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const strings = UI_STRINGS[locale] || UI_STRINGS.en;
   const { playClick, playSuccess, playDrop } = useRetroSounds();
 
@@ -744,7 +747,7 @@ export function ColorMixGame() {
           locale={locale}
         />
 
-        <div className="flex flex-col items-center justify-center min-h-[80vh] gap-8 p-4" dir={isRtl ? 'rtl' : 'ltr'}>
+        <div className="flex flex-col items-center justify-center min-h-[80vh] gap-8 p-4" dir={direction}>
           {/* Hero */}
           <motion.div
             initial={{ y: -30, opacity: 0 }}
@@ -849,10 +852,10 @@ export function ColorMixGame() {
 
       <FeedbackOverlay type={feedback} strings={strings} />
 
-      <div className="flex flex-col items-center gap-2 sm:gap-6 p-2 sm:p-6 pb-4 sm:pb-8 min-h-[80vh] w-full max-w-3xl mx-auto" dir={isRtl ? 'rtl' : 'ltr'}>
+      <div className="flex flex-col items-center gap-2 sm:gap-6 p-2 sm:p-6 pb-4 sm:pb-8 min-h-[80vh] w-full max-w-3xl mx-auto" dir={direction}>
         {/* HUD: Level + Score + Challenge counter */}
         <div className="flex items-center justify-between w-full gap-2">
-          <LevelDisplay level={level} isRtl={isRtl} locale={locale} />
+          <LevelDisplay level={level} />
           <div className="flex items-center gap-1.5 sm:gap-4">
             <div className="px-2 sm:px-4 py-1 sm:py-2 bg-white/80 rounded-full shadow font-bold text-gray-700 text-xs sm:text-base whitespace-nowrap">
               {strings.challenge} {challengeIndex + 1}/{config.challengesPerLevel}

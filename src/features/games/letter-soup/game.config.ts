@@ -6,7 +6,8 @@ export const letterSoupConfig: GameConfig = {
   description: { en: 'Find letters to spell the word!', he: 'מצאו אותיות לאיית המילה!', zh: '找到字母来拼写单词！', es: '¡Encuentra letras para deletrear la palabra!' },
   categories: ['language', 'ages-3-5', 'ages-6-8'],
   ageRange: { min: 4, max: 8 },
-  thumbnail: '/images/games/letter-soup.svg',
+  icon: '🍜',
+  thumbnail: '/images/games/screenshots/letter-soup.png',
   engine: 'react',
   i18nNamespace: 'letterSoup',
 };

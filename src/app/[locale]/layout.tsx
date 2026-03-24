@@ -1,7 +1,7 @@
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { routing, isRtlLocale, type Locale } from '@/i18n/routing';
+import { routing, getLocaleDirection, type Locale } from '@/i18n/routing';
 import { Footer } from '@/components/Footer';
 
 export function generateStaticParams() {
@@ -28,7 +28,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   const messages = await getMessages();
 
   // Determine text direction
-  const dir = isRtlLocale(locale as Locale) ? 'rtl' : 'ltr';
+  const dir = getLocaleDirection(locale as Locale);
 
   return (
     <div lang={locale} dir={dir} className="min-h-screen flex flex-col">

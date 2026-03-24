@@ -8,6 +8,8 @@ import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -328,7 +330,8 @@ const instructionsData: Record<
 // ---------------------------------------------------------------------------
 export default function PenaltyKickGame({ locale = 'en' }: PenaltyKickGameProps) {
   const t = translations[locale] || translations.en;
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const instrData = instructionsData[locale] || instructionsData.en;
 
   // ---- Refs ----------------------------------------------------------------
@@ -859,7 +862,7 @@ export default function PenaltyKickGame({ locale = 'en' }: PenaltyKickGameProps)
         {/* Level display + score bar */}
         {gameState === 'playing' && (
           <div className="flex flex-wrap items-center justify-center gap-4 mb-2">
-            <LevelDisplay level={levelNum} locale={locale} isRtl={isRtl} />
+            <LevelDisplay level={levelNum} />
             <div className="bg-white/90 rounded-2xl px-6 py-2 shadow-lg text-center">
               <div className="text-sm text-slate-500 font-medium">{t.score}</div>
               <div className="text-2xl font-bold text-[#4caf50]">

@@ -7,6 +7,8 @@ import { GameWrapper } from '@/features/games/shared/GameWrapper';
 import { WinModal } from '@/features/games/shared/WinModal';
 import { InstructionsModal } from '@/features/games/shared/InstructionsModal';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 import { useReversiGame, Difficulty } from './useReversiGame';
 
 // ---------------------------------------------------------------------------
@@ -168,7 +170,8 @@ const instructionsData: Record<
 export function ReversiGame() {
   const t = useTranslations('reversi');
   const locale = useLocale();
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const { playMove, playCapture, playWin, playGameOver, playClick } = useRetroSounds();
 
   const {
@@ -328,7 +331,7 @@ export function ReversiGame() {
         setShowInstructions(true);
       }}
     >
-      <div className="flex flex-col items-center gap-6 p-4" dir={isRtl ? 'rtl' : 'ltr'}>
+      <div className="flex flex-col items-center gap-6 p-4" dir={direction}>
         {/* ---------- Difficulty Selector ---------- */}
         <div className="flex flex-col items-center gap-2">
           <label className="text-lg font-bold text-gray-800">

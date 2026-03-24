@@ -8,6 +8,8 @@ import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -341,7 +343,8 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
 
   // Resolve locale strings
   const t = translations[locale] || translations.en;
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
   const instrData = instructionsData[locale] || instructionsData.en;
 
   // ------------------------------------------------------------------
@@ -1191,7 +1194,7 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
 
         {/* Side Panel */}
         <div className="flex flex-row md:flex-col gap-4">
-          <LevelDisplay level={level} isRtl={isRtl} locale={locale} />
+          <LevelDisplay level={level} />
 
           {difficulty && (
             <div className="bg-white/90 rounded-2xl px-5 py-3 shadow-lg text-center">

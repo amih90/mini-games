@@ -9,6 +9,8 @@ import { InstructionsModal } from '../shared/InstructionsModal';
 import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
+import { useDirection } from '@/hooks/useDirection';
+import { TextDirection } from '@/i18n/routing';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 type GamePhase = 'menu' | 'playing' | 'levelComplete' | 'won';
@@ -76,10 +78,102 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+const UI_STRINGS: Record<string, Record<string, string>> = {
+  en: {
+    title: 'Letter Soup',
+    description: 'Spell the word by tapping letters in order!',
+    easy: '😊 Easy', medium: '🤔 Medium', hard: '🔥 Hard',
+    spellWord: 'Spell this word!',
+    tapLetters: 'Tap the letters in order:',
+    levelComplete: 'Level {n} Complete!',
+    score: 'Score', nextLevel: 'Next Level →',
+  },
+  he: {
+    title: 'מרק אותיות',
+    description: 'איתות את המילה על ידי הקשה על אותיות בסדר!',
+    easy: '😊 קל', medium: '🤔 בינוני', hard: '🔥 קשה',
+    spellWord: 'איתות את המילה!',
+    tapLetters: 'הקישו על האותיות בסדר:',
+    levelComplete: 'שלב {n} הושלם!',
+    score: 'ניקוד', nextLevel: 'שלב הבא →',
+  },
+  zh: {
+    title: '字母汤',
+    description: '按顺序点击字母拼出单词！',
+    easy: '😊 简单', medium: '🤔 中等', hard: '🔥 困难',
+    spellWord: '拼出这个单词！',
+    tapLetters: '按顺序点击字母：',
+    levelComplete: '第{n}关完成！',
+    score: '分数', nextLevel: '下一关 →',
+  },
+  es: {
+    title: 'Sopa de Letras',
+    description: '¡Deletrea la palabra tocando letras en orden!',
+    easy: '😊 Fácil', medium: '🤔 Medio', hard: '🔥 Difícil',
+    spellWord: '¡Deletrea esta palabra!',
+    tapLetters: 'Toca las letras en orden:',
+    levelComplete: '¡Nivel {n} Completado!',
+    score: 'Puntos', nextLevel: 'Siguiente Nivel →',
+  },
+};
+
+const INSTRUCTIONS_DATA: Record<string, { instructions: { icon: string; title: string; description: string }[]; controls: { icon: string; description: string }[]; tip: string }> = {
+  en: {
+    instructions: [
+      { icon: '🖼️', title: 'See the Picture', description: 'An emoji shows the word you need to spell.' },
+      { icon: '🔤', title: 'Find Letters', description: 'Tap letters from the soup in the correct spelling order.' },
+      { icon: '⭐', title: 'Spell It Right', description: 'Get all letters in order to complete each word!' },
+    ],
+    controls: [
+      { icon: '👆', description: 'Tap letters in order to spell the word' },
+      { icon: '↩️', description: 'Tap a placed letter to undo it' },
+    ],
+    tip: 'Say the word out loud and tap the first letter you hear!',
+  },
+  he: {
+    instructions: [
+      { icon: '🖼️', title: 'ראו את התמונה', description: 'אמוג׳י מראה את המילה שצריך לאיית.' },
+      { icon: '🔤', title: 'מצאו אותיות', description: 'הקישו על אותיות מהמרק בסדר האיות הנכון.' },
+      { icon: '⭐', title: 'איתות נכון', description: 'סדרו את כל האותיות בסדר להשלמת כל מילה!' },
+    ],
+    controls: [
+      { icon: '👆', description: 'הקישו על אותיות בסדר לאיות המילה' },
+      { icon: '↩️', description: 'הקישו על אות ששובצה לביטול' },
+    ],
+    tip: 'אמרו את המילה בקול והקישו על האות הראשונה ששומעים!',
+  },
+  zh: {
+    instructions: [
+      { icon: '🖼️', title: '看图片', description: '表情符号显示你需要拼写的单词。' },
+      { icon: '🔤', title: '找字母', description: '从字母汤中按正确顺序点击字母。' },
+      { icon: '⭐', title: '拼写正确', description: '按顺序排列所有字母完成每个单词！' },
+    ],
+    controls: [
+      { icon: '👆', description: '按顺序点击字母拼写单词' },
+      { icon: '↩️', description: '点击已放置的字母撤销' },
+    ],
+    tip: '大声说出单词，然后点击你听到的第一个字母！',
+  },
+  es: {
+    instructions: [
+      { icon: '🖼️', title: 'Ve la Imagen', description: 'Un emoji muestra la palabra que necesitas deletrear.' },
+      { icon: '🔤', title: 'Encuentra Letras', description: 'Toca letras de la sopa en el orden correcto.' },
+      { icon: '⭐', title: 'Deletrea Bien', description: '¡Pon todas las letras en orden para completar cada palabra!' },
+    ],
+    controls: [
+      { icon: '👆', description: 'Toca las letras en orden para deletrear' },
+      { icon: '↩️', description: 'Toca una letra colocada para deshacerla' },
+    ],
+    tip: '¡Di la palabra en voz alta y toca la primera letra que escuches!',
+  },
+};
+
 export function LetterSoupGame() {
   const t = useTranslations();
   const locale = useLocale();
-  const isRtl = locale === 'he';
+  const direction = useDirection();
+  const isRtl = direction === TextDirection.RTL;
+  const strings = UI_STRINGS[locale] || UI_STRINGS.en;
   const { playClick, playSuccess, playDrop } = useRetroSounds();
 
   const [phase, setPhase] = useState<GamePhase>('menu');
@@ -194,17 +288,17 @@ export function LetterSoupGame() {
   usePlayAgainKey(phase === 'won', handlePlayAgain);
 
   return (
-    <GameWrapper title="Letter Soup" onInstructionsClick={() => setShowInstructions(true)}>
-      <div className={`min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 p-3 sm:p-6 ${isRtl ? 'rtl' : 'ltr'}`}>
+    <GameWrapper title={strings.title} onInstructionsClick={() => setShowInstructions(true)}>
+      <div className={`min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 p-4 sm:p-8`} dir={direction}>
 
         {phase === 'playing' && (
-          <div className="flex justify-between items-center mb-3 max-w-lg mx-auto">
-            <LevelDisplay level={level} isRtl={isRtl} locale={locale} />
+          <div className="flex justify-between items-center mb-3 max-w-2xl mx-auto">
+            <LevelDisplay level={level} />
             <div className="flex gap-2">
               {streak >= 2 && (
-                <span className="bg-pink-100 text-pink-700 px-2 py-1 rounded-full text-xs font-bold">🔥 {streak}</span>
+                <span className="bg-pink-100 text-pink-700 px-3 py-1.5 rounded-full text-sm font-bold">🔥 {streak}</span>
               )}
-              <span className="bg-rose-100 text-rose-700 px-2 py-1 rounded-full text-sm font-bold">⭐ {score}</span>
+              <span className="bg-rose-100 text-rose-700 px-3 py-1.5 rounded-full text-base font-bold">⭐ {score}</span>
             </div>
           </div>
         )}
@@ -213,13 +307,13 @@ export function LetterSoupGame() {
           {phase === 'menu' && (
             <motion.div key="menu" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-4 pt-12">
               <span className="text-7xl">🔤</span>
-              <h2 className="text-3xl font-bold text-rose-800">Letter Soup</h2>
-              <p className="text-rose-600 text-center max-w-xs">Spell the word by tapping letters in order!</p>
-              <div className="flex flex-col gap-2 w-48">
+              <h2 className="text-3xl font-bold text-rose-800">{strings.title}</h2>
+              <p className="text-rose-600 text-center max-w-xs">{strings.description}</p>
+              <div className="flex flex-col gap-3 w-56">
                 {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
                   <motion.button key={d} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => handleStart(d)}
-                    className={`py-2 px-4 rounded-xl font-bold text-white shadow-md ${d === 'easy' ? 'bg-green-400 hover:bg-green-500' : d === 'medium' ? 'bg-yellow-400 hover:bg-yellow-500 text-yellow-900' : 'bg-red-400 hover:bg-red-500'}`}>
-                    {d === 'easy' ? '😊 Easy' : d === 'medium' ? '🤔 Medium' : '🔥 Hard'}
+                    className={`py-3 px-6 rounded-xl font-bold text-lg text-white shadow-md ${d === 'easy' ? 'bg-green-400 hover:bg-green-500' : d === 'medium' ? 'bg-yellow-400 hover:bg-yellow-500 text-yellow-900' : 'bg-red-400 hover:bg-red-500'}`}>
+                    {strings[d]}
                   </motion.button>
                 ))}
               </div>
@@ -227,19 +321,19 @@ export function LetterSoupGame() {
           )}
 
           {phase === 'playing' && current && (
-            <motion.div key="playing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-lg mx-auto">
+            <motion.div key="playing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-2xl mx-auto">
               {/* Picture hint */}
               <div className="bg-white/80 rounded-2xl p-4 mb-4 text-center shadow-sm">
                 <span className="text-6xl">{current.emoji}</span>
-                <p className="text-sm text-rose-600 mt-2">Spell this word!</p>
+                <p className="text-base text-rose-600 mt-2">{strings.spellWord}</p>
               </div>
 
-              {/* Letter slots */}
-              <div className="flex justify-center gap-2 mb-4">
+              {/* Letter slots — always LTR since words are English/Latin */}
+              <div className="flex justify-center gap-2 mb-4" dir="ltr">
                 {current.letters.map((l, i) => (
                   <div
                     key={i}
-                    className={`w-10 h-12 sm:w-12 sm:h-14 rounded-lg border-2 flex items-center justify-center text-xl font-bold ${
+                    className={`w-12 h-14 sm:w-14 sm:h-16 rounded-lg border-2 flex items-center justify-center text-2xl font-bold ${
                       typedLetters[i]
                         ? 'bg-rose-100 border-rose-400 text-rose-800'
                         : i === typedLetters.length
@@ -252,9 +346,9 @@ export function LetterSoupGame() {
                 ))}
               </div>
 
-              {/* Available letters */}
-              <div className="bg-white/60 rounded-2xl p-3 mb-4">
-                <p className="text-xs text-rose-500 mb-2 text-center">Tap the letters in order:</p>
+              {/* Available letters — always LTR since letters are English/Latin */}
+              <div className="bg-white/60 rounded-2xl p-3 mb-4" dir="ltr">
+                <p className="text-sm text-rose-500 mb-2 text-center">{strings.tapLetters}</p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {availableLetters.map((letter, idx) => (
                     <motion.button
@@ -263,7 +357,7 @@ export function LetterSoupGame() {
                       whileTap={{ scale: 0.9 }}
                       onClick={() => handleLetterTap(letter, idx)}
                       disabled={usedIndices.has(idx)}
-                      className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl font-bold text-lg shadow-sm transition-all ${
+                      className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl font-bold text-lg shadow-sm transition-all ${
                         usedIndices.has(idx)
                           ? 'bg-gray-200 text-gray-400 opacity-50'
                           : 'bg-white text-rose-700 hover:bg-rose-50'
@@ -284,7 +378,7 @@ export function LetterSoupGame() {
                 )}
               </AnimatePresence>
 
-              <p className="text-center text-xs text-rose-400 mt-3">
+              <p className="text-center text-sm text-rose-400 mt-3">
                 {challengeIndex + 1} / {config.wordsPerLevel}
               </p>
             </motion.div>
@@ -293,10 +387,10 @@ export function LetterSoupGame() {
           {phase === 'levelComplete' && (
             <motion.div key="levelComplete" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-4 pt-16">
               <span className="text-7xl">🌟</span>
-              <h2 className="text-2xl font-bold text-rose-800">Level {level} Complete!</h2>
-              <p className="text-rose-600">Score: {score}</p>
+              <h2 className="text-2xl font-bold text-rose-800">{strings.levelComplete.replace('{n}', String(level))}</h2>
+              <p className="text-rose-600">{strings.score}: {score}</p>
               <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleNextLevel}
-                className="px-6 py-3 bg-rose-500 text-white rounded-xl font-bold shadow-md">Next Level →</motion.button>
+                className="px-6 py-3 bg-rose-500 text-white rounded-xl font-bold shadow-md">{strings.nextLevel}</motion.button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -304,17 +398,8 @@ export function LetterSoupGame() {
         <WinModal isOpen={phase === 'won'} onPlayAgain={handlePlayAgain} score={score} />
 
         <InstructionsModal isOpen={showInstructions} onClose={() => setShowInstructions(false)}
-          title="Letter Soup"
-          instructions={[
-            { icon: '🖼️', title: 'See the Picture', description: 'An emoji shows the word you need to spell.' },
-            { icon: '🔤', title: 'Find Letters', description: 'Tap letters from the soup in the correct spelling order.' },
-            { icon: '⭐', title: 'Spell It Right', description: 'Get all letters in order to complete each word!' },
-          ]}
-          controls={[
-            { icon: '👆', description: 'Tap letters in order to spell the word' },
-            { icon: '↩️', description: 'Tap a placed letter to undo it' },
-          ]}
-          tip="Say the word out loud and tap the first letter you hear!"
+          title={strings.title}
+          {...(INSTRUCTIONS_DATA[locale] || INSTRUCTIONS_DATA.en)}
           locale={locale} />
       </div>
     </GameWrapper>
