@@ -16,6 +16,15 @@ import { TextDirection } from '@/i18n/routing';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 type GameState = 'menu' | 'playing' | 'gameover';
+type ObstacleType =
+  | 'cactus-small'
+  | 'cactus-large'
+  | 'cactus-cluster'
+  | 'bird'
+  | 'rock'
+  | 'meteor'
+  | 'double-bird';
+type PowerUpType = 'shield' | 'slowmo';
 
 interface DinoRunGameProps {
   locale?: string;
@@ -25,9 +34,28 @@ interface Obstacle {
   x: number;
   width: number;
   height: number;
-  type: 'cactus-small' | 'cactus-large' | 'cactus-cluster' | 'bird';
+  type: ObstacleType;
   y: number;
   passed: boolean;
+  /** Meteor: frames remaining in warning phase (>0 = still warning) */
+  warningTimer?: number;
+  /** Meteor: vertical velocity once falling */
+  vy?: number;
+}
+
+interface Coin {
+  x: number;
+  y: number;
+  collected: boolean;
+  bobPhase: number;
+}
+
+interface PowerUp {
+  x: number;
+  y: number;
+  type: PowerUpType;
+  collected: boolean;
+  bobPhase: number;
 }
 
 interface Cloud {
@@ -50,6 +78,9 @@ interface DifficultySettings {
   gravity: number;
   jumpForce: number;
   clusterChance: number;
+  rockScoreMin: number;
+  meteorScoreMin: number;
+  doubleBirdScoreMin: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -61,6 +92,11 @@ const CANVAS_HEIGHT = 300;
 const GROUND_Y = CANVAS_HEIGHT - 50;
 const DINO_WIDTH = 44;
 const DINO_HEIGHT = 50;
+const COIN_RADIUS = 8;
+const POWERUP_SIZE = 22;
+const DAY_NIGHT_INTERVAL = 1000;
+const SHIELD_DURATION = 300; // frames (~5 s at 60 fps)
+const SLOWMO_DURATION = 240; // frames (~4 s)
 
 const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
   easy: {
@@ -75,6 +111,9 @@ const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
     gravity: 0.7,
     jumpForce: -14,
     clusterChance: 0,
+    rockScoreMin: 400,
+    meteorScoreMin: 1200,
+    doubleBirdScoreMin: 1800,
   },
   medium: {
     baseSpeed: 6,
@@ -88,6 +127,9 @@ const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
     gravity: 0.8,
     jumpForce: -15,
     clusterChance: 0.15,
+    rockScoreMin: 300,
+    meteorScoreMin: 800,
+    doubleBirdScoreMin: 1200,
   },
   hard: {
     baseSpeed: 8,
@@ -101,6 +143,9 @@ const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
     gravity: 0.9,
     jumpForce: -16,
     clusterChance: 0.3,
+    rockScoreMin: 200,
+    meteorScoreMin: 600,
+    doubleBirdScoreMin: 900,
   },
 };
 
@@ -150,6 +195,10 @@ const translations: Record<string, Record<string, string>> = {
     level: 'Level',
     speed: 'Speed',
     pickColor: 'Pick your dino color',
+    coins: 'Coins',
+    shield: '🛡️ Shield!',
+    slowMo: '🐌 Slow Mo!',
+    combo: 'Combo x',
   },
   he: {
     title: 'דינו רץ',
@@ -173,6 +222,10 @@ const translations: Record<string, Record<string, string>> = {
     level: 'שלב',
     speed: 'מהירות',
     pickColor: 'בחר צבע לדינו',
+    coins: 'מטבעות',
+    shield: '🛡️ !מגן',
+    slowMo: '🐌 !הילוך איטי',
+    combo: 'קומבו x',
   },
   zh: {
     title: '恐龙快跑',
@@ -196,6 +249,10 @@ const translations: Record<string, Record<string, string>> = {
     level: '关卡',
     speed: '速度',
     pickColor: '选择恐龙颜色',
+    coins: '金币',
+    shield: '🛡️ 护盾！',
+    slowMo: '🐌 慢动作！',
+    combo: '连击 x',
   },
   es: {
     title: 'Dino Run',
@@ -219,6 +276,10 @@ const translations: Record<string, Record<string, string>> = {
     level: 'Nivel',
     speed: 'Velocidad',
     pickColor: 'Elige el color de tu dino',
+    coins: 'Monedas',
+    shield: '🛡️ ¡Escudo!',
+    slowMo: '🐌 ¡Cámara lenta!',
+    combo: 'Combo x',
   },
 };
 
@@ -246,19 +307,25 @@ const instructionsData: Record<
         icon: '🌵',
         title: 'Avoid Obstacles',
         description:
-          'Cacti and flying birds will try to stop you. Jump over cacti, and duck under birds. If you hit one, the game is over!',
+          'Cacti, rocks, meteors, and flying birds will try to stop you. Jump over ground obstacles and duck under birds!',
       },
       {
         icon: '⚡',
-        title: 'It Gets Faster',
+        title: 'It Gets Harder',
         description:
-          'The longer you survive, the faster things move. Each difficulty level starts at a different speed and gets even faster!',
+          'The longer you survive, the faster things move. New obstacle types appear as your score grows — watch out for falling meteors!',
       },
       {
-        icon: '⭐',
-        title: 'Scoring',
+        icon: '🪙',
+        title: 'Coins & Power-Ups',
         description:
-          'You earn 1 point every frame you survive. Try to beat your high score! Every 500 points is a milestone.',
+          'Collect floating coins for bonus points! Grab shields for invincibility or slow-mo to freeze time. Chain coins for combo bonuses!',
+      },
+      {
+        icon: '🌙',
+        title: 'Day & Night',
+        description:
+          'The world shifts between day and night as you run. Stay focused — obstacles are the same in the dark!',
       },
     ],
     controls: [
@@ -267,7 +334,7 @@ const instructionsData: Record<
       { icon: '🖱️', description: 'Click or Tap — Jump' },
       { icon: '📱', description: 'Use on-screen buttons on mobile' },
     ],
-    tip: 'Time your jumps carefully — jumping too early or too late will get you caught!',
+    tip: 'Ducking only helps avoid birds — you still need to jump over cacti and rocks!',
   },
   he: {
     instructions: [
@@ -281,19 +348,25 @@ const instructionsData: Record<
         icon: '🌵',
         title: 'הימנע ממכשולים',
         description:
-          'קקטוסים וציפורים מעופפות ינסו לעצור אותך. קפוץ מעל קקטוסים, והתכופף מתחת לציפורים. אם תפגע באחד, המשחק נגמר!',
+          'קקטוסים, סלעים, מטאורים וציפורים מעופפות ינסו לעצור אותך. קפוץ מעל מכשולים והתכופף מתחת לציפורים!',
       },
       {
         icon: '⚡',
-        title: 'זה הולך מהר יותר',
+        title: 'זה נהיה קשה יותר',
         description:
-          'ככל ששורד יותר זמן, הכל זז מהר יותר. כל רמת קושי מתחילה במהירות שונה!',
+          'ככל ששורד יותר זמן, הכל זז מהר יותר. סוגי מכשולים חדשים מופיעים ככל שהניקוד עולה — היזהר ממטאורים!',
       },
       {
-        icon: '⭐',
-        title: 'ניקוד',
+        icon: '🪙',
+        title: 'מטבעות וכוחות מיוחדים',
         description:
-          'מרוויחים נקודה אחת על כל פריים ששורדים. נסה לשבור את השיא שלך! כל 500 נקודות זה אבן דרך.',
+          'אסוף מטבעות מרחפים לנקודות בונוס! תפוס מגנים לחוסן או הילוך איטי. שרשר מטבעות לבונוס קומבו!',
+      },
+      {
+        icon: '🌙',
+        title: 'יום ולילה',
+        description:
+          'העולם מתחלף בין יום ללילה בזמן הריצה. הישאר ממוקד — המכשולים זהים גם בחושך!',
       },
     ],
     controls: [
@@ -302,7 +375,7 @@ const instructionsData: Record<
       { icon: '🖱️', description: 'לחיצה או נגיעה — קפיצה' },
       { icon: '📱', description: 'השתמש בכפתורים על המסך בנייד' },
     ],
-    tip: 'תזמן את הקפיצות בזהירות — קפיצה מוקדמת או מאוחרת מדי תתפוס אותך!',
+    tip: 'התכופפות עוזרת רק נגד ציפורים — עדיין צריך לקפוץ מעל קקטוסים וסלעים!',
   },
   zh: {
     instructions: [
@@ -316,19 +389,25 @@ const instructionsData: Record<
         icon: '🌵',
         title: '避开障碍物',
         description:
-          '仙人掌和飞鸟会挡住你的路。跳过仙人掌，蹲下躲过飞鸟。撞上任何一个就游戏结束！',
+          '仙人掌、石头、陨石和飞鸟会挡住你的路。跳过地面障碍物，蹲下躲过飞鸟！',
       },
       {
         icon: '⚡',
-        title: '越来越快',
+        title: '越来越难',
         description:
-          '你存活的时间越长，速度就越快。每个难度级别的起始速度不同，还会越来越快！',
+          '你存活的时间越长，速度就越快。随着分数增长会出现新的障碍物类型——小心落下的陨石！',
       },
       {
-        icon: '⭐',
-        title: '得分',
+        icon: '🪙',
+        title: '金币与道具',
         description:
-          '每存活一帧就得1分。试试打破你的最高分！每500分是一个里程碑。',
+          '收集浮动金币获得额外分数！抓住护盾获得无敌，或慢动作冻结时间。连续收集金币获得连击奖励！',
+      },
+      {
+        icon: '🌙',
+        title: '昼夜交替',
+        description:
+          '奔跑时世界在白天和黑夜之间切换。保持专注——黑暗中障碍物不会消失！',
       },
     ],
     controls: [
@@ -337,7 +416,7 @@ const instructionsData: Record<
       { icon: '🖱️', description: '点击或触摸 — 跳跃' },
       { icon: '📱', description: '在手机上使用屏幕按钮' },
     ],
-    tip: '仔细把握跳跃时机——跳得太早或太晚都会被抓住！',
+    tip: '蹲下只能躲避飞鸟——仙人掌和石头还是需要跳过去！',
   },
   es: {
     instructions: [
@@ -351,19 +430,25 @@ const instructionsData: Record<
         icon: '🌵',
         title: 'Evita Obstáculos',
         description:
-          'Cactus y pájaros intentarán detenerte. Salta sobre los cactus y agáchate bajo los pájaros. ¡Si chocas, se acaba el juego!',
+          'Cactus, rocas, meteoritos y pájaros intentarán detenerte. ¡Salta sobre los obstáculos del suelo y agáchate bajo los pájaros!',
       },
       {
         icon: '⚡',
-        title: 'Cada Vez Más Rápido',
+        title: 'Cada Vez Más Difícil',
         description:
-          'Cuanto más sobrevivas, más rápido se mueve todo. ¡Cada nivel de dificultad empieza a diferente velocidad!',
+          'Cuanto más sobrevivas, más rápido se mueve todo. ¡Nuevos obstáculos aparecen al subir tu puntuación — cuidado con los meteoritos!',
       },
       {
-        icon: '⭐',
-        title: 'Puntuación',
+        icon: '🪙',
+        title: 'Monedas y Poderes',
         description:
-          'Ganas 1 punto por cada cuadro que sobrevives. ¡Intenta superar tu récord! Cada 500 puntos es un hito.',
+          '¡Recoge monedas flotantes para puntos extra! Agarra escudos para ser invencible o cámara lenta. ¡Encadena monedas para combo!',
+      },
+      {
+        icon: '🌙',
+        title: 'Día y Noche',
+        description:
+          'El mundo cambia entre día y noche mientras corres. ¡Los obstáculos son iguales en la oscuridad!',
       },
     ],
     controls: [
@@ -372,7 +457,7 @@ const instructionsData: Record<
       { icon: '🖱️', description: 'Clic o Toque — Saltar' },
       { icon: '📱', description: 'Usa los botones en pantalla en móvil' },
     ],
-    tip: '¡Calcula bien tus saltos — saltar muy pronto o muy tarde te atrapará!',
+    tip: '¡Agacharse solo ayuda contra los pájaros — aún necesitas saltar sobre cactus y rocas!',
   },
 };
 
@@ -380,20 +465,40 @@ const instructionsData: Record<
 // Drawing helpers
 // ---------------------------------------------------------------------------
 
-function drawSky(ctx: CanvasRenderingContext2D) {
+function drawSky(ctx: CanvasRenderingContext2D, isNight: boolean) {
   const skyGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-  skyGradient.addColorStop(0, '#87CEEB');
-  skyGradient.addColorStop(1, '#E0F7FA');
+  if (isNight) {
+    skyGradient.addColorStop(0, '#0f172a');
+    skyGradient.addColorStop(1, '#1e293b');
+  } else {
+    skyGradient.addColorStop(0, '#87CEEB');
+    skyGradient.addColorStop(1, '#E0F7FA');
+  }
   ctx.fillStyle = skyGradient;
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 }
 
-function drawGround(ctx: CanvasRenderingContext2D, groundOffset: number) {
-  ctx.fillStyle = '#8B4513';
+function drawStars(ctx: CanvasRenderingContext2D, frameCount: number) {
+  ctx.fillStyle = '#fff';
+  // Deterministic star field
+  for (let i = 0; i < 30; i++) {
+    const sx = (i * 127 + 13) % CANVAS_WIDTH;
+    const sy = (i * 89 + 7) % (GROUND_Y - 20);
+    const twinkle = Math.sin(frameCount * 0.05 + i) * 0.5 + 0.5;
+    ctx.globalAlpha = 0.3 + twinkle * 0.7;
+    ctx.beginPath();
+    ctx.arc(sx, sy, 1 + (i % 3 === 0 ? 1 : 0), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawGround(ctx: CanvasRenderingContext2D, groundOffset: number, isNight: boolean) {
+  ctx.fillStyle = isNight ? '#3b2a1a' : '#8B4513';
   ctx.fillRect(0, GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT - GROUND_Y);
-  ctx.fillStyle = '#228B22';
+  ctx.fillStyle = isNight ? '#1a4a1a' : '#228B22';
   ctx.fillRect(0, GROUND_Y, CANVAS_WIDTH, 5);
-  ctx.strokeStyle = '#A0522D';
+  ctx.strokeStyle = isNight ? '#5a3a2a' : '#A0522D';
   ctx.lineWidth = 1;
   for (let i = 0; i < 12; i++) {
     const lx = ((i * 80 - groundOffset * 0.5) % (CANVAS_WIDTH + 80)) - 40;
@@ -404,8 +509,8 @@ function drawGround(ctx: CanvasRenderingContext2D, groundOffset: number) {
   }
 }
 
-function drawClouds(ctx: CanvasRenderingContext2D, clouds: Cloud[], frameCount: number) {
-  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+function drawClouds(ctx: CanvasRenderingContext2D, clouds: Cloud[], frameCount: number, isNight: boolean) {
+  ctx.fillStyle = isNight ? 'rgba(100,116,139,0.4)' : 'rgba(255,255,255,0.8)';
   for (const cloud of clouds) {
     const cx = ((cloud.x - frameCount * 0.3) % (CANVAS_WIDTH + 200)) - 100;
     ctx.beginPath();
@@ -424,10 +529,32 @@ function drawDino(
   isJumping: boolean,
   frame: number,
   primaryColor: string = '#22c55e',
-  darkColor: string = '#16a34a'
+  darkColor: string = '#16a34a',
+  shieldActive: boolean = false,
+  slowMoActive: boolean = false,
 ) {
   ctx.save();
   ctx.translate(x, y);
+
+  // Shield glow
+  if (shieldActive) {
+    ctx.save();
+    ctx.globalAlpha = 0.3 + Math.sin(Date.now() * 0.01) * 0.15;
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    if (isDucking) {
+      ctx.ellipse(DINO_WIDTH / 2 + 5, DINO_HEIGHT / 2 + 10, DINO_WIDTH / 2 + 18, 20, 0, 0, Math.PI * 2);
+    } else {
+      ctx.ellipse(DINO_WIDTH / 2, DINO_HEIGHT / 2, DINO_WIDTH / 2 + 12, DINO_HEIGHT / 2 + 8, 0, 0, Math.PI * 2);
+    }
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // SlowMo tint
+  if (slowMoActive) {
+    ctx.globalAlpha = 0.85;
+  }
 
   if (isDucking) {
     ctx.fillStyle = primaryColor;
@@ -548,31 +675,292 @@ function drawBird(ctx: CanvasRenderingContext2D, obs: Obstacle, frameCount: numb
   ctx.restore();
 }
 
+function drawRock(ctx: CanvasRenderingContext2D, obs: Obstacle) {
+  const rx = obs.x;
+  const ry = GROUND_Y - obs.height;
+  // Main rock body — wide and low
+  ctx.fillStyle = '#78716c';
+  ctx.beginPath();
+  ctx.moveTo(rx, GROUND_Y);
+  ctx.lineTo(rx + 5, ry + 5);
+  ctx.lineTo(rx + obs.width * 0.3, ry);
+  ctx.lineTo(rx + obs.width * 0.7, ry + 3);
+  ctx.lineTo(rx + obs.width - 3, ry + 8);
+  ctx.lineTo(rx + obs.width, GROUND_Y);
+  ctx.closePath();
+  ctx.fill();
+  // Highlight
+  ctx.fillStyle = '#a8a29e';
+  ctx.beginPath();
+  ctx.moveTo(rx + 8, ry + 8);
+  ctx.lineTo(rx + obs.width * 0.35, ry + 3);
+  ctx.lineTo(rx + obs.width * 0.55, ry + 6);
+  ctx.lineTo(rx + 12, ry + 12);
+  ctx.closePath();
+  ctx.fill();
+  // Cracks
+  ctx.strokeStyle = '#57534e';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(rx + obs.width * 0.4, ry + 5);
+  ctx.lineTo(rx + obs.width * 0.5, ry + obs.height * 0.6);
+  ctx.stroke();
+}
+
+function drawMeteor(ctx: CanvasRenderingContext2D, obs: Obstacle, frameCount: number) {
+  if (obs.warningTimer && obs.warningTimer > 0) {
+    // Warning phase: flashing "!" at landing position
+    const flash = Math.sin(frameCount * 0.4) > 0;
+    if (flash) {
+      ctx.save();
+      ctx.fillStyle = '#ef4444';
+      ctx.font = 'bold 22px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('⚠', obs.x + obs.width / 2, GROUND_Y - 10);
+      ctx.restore();
+      // Red column
+      ctx.save();
+      ctx.globalAlpha = 0.15;
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(obs.x, 0, obs.width, GROUND_Y);
+      ctx.restore();
+    }
+    return; // Don't draw the rock yet
+  }
+
+  // Falling meteor
+  ctx.save();
+  ctx.translate(obs.x, obs.y);
+  // Fire trail
+  ctx.fillStyle = '#f97316';
+  ctx.globalAlpha = 0.6;
+  for (let i = 0; i < 4; i++) {
+    const ty = -8 - i * 8 + Math.sin(frameCount * 0.5 + i) * 3;
+    const tr = 6 - i;
+    ctx.beginPath();
+    ctx.arc(obs.width / 2 + Math.sin(i * 2) * 4, ty, tr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  // Rock body
+  ctx.fillStyle = '#78716c';
+  ctx.beginPath();
+  ctx.ellipse(obs.width / 2, obs.height / 2, obs.width / 2, obs.height / 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Highlight
+  ctx.fillStyle = '#a8a29e';
+  ctx.beginPath();
+  ctx.arc(obs.width / 2 - 3, obs.height / 2 - 3, 5, 0, Math.PI * 2);
+  ctx.fill();
+  // Glow
+  ctx.fillStyle = '#dc2626';
+  ctx.globalAlpha = 0.4 + Math.sin(frameCount * 0.3) * 0.2;
+  ctx.beginPath();
+  ctx.ellipse(obs.width / 2, obs.height / 2, obs.width / 2 + 4, obs.height / 2 + 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function drawDoubleBird(ctx: CanvasRenderingContext2D, obs: Obstacle, frameCount: number) {
+  // Two birds stacked — one at obs.y, one 30px higher
+  const bird1Y = obs.y;
+  const bird2Y = obs.y - 35;
+  for (const by of [bird1Y, bird2Y]) {
+    ctx.save();
+    ctx.translate(obs.x, by);
+    ctx.fillStyle = '#dc2626';
+    ctx.beginPath();
+    ctx.ellipse(15, 10, 15, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(30, 6, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f97316';
+    ctx.beginPath();
+    ctx.moveTo(36, 6);
+    ctx.lineTo(42, 8);
+    ctx.lineTo(36, 10);
+    ctx.fill();
+    ctx.fillStyle = '#f87171';
+    const wa = Math.sin(frameCount * 0.35 + by * 0.1) * 0.5;
+    ctx.save();
+    ctx.translate(15, 10);
+    ctx.rotate(wa);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-12, -16);
+    ctx.lineTo(12, -16);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(32, 4, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(32.5, 4, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawCoin(ctx: CanvasRenderingContext2D, coin: Coin, frameCount: number) {
+  if (coin.collected) return;
+  const bobY = coin.y + Math.sin(frameCount * 0.08 + coin.bobPhase) * 5;
+  ctx.save();
+  ctx.translate(coin.x, bobY);
+  // Outer glow
+  ctx.fillStyle = 'rgba(251,191,36,0.3)';
+  ctx.beginPath();
+  ctx.arc(0, 0, COIN_RADIUS + 3, 0, Math.PI * 2);
+  ctx.fill();
+  // Coin body
+  ctx.fillStyle = '#fbbf24';
+  ctx.beginPath();
+  ctx.arc(0, 0, COIN_RADIUS, 0, Math.PI * 2);
+  ctx.fill();
+  // Shine
+  ctx.fillStyle = '#fde68a';
+  ctx.beginPath();
+  ctx.arc(-2, -2, COIN_RADIUS * 0.4, 0, Math.PI * 2);
+  ctx.fill();
+  // Star/dollar mark
+  ctx.fillStyle = '#b45309';
+  ctx.font = 'bold 9px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('★', 0, 0);
+  ctx.restore();
+}
+
+function drawPowerUpItem(ctx: CanvasRenderingContext2D, pu: PowerUp, frameCount: number) {
+  if (pu.collected) return;
+  const bobY = pu.y + Math.sin(frameCount * 0.06 + pu.bobPhase) * 4;
+  ctx.save();
+  ctx.translate(pu.x, bobY);
+
+  if (pu.type === 'shield') {
+    // Shield icon — golden badge
+    ctx.fillStyle = 'rgba(251,191,36,0.3)';
+    ctx.beginPath();
+    ctx.arc(0, 0, POWERUP_SIZE / 2 + 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    ctx.moveTo(0, -POWERUP_SIZE / 2);
+    ctx.lineTo(POWERUP_SIZE / 2, -POWERUP_SIZE / 4);
+    ctx.lineTo(POWERUP_SIZE / 2, POWERUP_SIZE / 4);
+    ctx.lineTo(0, POWERUP_SIZE / 2);
+    ctx.lineTo(-POWERUP_SIZE / 2, POWERUP_SIZE / 4);
+    ctx.lineTo(-POWERUP_SIZE / 2, -POWERUP_SIZE / 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#92400e';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🛡', 0, 0);
+  } else {
+    // SlowMo icon — blue clock
+    ctx.fillStyle = 'rgba(59,130,246,0.3)';
+    ctx.beginPath();
+    ctx.arc(0, 0, POWERUP_SIZE / 2 + 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#3b82f6';
+    ctx.beginPath();
+    ctx.arc(0, 0, POWERUP_SIZE / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🕐', 0, 0);
+  }
+
+  // Sparkle
+  const sparkle = Math.sin(frameCount * 0.15) > 0.5;
+  if (sparkle) {
+    ctx.fillStyle = '#fff';
+    ctx.globalAlpha = 0.8;
+    ctx.beginPath();
+    ctx.arc(POWERUP_SIZE / 2, -POWERUP_SIZE / 2, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.restore();
+}
+
 function drawHUD(
   ctx: CanvasRenderingContext2D,
   score: number,
   highScore: number,
+  coinCount: number,
+  comboCount: number,
+  shieldTimer: number,
+  slowMoTimer: number,
   tScore: string,
   tHighScore: string,
-  isRtl: boolean
+  tCoins: string,
+  tCombo: string,
+  tShield: string,
+  tSlowMo: string,
+  isRtl: boolean,
+  isNight: boolean,
 ) {
   ctx.save();
   ctx.font = 'bold 14px monospace';
   ctx.textBaseline = 'top';
 
+  const textColor = isNight ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)';
+  const dimColor = isNight ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)';
+
   if (isRtl) {
     ctx.textAlign = 'left';
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillStyle = dimColor;
     ctx.fillText(`${tHighScore}: ${String(highScore).padStart(5, '0')}`, 10, 10);
-    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillStyle = textColor;
     ctx.fillText(`${tScore}: ${String(score).padStart(5, '0')}`, 10, 28);
+    // Coins
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillText(`🪙 ${tCoins}: ${coinCount}`, 10, 46);
   } else {
     ctx.textAlign = 'right';
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillStyle = dimColor;
     ctx.fillText(`${tHighScore}: ${String(highScore).padStart(5, '0')}`, CANVAS_WIDTH - 10, 10);
-    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillStyle = textColor;
     ctx.fillText(`${tScore}: ${String(score).padStart(5, '0')}`, CANVAS_WIDTH - 10, 28);
+    // Coins
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillText(`🪙 ${tCoins}: ${coinCount}`, CANVAS_WIDTH - 10, 46);
   }
+
+  // Combo display (center top)
+  if (comboCount > 1) {
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 16px monospace';
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillText(`${tCombo}${comboCount}`, CANVAS_WIDTH / 2, 10);
+  }
+
+  // Active power-up indicator (center)
+  if (shieldTimer > 0) {
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 13px monospace';
+    ctx.fillStyle = '#fbbf24';
+    const secs = Math.ceil(shieldTimer / 60);
+    ctx.fillText(`${tShield} ${secs}s`, CANVAS_WIDTH / 2, 30);
+  }
+  if (slowMoTimer > 0) {
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 13px monospace';
+    ctx.fillStyle = '#3b82f6';
+    const secs = Math.ceil(slowMoTimer / 60);
+    ctx.fillText(`${tSlowMo} ${secs}s`, CANVAS_WIDTH / 2, shieldTimer > 0 ? 48 : 30);
+  }
+
   ctx.restore();
 }
 
@@ -596,6 +984,9 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
     playGameOver,
     playHit,
     playJump,
+    playPowerUp,
+    playMatch,
+    playWhoosh,
   } = useRetroSounds();
 
   // ---- React state (triggers re-render) ----
@@ -627,6 +1018,9 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
     }
     return DEFAULT_DINO_COLOR;
   });
+  const [coinCount, setCoinCount] = useState(0);
+  const [comboCount, setComboCount] = useState(0);
+  const [powerUpLabel, setPowerUpLabel] = useState('');
 
   // ---- Mutable refs (no re-render) ----
   const dinoRef = useRef({
@@ -638,9 +1032,13 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
     frame: 0,
   });
   const obstaclesRef = useRef<Obstacle[]>([]);
+  const coinsRef = useRef<Coin[]>([]);
+  const powerUpsRef = useRef<PowerUp[]>([]);
   const gameSpeedRef = useRef(6);
   const frameCountRef = useRef(0);
   const nextObstacleRef = useRef(100);
+  const nextCoinRef = useRef(60);
+  const nextPowerUpScoreRef = useRef(1500);
   const scoreRef = useRef(0);
   const highScoreRef = useRef(highScore);
   const lastMilestoneRef = useRef(0);
@@ -651,6 +1049,12 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
   const gameStateRef = useRef<GameState>('menu');
   const dinoColorRef = useRef<DinoColor>(dinoColor);
   const isDuckingKeyHeld = useRef(false);
+  const coinCountRef = useRef(0);
+  const comboRef = useRef(0);
+  const shieldTimerRef = useRef(0);
+  const slowMoTimerRef = useRef(0);
+  const shakeFramesRef = useRef(0);
+  const savedSpeedRef = useRef(0);
 
   // Keep refs synced
   useEffect(() => {
@@ -675,15 +1079,29 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
     return c;
   }, []);
 
-  // Spawn obstacle based on difficulty
+  // Spawn obstacle based on difficulty + score thresholds
   const spawnObstacle = useCallback(
     (settings: DifficultySettings, currentScore: number) => {
       const rand = Math.random();
-      let type: Obstacle['type'];
+      let type: ObstacleType;
 
-      if (rand > settings.birdChanceThreshold && currentScore > settings.birdScoreMin) {
+      // Progressive obstacles unlock based on score
+      const canRock = currentScore >= settings.rockScoreMin;
+      const canMeteor = currentScore >= settings.meteorScoreMin;
+      const canDoubleBird = currentScore >= settings.doubleBirdScoreMin;
+      const canBird = currentScore > settings.birdScoreMin;
+      const canCluster = currentScore > 300;
+
+      // Build weighted selection
+      if (canDoubleBird && rand < 0.08) {
+        type = 'double-bird';
+      } else if (canMeteor && rand < 0.15) {
+        type = 'meteor';
+      } else if (canBird && rand > settings.birdChanceThreshold) {
         type = 'bird';
-      } else if (rand > 1 - settings.clusterChance && currentScore > 300) {
+      } else if (canRock && rand < 0.18 + (canMeteor ? 0.05 : 0)) {
+        type = 'rock';
+      } else if (canCluster && rand > 1 - settings.clusterChance) {
         type = 'cactus-cluster';
       } else if (Math.random() > 0.5) {
         type = 'cactus-large';
@@ -694,12 +1112,31 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
       let width: number;
       let height: number;
       let y: number;
+      let warningTimer: number | undefined;
+      let vy: number | undefined;
 
       switch (type) {
         case 'bird':
           width = 40;
           height = 30;
           y = GROUND_Y - DINO_HEIGHT - 10 - Math.random() * 40;
+          break;
+        case 'double-bird':
+          width = 35;
+          height = 65; // tall combined hitbox
+          y = GROUND_Y - DINO_HEIGHT - 5 - Math.random() * 20;
+          break;
+        case 'rock':
+          width = 55 + Math.random() * 20;
+          height = 22 + Math.random() * 8;
+          y = GROUND_Y;
+          break;
+        case 'meteor':
+          width = 24;
+          height = 24;
+          y = -30; // starts above canvas
+          warningTimer = 90; // ~1.5 sec warning
+          vy = 0;
           break;
         case 'cactus-cluster':
           width = 50 + Math.random() * 15;
@@ -711,17 +1148,52 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
           height = 50 + Math.random() * 15;
           y = GROUND_Y;
           break;
-        default:
+        default: // cactus-small
           width = 18 + Math.random() * 10;
           height = 30 + Math.random() * 15;
           y = GROUND_Y;
           break;
       }
 
-      obstaclesRef.current.push({ x: CANVAS_WIDTH + 50, width, height, type, y, passed: false });
+      const xPos = type === 'meteor'
+        ? 150 + Math.random() * (CANVAS_WIDTH - 250) // meteor drops within play area
+        : CANVAS_WIDTH + 50;
+
+      obstaclesRef.current.push({
+        x: xPos,
+        width,
+        height,
+        type,
+        y,
+        passed: false,
+        warningTimer,
+        vy,
+      });
     },
     []
   );
+
+  // Spawn a coin at a random height
+  const spawnCoin = useCallback(() => {
+    coinsRef.current.push({
+      x: CANVAS_WIDTH + 30,
+      y: GROUND_Y - 30 - Math.random() * 60,
+      collected: false,
+      bobPhase: Math.random() * Math.PI * 2,
+    });
+  }, []);
+
+  // Spawn a power-up
+  const spawnPowerUp = useCallback(() => {
+    const type: PowerUpType = Math.random() > 0.5 ? 'shield' : 'slowmo';
+    powerUpsRef.current.push({
+      x: CANVAS_WIDTH + 30,
+      y: GROUND_Y - 50 - Math.random() * 40,
+      type,
+      collected: false,
+      bobPhase: Math.random() * Math.PI * 2,
+    });
+  }, []);
 
   // Start / restart game
   const startGame = useCallback(
@@ -735,6 +1207,16 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
       levelRef.current = 1;
       lastMilestoneRef.current = 0;
       setShowMilestone(false);
+      setCoinCount(0);
+      coinCountRef.current = 0;
+      setComboCount(0);
+      comboRef.current = 0;
+      setPowerUpLabel('');
+      shieldTimerRef.current = 0;
+      slowMoTimerRef.current = 0;
+      shakeFramesRef.current = 0;
+      savedSpeedRef.current = 0;
+      nextPowerUpScoreRef.current = 1500;
 
       dinoRef.current = {
         x: 80,
@@ -745,9 +1227,12 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
         frame: 0,
       };
       obstaclesRef.current = [];
+      coinsRef.current = [];
+      powerUpsRef.current = [];
       gameSpeedRef.current = settings.baseSpeed;
       frameCountRef.current = 0;
       nextObstacleRef.current = 80;
+      nextCoinRef.current = 60;
       groundOffsetRef.current = 0;
       cloudsRef.current = generateClouds();
       isDuckingKeyHeld.current = false;
@@ -855,6 +1340,13 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
       const fc = frameCountRef.current;
       const dino = dinoRef.current;
 
+      // Determine effective game speed (slowmo halves speed)
+      const isSlowMo = slowMoTimerRef.current > 0;
+      const effectiveSpeed = isSlowMo ? gameSpeedRef.current * 0.5 : gameSpeedRef.current;
+
+      // Day/night cycle
+      const isNight = Math.floor(scoreRef.current / DAY_NIGHT_INTERVAL) % 2 === 1;
+
       // Physics
       dino.vy += settings.gravity;
       dino.y += dino.vy;
@@ -872,9 +1364,19 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
       if (fc % 6 === 0) dino.frame = (dino.frame + 1) % 2;
 
       // Ground scroll
-      groundOffsetRef.current += gameSpeedRef.current;
+      groundOffsetRef.current += effectiveSpeed;
 
-      // Spawn
+      // ---- Power-up timers ----
+      if (shieldTimerRef.current > 0) shieldTimerRef.current--;
+      if (slowMoTimerRef.current > 0) {
+        slowMoTimerRef.current--;
+        if (slowMoTimerRef.current === 0 && savedSpeedRef.current > 0) {
+          gameSpeedRef.current = savedSpeedRef.current;
+          savedSpeedRef.current = 0;
+        }
+      }
+
+      // ---- Spawn obstacles ----
       nextObstacleRef.current--;
       if (nextObstacleRef.current <= 0) {
         spawnObstacle(settings, scoreRef.current);
@@ -882,26 +1384,90 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
           settings.minObstacleGap + Math.random() * (settings.maxObstacleGap - settings.minObstacleGap);
       }
 
-      // Move obstacles
+      // ---- Spawn coins ----
+      nextCoinRef.current--;
+      if (nextCoinRef.current <= 0) {
+        if (Math.random() < 0.6) {
+          spawnCoin();
+        }
+        nextCoinRef.current = 40 + Math.random() * 60;
+      }
+
+      // ---- Spawn power-ups based on score threshold ----
+      if (scoreRef.current >= nextPowerUpScoreRef.current) {
+        spawnPowerUp();
+        nextPowerUpScoreRef.current += 1200 + Math.floor(Math.random() * 800);
+      }
+
+      // ---- Move obstacles ----
       obstaclesRef.current = obstaclesRef.current.filter((obs) => {
-        obs.x -= gameSpeedRef.current;
+        if (obs.type === 'meteor') {
+          // Meteor: warning phase then fall
+          if (obs.warningTimer && obs.warningTimer > 0) {
+            obs.warningTimer--;
+            if (obs.warningTimer === 0) {
+              obs.vy = 3 + effectiveSpeed * 0.3;
+              obs.y = -30;
+            }
+            return true;
+          }
+          // Falling phase
+          obs.y += (obs.vy || 4);
+          return obs.y < GROUND_Y + 50;
+        }
+        obs.x -= effectiveSpeed;
         return obs.x > -100;
       });
 
-      // Collision
+      // ---- Move coins ----
+      coinsRef.current = coinsRef.current.filter((c) => {
+        if (!c.collected) c.x -= effectiveSpeed;
+        return c.x > -50 && !c.collected;
+      });
+
+      // ---- Move power-ups ----
+      powerUpsRef.current = powerUpsRef.current.filter((pu) => {
+        if (!pu.collected) pu.x -= effectiveSpeed;
+        return pu.x > -50 && !pu.collected;
+      });
+
+      // ---------------------------------------------------------------
+      // Collision detection
+      // ---------------------------------------------------------------
+      // FIX: Ducking hitbox no longer drops below ground.
+      // Standing: y = dino.y + 5, h = DINO_HEIGHT - 10 = 40
+      // Ducking:  y = dino.y + 5, h = DINO_HEIGHT/2 - 10 = 15
+      // This means ducking shrinks the hitbox (good for dodging birds)
+      // but keeps it at the same vertical start (still collides with cacti/rocks).
       const dinoBox = {
-        x: dino.x + 8,
-        y: dino.y + (dino.isDucking ? DINO_HEIGHT / 2 : 5),
-        width: DINO_WIDTH - 16,
+        x: dino.x + (dino.isDucking ? 4 : 8),
+        y: dino.y + 5,
+        width: dino.isDucking ? DINO_WIDTH + 10 - 8 : DINO_WIDTH - 16,
         height: dinoH - 10,
       };
 
       let collided = false;
+      const hasShield = shieldTimerRef.current > 0;
+
       for (const obs of obstaclesRef.current) {
-        const obsBox =
-          obs.type === 'bird'
-            ? { x: obs.x + 5, y: obs.y + 3, width: obs.width - 10, height: obs.height - 6 }
-            : { x: obs.x + 3, y: GROUND_Y - obs.height + 3, width: obs.width - 6, height: obs.height - 6 };
+        // Skip meteors still in warning phase
+        if (obs.type === 'meteor' && obs.warningTimer && obs.warningTimer > 0) continue;
+
+        let obsBox: { x: number; y: number; width: number; height: number };
+
+        if (obs.type === 'bird') {
+          obsBox = { x: obs.x + 5, y: obs.y + 3, width: obs.width - 10, height: obs.height - 6 };
+        } else if (obs.type === 'double-bird') {
+          // Tall combined hitbox covering both birds
+          obsBox = { x: obs.x + 3, y: obs.y - 35, width: obs.width - 6, height: obs.height + 25 };
+        } else if (obs.type === 'rock') {
+          obsBox = { x: obs.x + 4, y: GROUND_Y - obs.height + 2, width: obs.width - 8, height: obs.height - 2 };
+        } else if (obs.type === 'meteor') {
+          obsBox = { x: obs.x + 2, y: obs.y + 2, width: obs.width - 4, height: obs.height - 4 };
+        } else {
+          // Cactus variants
+          obsBox = { x: obs.x + 3, y: GROUND_Y - obs.height + 3, width: obs.width - 6, height: obs.height - 6 };
+        }
 
         if (
           dinoBox.x < obsBox.x + obsBox.width &&
@@ -909,14 +1475,68 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
           dinoBox.y < obsBox.y + obsBox.height &&
           dinoBox.y + dinoBox.height > obsBox.y
         ) {
-          collided = true;
-          break;
+          if (hasShield) {
+            // Shield absorbs the hit — remove obstacle
+            obs.passed = true;
+            obs.x = -200;
+            shieldTimerRef.current = 0;
+            shakeFramesRef.current = 8;
+            playHit();
+          } else {
+            collided = true;
+            break;
+          }
         }
       }
 
+      // ---- Coin collection ----
+      for (const c of coinsRef.current) {
+        if (c.collected) continue;
+        const bobY = c.y + Math.sin(fc * 0.08 + c.bobPhase) * 5;
+        const dx = dino.x + DINO_WIDTH / 2 - c.x;
+        const dy = dino.y + dinoH / 2 - bobY;
+        if (Math.sqrt(dx * dx + dy * dy) < COIN_RADIUS + 18) {
+          c.collected = true;
+          comboRef.current++;
+          const bonus = 10 * comboRef.current;
+          scoreRef.current += bonus;
+          coinCountRef.current++;
+          setCoinCount(coinCountRef.current);
+          setComboCount(comboRef.current);
+          playMatch();
+        }
+      }
+
+      // ---- Power-up collection ----
+      for (const pu of powerUpsRef.current) {
+        if (pu.collected) continue;
+        const bobY = pu.y + Math.sin(fc * 0.06 + pu.bobPhase) * 4;
+        const dx = dino.x + DINO_WIDTH / 2 - pu.x;
+        const dy = dino.y + dinoH / 2 - bobY;
+        if (Math.sqrt(dx * dx + dy * dy) < POWERUP_SIZE / 2 + 20) {
+          pu.collected = true;
+          playPowerUp();
+          if (pu.type === 'shield') {
+            shieldTimerRef.current = SHIELD_DURATION;
+            setPowerUpLabel(t.shield);
+          } else {
+            slowMoTimerRef.current = SLOWMO_DURATION;
+            if (savedSpeedRef.current === 0) {
+              savedSpeedRef.current = gameSpeedRef.current;
+            }
+            setPowerUpLabel(t.slowMo);
+          }
+          setTimeout(() => setPowerUpLabel(''), 1500);
+        }
+      }
+
+      // ---- Game over ----
       if (collided) {
         playHit();
+        shakeFramesRef.current = 10;
         setTimeout(() => playGameOver(), 200);
+        comboRef.current = 0;
+        setComboCount(0);
         const finalScore = scoreRef.current;
         if (finalScore > highScoreRef.current) {
           setHighScore(finalScore);
@@ -944,34 +1564,113 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
 
       // Speed increase & level
       if (fc % settings.speedInterval === 0) {
-        const newSpeed = Math.min(gameSpeedRef.current + settings.speedIncrement, settings.maxSpeed);
-        if (newSpeed !== gameSpeedRef.current) {
-          gameSpeedRef.current = newSpeed;
-          const newLevel =
-            Math.floor((gameSpeedRef.current - settings.baseSpeed) / (settings.speedIncrement * 2)) + 1;
-          if (newLevel > levelRef.current) {
-            levelRef.current = newLevel;
-            setCurrentLevel(newLevel);
-            playLevelUp();
-          }
-        }
-      }
-
-      // Draw
-      drawSky(ctx);
-      drawClouds(ctx, cloudsRef.current, fc);
-      drawGround(ctx, groundOffsetRef.current);
-
-      for (const obs of obstaclesRef.current) {
-        if (obs.type === 'bird') {
-          drawBird(ctx, obs, fc);
+        const baseTarget = isSlowMo ? savedSpeedRef.current || gameSpeedRef.current : gameSpeedRef.current;
+        const newSpeed = Math.min(baseTarget + settings.speedIncrement, settings.maxSpeed);
+        if (isSlowMo && savedSpeedRef.current > 0) {
+          savedSpeedRef.current = newSpeed;
         } else {
-          drawCactus(ctx, obs);
+          gameSpeedRef.current = newSpeed;
+        }
+        const currentBase = isSlowMo ? savedSpeedRef.current : gameSpeedRef.current;
+        const newLevel =
+          Math.floor((currentBase - settings.baseSpeed) / (settings.speedIncrement * 2)) + 1;
+        if (newLevel > levelRef.current) {
+          levelRef.current = newLevel;
+          setCurrentLevel(newLevel);
+          playLevelUp();
         }
       }
 
-      drawDino(ctx, dino.x, dino.y, dino.isDucking, dino.isJumping, dino.frame, dinoColorRef.current.primary, dinoColorRef.current.dark);
-      drawHUD(ctx, scoreRef.current, highScoreRef.current, t.score, t.highScore, isRtl);
+      // ---------------------------------------------------------------
+      // Draw
+      // ---------------------------------------------------------------
+      ctx.save();
+
+      // Screen shake offset
+      if (shakeFramesRef.current > 0) {
+        const intensity = shakeFramesRef.current;
+        ctx.translate(
+          (Math.random() - 0.5) * intensity * 1.5,
+          (Math.random() - 0.5) * intensity * 1.5,
+        );
+        shakeFramesRef.current--;
+      }
+
+      drawSky(ctx, isNight);
+      if (isNight) drawStars(ctx, fc);
+      drawClouds(ctx, cloudsRef.current, fc, isNight);
+      drawGround(ctx, groundOffsetRef.current, isNight);
+
+      // Draw obstacles
+      for (const obs of obstaclesRef.current) {
+        switch (obs.type) {
+          case 'bird':
+            drawBird(ctx, obs, fc);
+            break;
+          case 'double-bird':
+            drawDoubleBird(ctx, obs, fc);
+            break;
+          case 'rock':
+            drawRock(ctx, obs);
+            break;
+          case 'meteor':
+            drawMeteor(ctx, obs, fc);
+            break;
+          default:
+            drawCactus(ctx, obs);
+            break;
+        }
+      }
+
+      // Draw coins
+      for (const c of coinsRef.current) {
+        drawCoin(ctx, c, fc);
+      }
+
+      // Draw power-ups
+      for (const pu of powerUpsRef.current) {
+        drawPowerUpItem(ctx, pu, fc);
+      }
+
+      // Draw dino
+      drawDino(
+        ctx,
+        dino.x,
+        dino.y,
+        dino.isDucking,
+        dino.isJumping,
+        dino.frame,
+        dinoColorRef.current.primary,
+        dinoColorRef.current.dark,
+        shieldTimerRef.current > 0,
+        slowMoTimerRef.current > 0,
+      );
+
+      // SlowMo overlay tint
+      if (isSlowMo) {
+        ctx.fillStyle = 'rgba(59,130,246,0.08)';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      }
+
+      drawHUD(
+        ctx,
+        scoreRef.current,
+        highScoreRef.current,
+        coinCountRef.current,
+        comboRef.current,
+        shieldTimerRef.current,
+        slowMoTimerRef.current,
+        t.score,
+        t.highScore,
+        t.coins,
+        t.combo,
+        t.shield,
+        t.slowMo,
+        isRtl,
+        isNight,
+      );
+
+      ctx.restore();
 
       gameLoopRef.current = requestAnimationFrame(loop);
     };
@@ -984,7 +1683,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
         gameLoopRef.current = null;
       }
     };
-  }, [gameState, spawnObstacle, t.score, t.highScore, isRtl, playHit, playGameOver, playSuccess, playLevelUp]);
+  }, [gameState, spawnObstacle, spawnCoin, spawnPowerUp, t.score, t.highScore, t.coins, t.combo, t.shield, t.slowMo, isRtl, playHit, playGameOver, playSuccess, playLevelUp, playMatch, playPowerUp, playWhoosh]);
 
   // -----------------------------------------------------------------------
   // Static screen draw (menu / gameover)
@@ -1005,9 +1704,9 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
       ];
     }
 
-    drawSky(ctx);
-    drawClouds(ctx, cloudsRef.current, 0);
-    drawGround(ctx, 0);
+    drawSky(ctx, false);
+    drawClouds(ctx, cloudsRef.current, 0, false);
+    drawGround(ctx, 0, false);
     drawDino(ctx, 80, GROUND_Y - DINO_HEIGHT, false, false, 0, dinoColorRef.current.primary, dinoColorRef.current.dark);
   }, [gameState, dinoColor]);
 
@@ -1028,7 +1727,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
   return (
     <GameWrapper title={t.title} onInstructionsClick={() => setShowInstructions(true)}>
       <div className="flex flex-col items-center gap-4" dir={direction}>
-        {/* Score + Level bar */}
+        {/* Score + Level + Coins bar */}
         <div className="flex flex-wrap items-center justify-center gap-4 mb-2">
           <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center">
             <div className="text-sm text-slate-500 font-medium">{t.score}</div>
@@ -1041,6 +1740,10 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
             <div className="text-2xl font-bold text-[#f97316] font-mono">
               {String(highScore).padStart(5, '0')}
             </div>
+          </div>
+          <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center">
+            <div className="text-sm text-slate-500 font-medium">🪙 {t.coins}</div>
+            <div className="text-2xl font-bold text-[#fbbf24] font-mono">{coinCount}</div>
           </div>
           {gameState === 'playing' && (
             <LevelDisplay level={currentLevel} />
@@ -1067,6 +1770,35 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                 className="absolute top-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-yellow-400 text-slate-900 font-bold rounded-full shadow-lg text-lg"
               >
                 {t.milestone}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Power-up pickup toast */}
+          <AnimatePresence>
+            {powerUpLabel && gameState === 'playing' && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+                className="absolute top-12 left-1/2 -translate-x-1/2 px-5 py-2 bg-white/95 text-slate-800 font-bold rounded-full shadow-lg text-base"
+              >
+                {powerUpLabel}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Combo indicator */}
+          <AnimatePresence>
+            {comboCount > 1 && gameState === 'playing' && (
+              <motion.div
+                key={comboCount}
+                initial={{ opacity: 0, scale: 1.3 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute top-20 left-1/2 -translate-x-1/2 px-4 py-1 bg-amber-400/90 text-slate-900 font-bold rounded-full shadow text-sm"
+              >
+                {t.combo}{comboCount} 🔥
               </motion.div>
             )}
           </AnimatePresence>
@@ -1163,6 +1895,9 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                   {score >= highScore && score > 0 && (
                     <div className="text-base text-[#f97316] font-bold mb-2">{t.newHighScore}</div>
                   )}
+                  <div className="text-sm text-slate-600 mb-3">
+                    🪙 {t.coins}: {coinCount}
+                  </div>
                   <div className="flex flex-col gap-2 mt-4">
                     <motion.button
                       whileHover={{ scale: 1.05 }}
