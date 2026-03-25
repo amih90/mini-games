@@ -2,6 +2,8 @@
 
 import dynamic from 'next/dynamic';
 import { useParams } from 'next/navigation';
+import { useEffect } from 'react';
+import { trackGamePlay } from '@/lib/gtag';
 
 // Lazy load game components with loading states
 const ColorMatchGame = dynamic(
@@ -302,6 +304,10 @@ interface GameLoaderProps {
 export function GameLoader({ slug }: GameLoaderProps) {
   const params = useParams();
   const locale = (params?.locale as string) || 'en';
+
+  useEffect(() => {
+    trackGamePlay(slug);
+  }, [slug]);
 
   switch (slug) {
     case 'color-match':

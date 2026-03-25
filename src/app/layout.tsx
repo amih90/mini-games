@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import "./globals.css";
 
 // Nunito is a friendly, rounded font perfect for kids
@@ -22,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${nunito.variable} font-sans antialiased bg-cream-light`}>
+        <GoogleAnalytics />
         {children}
       </body>
     </html>
