@@ -164,6 +164,30 @@ const ColorMixGame = dynamic(
   }
 );
 
+const OddOneOutGame = dynamic(
+  () => import('@/features/games/odd-one-out/OddOneOutGame').then((mod) => mod.OddOneOutGame),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
+const ShadowMatchGame = dynamic(
+  () => import('@/features/games/shadow-match/ShadowMatchGame').then((mod) => mod.ShadowMatchGame),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
+const CountingBubblesGame = dynamic(
+  () => import('@/features/games/counting-bubbles/CountingBubblesGame').then((mod) => mod.CountingBubblesGame),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
 function GameLoadingSkeleton() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-peach-glow-light via-white to-sky-bubble-light flex items-center justify-center">
@@ -224,6 +248,12 @@ export function GameLoader({ slug }: GameLoaderProps) {
       return <SprintRacePhaserGame />;
     case 'color-mix':
       return <ColorMixGame />;
+    case 'odd-one-out':
+      return <OddOneOutGame />;
+    case 'shadow-match':
+      return <ShadowMatchGame />;
+    case 'counting-bubbles':
+      return <CountingBubblesGame />;
     default:
       return null;
   }

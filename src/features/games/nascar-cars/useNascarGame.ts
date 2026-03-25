@@ -11,6 +11,9 @@ export interface CarState {
   laps: number;         // Completed laps
   lastCheckpoint: number;
   finished: boolean;
+  tireWear: number;     // 0 = fresh, 100 = fully worn
+  inPit: boolean;       // Currently in pit
+  pitTimer: number;     // Seconds remaining in pit stop
 }
 
 export interface LevelConfig {
@@ -40,6 +43,8 @@ export interface RaceState {
   raceFinished: boolean;
   playerPosition: number;
   playerSpeedPct: number; // 0-100 for HUD display
+  playerTireWear: number; // 0-100 for HUD
+  playerInPit: boolean;
 }
 
 // ─── Constants ───────────────────────────────────────────────
@@ -50,6 +55,13 @@ const LANE_WIDTH = 1.2;
 const MAX_LANE_OFFSET = 2.0;
 const CHECKPOINT_COUNT = 4;
 const CAR_HITBOX = 1.6; // Collision distance between cars
+
+// Pit stop constants
+const PIT_ENTRY_ANGLE_MIN = -0.5;
+const PIT_ENTRY_ANGLE_MAX = 0.1;
+const PIT_STOP_DURATION = 3.0;   // Seconds for tire change
+const TIRE_WEAR_RATE = 2.5;      // Wear per second at full speed
+const TIRE_WEAR_PENALTY = 0.3;   // Max speed multiplier at 100% wear (30% of max)
 
 export const GAME_CONSTANTS = {
   TRACK_RADIUS_X,
@@ -154,13 +166,15 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
   const levelConfig = levels[Math.min(levelIndex, levels.length - 1)];
 
   const raceState = useRef<RaceState>({
-    player: { angle: 0, speed: 0, laneOffset: 0, laps: 0, lastCheckpoint: 0, finished: false },
+    player: { angle: 0, speed: 0, laneOffset: 0, laps: 0, lastCheckpoint: 0, finished: false, tireWear: 0, inPit: false, pitTimer: 0 },
     aiCars: [],
     raceTime: 0,
     countdown: 3,
     raceFinished: false,
     playerPosition: 1,
     playerSpeedPct: 0,
+    playerTireWear: 0,
+    playerInPit: false,
   });
 
   const aiTargetLanes = useRef<number[]>([]);
@@ -187,6 +201,9 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
         laps: 0,
         lastCheckpoint: 0,
         finished: false,
+        tireWear: 0,
+        inPit: false,
+        pitTimer: 0,
       });
       targetLanes.push(lane);
       speedFactors.push(
@@ -195,13 +212,15 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
     }
 
     raceState.current = {
-      player: { angle: 0, speed: 0, laneOffset: 0, laps: 0, lastCheckpoint: 0, finished: false },
+      player: { angle: 0, speed: 0, laneOffset: 0, laps: 0, lastCheckpoint: 0, finished: false, tireWear: 0, inPit: false, pitTimer: 0 },
       aiCars,
       raceTime: 0,
       countdown: 3,
       raceFinished: false,
       playerPosition: numOpponents + 1,
       playerSpeedPct: 0,
+      playerTireWear: 0,
+      playerInPit: false,
     };
     aiTargetLanes.current = targetLanes;
     aiSpeedFactors.current = speedFactors;
@@ -214,6 +233,7 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
     braking: boolean,
     onLapComplete: (lap: number) => void,
     onRaceFinish: (position: number) => void,
+    pitRequested: boolean = false,
   ) => {
     const state = raceState.current;
     const dt = Math.min(delta, 0.05); // Cap delta
@@ -232,28 +252,58 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
     // ── Player physics ──
     const player = state.player;
     if (!player.finished) {
-      // Acceleration / braking / friction
-      if (accelerating || settings.autoAccelerate) {
-        player.speed += settings.acceleration * dt;
-      } else if (braking) {
-        player.speed -= settings.braking * dt;
+      // ── Pit stop handling ──
+      if (player.inPit) {
+        player.speed = 0;
+        player.pitTimer -= dt;
+        if (player.pitTimer <= 0) {
+          player.inPit = false;
+          player.pitTimer = 0;
+          player.tireWear = 0; // Fresh tires!
+        }
+        state.playerInPit = player.inPit;
+        state.playerTireWear = player.tireWear;
+        // Skip rest of player physics while in pit
       } else {
-        player.speed -= settings.friction * dt;
+        // Check pit entry: player near pit entry zone + requested
+        const normalizedAngle = normalizeAngle(player.angle);
+        const inPitZone = normalizedAngle > normalizeAngle(PIT_ENTRY_ANGLE_MIN) && normalizedAngle < normalizeAngle(PIT_ENTRY_ANGLE_MAX);
+        if (pitRequested && inPitZone && !player.inPit) {
+          player.inPit = true;
+          player.pitTimer = PIT_STOP_DURATION;
+          player.speed = 0;
+        } else {
+          // Tire wear penalty on max speed
+          const wearFactor = 1 - (player.tireWear / 100) * (1 - TIRE_WEAR_PENALTY);
+
+          // Acceleration / braking / friction
+          if (accelerating || settings.autoAccelerate) {
+            player.speed += settings.acceleration * dt;
+          } else if (braking) {
+            player.speed -= settings.braking * dt;
+          } else {
+            player.speed -= settings.friction * dt;
+          }
+          player.speed = clamp(player.speed, 0, settings.maxSpeed * wearFactor);
+
+          // Tire wear increases with speed
+          player.tireWear = clamp(player.tireWear + TIRE_WEAR_RATE * (player.speed / settings.maxSpeed) * dt, 0, 100);
+
+          // Steering — lateral offset (feels like changing lanes)
+          if (steerInput !== 0) {
+            player.laneOffset += steerInput * settings.steerSpeed * dt;
+            player.laneOffset = clamp(player.laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
+          }
+
+          // Angular speed depends on lane offset — outside lane is longer path
+          const effectiveRadius = TRACK_RADIUS_X + player.laneOffset * 0.3;
+          player.angle += (player.speed / effectiveRadius) * dt * TRACK_RADIUS_X;
+
+          updateLaps(player, levelConfig.laps, onLapComplete);
+        }
       }
-      player.speed = clamp(player.speed, 0, settings.maxSpeed);
-
-      // Steering — lateral offset (feels like changing lanes)
-      if (steerInput !== 0) {
-        player.laneOffset += steerInput * settings.steerSpeed * dt;
-        player.laneOffset = clamp(player.laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
-      }
-
-      // Angular speed depends on lane offset — outside lane is longer path
-      // This creates a real overtaking mechanic: inside lane = faster laps
-      const effectiveRadius = TRACK_RADIUS_X + player.laneOffset * 0.3;
-      player.angle += (player.speed / effectiveRadius) * dt * TRACK_RADIUS_X;
-
-      updateLaps(player, levelConfig.laps, onLapComplete);
+      state.playerInPit = player.inPit;
+      state.playerTireWear = Math.round(player.tireWear);
     }
 
     // Speed for HUD (0-100%)
@@ -263,8 +313,32 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
     state.aiCars.forEach((aiCar, i) => {
       if (aiCar.finished) return;
 
+      // AI pit stop handling
+      if (aiCar.inPit) {
+        aiCar.speed = 0;
+        aiCar.pitTimer -= dt;
+        if (aiCar.pitTimer <= 0) {
+          aiCar.inPit = false;
+          aiCar.pitTimer = 0;
+          aiCar.tireWear = 0;
+        }
+        return;
+      }
+
+      // AI decides to pit when tire wear is high (70-90% threshold, varies per AI)
+      const pitThreshold = 70 + (i % 3) * 10;
+      const aiNormAngle = normalizeAngle(aiCar.angle);
+      const aiInPitZone = aiNormAngle > normalizeAngle(PIT_ENTRY_ANGLE_MIN) && aiNormAngle < normalizeAngle(PIT_ENTRY_ANGLE_MAX);
+      if (aiCar.tireWear > pitThreshold && aiInPitZone && aiCar.laps >= 1 && aiCar.laps < levelConfig.laps - 1) {
+        aiCar.inPit = true;
+        aiCar.pitTimer = PIT_STOP_DURATION * (0.9 + Math.random() * 0.2);
+        aiCar.speed = 0;
+        return;
+      }
+
       const factor = aiSpeedFactors.current[i];
-      const targetSpeed = settings.maxSpeed * factor * settings.aiAggressiveness;
+      const aiWearFactor = 1 - (aiCar.tireWear / 100) * (1 - TIRE_WEAR_PENALTY);
+      const targetSpeed = settings.maxSpeed * factor * settings.aiAggressiveness * aiWearFactor;
 
       // AI ramps up speed (faster than player to create challenge)
       if (aiCar.speed < targetSpeed) {
@@ -288,6 +362,9 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
       // Move along track
       const aiEffective = TRACK_RADIUS_X + aiCar.laneOffset * 0.3;
       aiCar.angle += (aiCar.speed / aiEffective) * dt * TRACK_RADIUS_X;
+
+      // AI tire wear
+      aiCar.tireWear = clamp(aiCar.tireWear + TIRE_WEAR_RATE * (aiCar.speed / settings.maxSpeed) * dt, 0, 100);
 
       updateLaps(aiCar, levelConfig.laps, () => {});
     });

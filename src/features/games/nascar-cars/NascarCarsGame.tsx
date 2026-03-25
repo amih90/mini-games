@@ -55,6 +55,10 @@ const translations: Record<string, Record<string, string>> = {
     countdown2: '2',
     countdown1: '1',
     go: 'GO!',
+    tires: 'Tires',
+    pit: 'PIT',
+    inPit: 'IN PIT',
+    pitStop: 'Press Space to Pit',
   },
   he: {
     title: 'מכוניות נסקאר 3D',
@@ -91,6 +95,10 @@ const translations: Record<string, Record<string, string>> = {
     countdown2: '2',
     countdown1: '1',
     go: '!צא',
+    tires: 'צמיגים',
+    pit: 'פיט',
+    inPit: 'בפיט',
+    pitStop: 'לחצו רווח לפיט',
   },
   zh: {
     title: '3D纳斯卡赛车',
@@ -127,6 +135,10 @@ const translations: Record<string, Record<string, string>> = {
     countdown2: '2',
     countdown1: '1',
     go: '出发！',
+    tires: '轮胎',
+    pit: '进站',
+    inPit: '进站中',
+    pitStop: '按空格键进站',
   },
   es: {
     title: 'NASCAR Cars 3D',
@@ -163,6 +175,10 @@ const translations: Record<string, Record<string, string>> = {
     countdown2: '2',
     countdown1: '1',
     go: '¡YA!',
+    tires: 'Neumáticos',
+    pit: 'PIT',
+    inPit: 'EN PIT',
+    pitStop: 'Espacio para Pit Stop',
   },
 };
 
@@ -175,13 +191,15 @@ function getInstructions(locale: string) {
       { icon: '🏁', title: locale === 'he' ? 'סיימו הקפות' : locale === 'zh' ? '完成圈数' : locale === 'es' ? 'Completa las vueltas' : 'Complete Laps', description: locale === 'he' ? 'סיימו את מספר ההקפות הנדרש כדי לסיים את המירוץ' : locale === 'zh' ? '完成所需圈数来结束比赛' : locale === 'es' ? 'Completa las vueltas requeridas para terminar' : 'Complete the required number of laps to finish the race' },
       { icon: '🏆', title: locale === 'he' ? 'סיימו על הפודיום' : locale === 'zh' ? '登上领奖台' : locale === 'es' ? 'Llega al podio' : 'Finish on Podium', description: locale === 'he' ? 'סיימו במקום 1-3 כדי לפתוח את המירוץ הבא' : locale === 'zh' ? '在前3名完成以解锁下一场比赛' : locale === 'es' ? '¡Termina en el top 3 para desbloquear la siguiente!' : 'Finish in the top 3 to unlock the next race!' },
       { icon: '⚡', title: locale === 'he' ? 'רמות קריירה' : locale === 'zh' ? '职业等级' : locale === 'es' ? 'Niveles de carrera' : 'Career Levels', description: locale === 'he' ? '5 רמות מאימון ועד אליפות - כל רמה קשה יותר!' : locale === 'zh' ? '从训练到锦标赛的5个级别 - 每级更难！' : locale === 'es' ? '5 niveles de entrenamiento a campeonato - ¡cada uno más difícil!' : '5 levels from training to championship — each one harder!' },
+      { icon: '🔧', title: locale === 'he' ? 'עצירת פיט' : locale === 'zh' ? '进站' : locale === 'es' ? 'Pit Stop' : 'Pit Stop', description: locale === 'he' ? 'לחצו רווח כדי לבקש עצירת פיט. הצמיגים נשחקים - החליפו אותם בזמן!' : locale === 'zh' ? '按空格键请求进站。轮胎会磨损——及时更换！' : locale === 'es' ? '¡Presiona Espacio para pedir pit stop. Los neumáticos se desgastan — cámbialos a tiempo!' : 'Press Space to request a pit stop. Tires wear out — change them in time!' },
     ],
     controls: [
       { icon: '⬅️➡️', description: t.steer },
       { icon: '⬆️', description: t.accelerate },
       { icon: '⬇️', description: t.brake },
       { icon: '⏸️', description: t.escPause },
-      { icon: '👆', description: t.touchSteer },
+      { icon: '�', description: t.pitStop },
+      { icon: '�👆', description: t.touchSteer },
     ],
     tip: locale === 'he' ? 'ברמה קלה, המכונית מאיצה אוטומטית - רק תגיהו!' : locale === 'zh' ? '在简单模式下，汽车自动加速——只需转向！' : locale === 'es' ? '¡En fácil el auto acelera solo — solo gira!' : 'On Easy, the car auto-accelerates — just steer!',
   };
@@ -225,6 +243,8 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
   const [raceFinished, setRaceFinished] = useState(false);
   const [finishPosition, setFinishPosition] = useState(1);
   const [speedPct, setSpeedPct] = useState(0);
+  const [tireWear, setTireWear] = useState(0);
+  const [inPit, setInPit] = useState(false);
 
   const { playHit, playSuccess, playGameOver, playWin, playClick, playLevelUp } = useRetroSounds();
 
@@ -241,6 +261,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
   const steerInput = useRef(0);
   const accelInput = useRef(false);
   const brakeInput = useRef(false);
+  const pitInput = useRef(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -288,6 +309,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
 
     const accel = keys.has('ArrowUp') || keys.has('w') || keys.has('W') || accelInput.current;
     const brake = keys.has('ArrowDown') || keys.has('s') || keys.has('S') || brakeInput.current;
+    const pitReq = keys.has(' ') || pitInput.current;
 
     const state = update(
       delta,
@@ -314,11 +336,14 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
         }
         setPhase('race-complete');
       },
+      pitReq,
     );
 
     setPlayerPosition(state.playerPosition);
     setCountdown(state.countdown);
     setSpeedPct(state.playerSpeedPct);
+    setTireWear(state.playerTireWear);
+    setInPit(state.playerInPit);
   }, [update, levelIndex, unlockedLevel, careerLevels.length, playLevelUp, playWin, playGameOver]);
 
   // ── Difficulty options ──
@@ -468,6 +493,28 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                   </div>
                   <span className="text-xs font-mono text-slate-500 w-8">{speedPct}%</span>
                 </div>
+                {/* Tire wear bar */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-500">{t.tires}</span>
+                  <div className="w-20 h-3 rounded-full bg-slate-200 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-100"
+                      style={{
+                        width: `${100 - tireWear}%`,
+                        background: tireWear > 70 ? '#ef4444' : tireWear > 40 ? '#f59e0b' : '#22c55e',
+                      }}
+                    />
+                  </div>
+                  {tireWear > 50 && (
+                    <span className="text-xs font-bold text-amber-500 animate-pulse">{t.pit}!</span>
+                  )}
+                </div>
+                {/* In-pit indicator */}
+                {inPit && (
+                  <span className="text-xs font-bold text-blue-500 bg-blue-100 px-2 py-0.5 rounded-full animate-pulse">
+                    🔧 {t.inPit}
+                  </span>
+                )}
               </div>
               <LevelDisplay level={levelIndex + 1} />
             </div>
@@ -514,6 +561,13 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                 onTouchEnd={() => { steerInput.current = 0; }}
               >
                 →
+              </button>
+              <button
+                className="px-4 py-3 bg-gradient-to-br from-amber-400 to-amber-600 text-white rounded-2xl font-bold text-sm shadow-lg active:scale-95 transition-transform select-none"
+                onTouchStart={() => { pitInput.current = true; }}
+                onTouchEnd={() => { pitInput.current = false; }}
+              >
+                🔧 {t.pit}
               </button>
             </div>
 

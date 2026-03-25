@@ -146,14 +146,15 @@ export function NascarScene({
 
   return (
     <>
-      {/* Sky */}
-      <Sky sunPosition={[100, 50, 100]} turbidity={2} rayleigh={0.5} />
+      {/* Sky — warm dusk/race-day feel */}
+      <Sky sunPosition={[100, 40, 80]} turbidity={3} rayleigh={0.6} mieCoefficient={0.005} mieDirectionalG={0.8} />
       <color attach="background" args={['#87ceeb']} />
+      <fog attach="fog" args={['#c8d6e5', 50, 120]} />
 
-      {/* Extra lighting for outdoor scene */}
+      {/* Main sun */}
       <directionalLight
         position={[20, 30, 10]}
-        intensity={1.5}
+        intensity={1.8}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
@@ -163,10 +164,13 @@ export function NascarScene({
         shadow-camera-top={30}
         shadow-camera-bottom={-30}
       />
-      <hemisphereLight args={['#87ceeb', '#4caf50', 0.4]} />
+      {/* Fill light from opposite side */}
+      <directionalLight position={[-15, 15, -10]} intensity={0.4} />
+      <hemisphereLight args={['#87ceeb', '#3a8c3f', 0.5]} />
+      <ambientLight intensity={0.25} />
 
-      {/* Track */}
-      <Track />
+      {/* Track (Daytona style with pit lane) */}
+      <Track showPitLane />
 
       {/* Player Car */}
       <group ref={playerCarRef} position={[TRACK_RADIUS_X, 0.25, 0]}>
@@ -204,8 +208,6 @@ export function NascarScene({
           goLabel={labels.go}
         />
       )}
-
-
     </>
   );
 }

@@ -19,6 +19,9 @@ import { shapeBuilderConfig } from '../shape-builder/game.config';
 import { sizeSorterConfig } from '../size-sorter/game.config';
 import { weatherDressUpConfig } from '../weather-dress-up/game.config';
 import { backgammonPhaserConfig } from '../backgammon-phaser/game.config';
+import { oddOneOutConfig } from '../odd-one-out/game.config';
+import { shadowMatchConfig } from '../shadow-match/game.config';
+import { countingBubblesConfig } from '../counting-bubbles/game.config';
 
 // Re-export types
 export type { GameConfig, GameCategory } from './types';
@@ -252,6 +255,9 @@ export const gameRegistry: Record<string, GameConfig> = {
   'size-sorter': sizeSorterConfig,
   'weather-dress-up': weatherDressUpConfig,
   'backgammon-phaser': backgammonPhaserConfig,
+  'odd-one-out': oddOneOutConfig,
+  'shadow-match': shadowMatchConfig,
+  'counting-bubbles': countingBubblesConfig,
 };
 
 /**
