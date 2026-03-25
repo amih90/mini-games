@@ -222,5 +222,9 @@
     "new_game": "新游戏",
     "you_win": "你赢了！",
     "you_lose": "你输了！"
+  },
+  "armyRunner": {
+    "title": "军队跑酷3D",
+    "description": "带领你的军队通过大门，躲避障碍，击败敌人！"
   }
 }

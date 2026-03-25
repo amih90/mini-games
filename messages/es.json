@@ -222,5 +222,9 @@
     "new_game": "Nuevo juego",
     "you_win": "¡Ganaste!",
     "you_lose": "¡Perdiste!"
+  },
+  "armyRunner": {
+    "title": "Carrera del Ejército 3D",
+    "description": "¡Lidera tu ejército a través de puertas, esquiva obstáculos y aplasta enemigos!"
   }
 }

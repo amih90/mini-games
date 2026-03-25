@@ -22,6 +22,7 @@ import { backgammonPhaserConfig } from '../backgammon-phaser/game.config';
 import { oddOneOutConfig } from '../odd-one-out/game.config';
 import { shadowMatchConfig } from '../shadow-match/game.config';
 import { countingBubblesConfig } from '../counting-bubbles/game.config';
+import { armyRunnerConfig } from '../army-runner/game.config';
 
 // Re-export types
 export type { GameConfig, GameCategory } from './types';
@@ -258,6 +259,7 @@ export const gameRegistry: Record<string, GameConfig> = {
   'odd-one-out': oddOneOutConfig,
   'shadow-match': shadowMatchConfig,
   'counting-bubbles': countingBubblesConfig,
+  'army-runner': armyRunnerConfig,
 };
 
 /**

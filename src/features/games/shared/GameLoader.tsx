@@ -150,6 +150,14 @@ const NascarCarsGame = dynamic(
   }
 );
 
+const ArmyRunnerGame = dynamic(
+  () => import('@/features/games/army-runner/ArmyRunnerGame'),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
 const SprintRacePhaserGame = dynamic(
   () => import('@/features/games/sprint-race-phaser/SprintRacePhaserGame'),
   {
@@ -346,6 +354,8 @@ export function GameLoader({ slug }: GameLoaderProps) {
       return <PingPongGame locale={locale} />;
     case 'nascar-cars':
       return <NascarCarsGame locale={locale} />;
+    case 'army-runner':
+      return <ArmyRunnerGame locale={locale} />;
     case 'sprint-race-phaser':
       return <SprintRacePhaserGame />;
     case 'color-mix':

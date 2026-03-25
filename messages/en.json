@@ -222,5 +222,9 @@
     "new_game": "New Game",
     "you_win": "You Win!",
     "you_lose": "You Lose!"
+  },
+  "armyRunner": {
+    "title": "Army Runner 3D",
+    "description": "Lead your army through gates, dodge obstacles, and crush enemies!"
   }
 }
