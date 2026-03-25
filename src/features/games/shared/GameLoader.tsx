@@ -164,6 +164,102 @@ const ColorMixGame = dynamic(
   }
 );
 
+const FractionPizzaGame = dynamic(
+  () => import('@/features/games/fraction-pizza/FractionPizzaGame').then((mod) => mod.FractionPizzaGame),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
+const LetterSoupGame = dynamic(
+  () => import('@/features/games/letter-soup/LetterSoupGame').then((mod) => mod.LetterSoupGame),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
+const MatchPairsGame = dynamic(
+  () => import('@/features/games/match-pairs/MatchPairsGame').then((mod) => mod.MatchPairsGame),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
+const MirrorDrawGame = dynamic(
+  () => import('@/features/games/mirror-draw/MirrorDrawGame').then((mod) => mod.MirrorDrawGame),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
+const NumberMuncherGame = dynamic(
+  () => import('@/features/games/number-muncher/NumberMuncherGame').then((mod) => mod.NumberMuncherGame),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
+const PatternMakerGame = dynamic(
+  () => import('@/features/games/pattern-maker/PatternMakerGame').then((mod) => mod.PatternMakerGame),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
+const PlantGrowerGame = dynamic(
+  () => import('@/features/games/plant-grower/PlantGrowerGame').then((mod) => mod.PlantGrowerGame),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
+const RhymeTimeGame = dynamic(
+  () => import('@/features/games/rhyme-time/RhymeTimeGame').then((mod) => mod.RhymeTimeGame),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
+const ShapeBuilderGame = dynamic(
+  () => import('@/features/games/shape-builder/ShapeBuilderGame').then((mod) => mod.ShapeBuilderGame),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
+const SizeSorterGame = dynamic(
+  () => import('@/features/games/size-sorter/SizeSorterGame').then((mod) => mod.SizeSorterGame),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
+const WeatherDressUpGame = dynamic(
+  () => import('@/features/games/weather-dress-up/WeatherDressUpGame').then((mod) => mod.WeatherDressUpGame),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
+const BackgammonPhaserGame = dynamic(
+  () => import('@/features/games/backgammon-phaser/BackgammonPhaserGame'),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
 const OddOneOutGame = dynamic(
   () => import('@/features/games/odd-one-out/OddOneOutGame').then((mod) => mod.OddOneOutGame),
   {
@@ -248,6 +344,30 @@ export function GameLoader({ slug }: GameLoaderProps) {
       return <SprintRacePhaserGame />;
     case 'color-mix':
       return <ColorMixGame />;
+    case 'fraction-pizza':
+      return <FractionPizzaGame />;
+    case 'letter-soup':
+      return <LetterSoupGame />;
+    case 'match-pairs':
+      return <MatchPairsGame />;
+    case 'mirror-draw':
+      return <MirrorDrawGame />;
+    case 'number-muncher':
+      return <NumberMuncherGame />;
+    case 'pattern-maker':
+      return <PatternMakerGame />;
+    case 'plant-grower':
+      return <PlantGrowerGame />;
+    case 'rhyme-time':
+      return <RhymeTimeGame />;
+    case 'shape-builder':
+      return <ShapeBuilderGame />;
+    case 'size-sorter':
+      return <SizeSorterGame />;
+    case 'weather-dress-up':
+      return <WeatherDressUpGame />;
+    case 'backgammon-phaser':
+      return <BackgammonPhaserGame />;
     case 'odd-one-out':
       return <OddOneOutGame />;
     case 'shadow-match':
