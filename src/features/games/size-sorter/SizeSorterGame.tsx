@@ -115,6 +115,13 @@ const UI_STRINGS: Record<string, Record<string, string>> = {
   },
 };
 
+const ANIMAL_NAMES: Record<string, Record<string, string>> = {
+  en: { Ant: 'Ant', Frog: 'Frog', Dog: 'Dog', Bear: 'Bear', Elephant: 'Elephant', Bee: 'Bee', Cat: 'Cat', Lion: 'Lion', Horse: 'Horse', Whale: 'Whale', Bug: 'Bug', Bunny: 'Bunny', Fox: 'Fox', Cow: 'Cow', Giraffe: 'Giraffe', Snail: 'Snail', Squirrel: 'Squirrel', Deer: 'Deer', Croc: 'Croc' },
+  he: { Ant: 'נמלה', Frog: 'צפרדע', Dog: 'כלב', Bear: 'דוב', Elephant: 'פיל', Bee: 'דבורה', Cat: 'חתול', Lion: 'אריה', Horse: 'סוס', Whale: 'לווייתן', Bug: 'חיפושית', Bunny: 'ארנב', Fox: 'שועל', Cow: 'פרה', Giraffe: 'ג\'ירפה', Snail: 'חילזון', Squirrel: 'סנאי', Deer: 'אייל', Croc: 'תנין' },
+  zh: { Ant: '蚂蚁', Frog: '青蛙', Dog: '狗', Bear: '熊', Elephant: '大象', Bee: '蜜蜂', Cat: '猫', Lion: '狮子', Horse: '马', Whale: '鲸鱼', Bug: '虫子', Bunny: '兔子', Fox: '狐狸', Cow: '牛', Giraffe: '长颈鹿', Snail: '蜗牛', Squirrel: '松鼠', Deer: '鹿', Croc: '鳄鱼' },
+  es: { Ant: 'Hormiga', Frog: 'Rana', Dog: 'Perro', Bear: 'Oso', Elephant: 'Elefante', Bee: 'Abeja', Cat: 'Gato', Lion: 'León', Horse: 'Caballo', Whale: 'Ballena', Bug: 'Bicho', Bunny: 'Conejo', Fox: 'Zorro', Cow: 'Vaca', Giraffe: 'Jirafa', Snail: 'Caracol', Squirrel: 'Ardilla', Deer: 'Ciervo', Croc: 'Cocodrilo' },
+};
+
 const INSTRUCTIONS_DATA: Record<string, { instructions: { icon: string; title: string; description: string }[]; controls: { icon: string; description: string }[]; tip: string }> = {
   en: {
     instructions: [
@@ -158,6 +165,7 @@ export function SizeSorterGame() {
   const t = useTranslations();
   const locale = useLocale();
   const strings = UI_STRINGS[locale] || UI_STRINGS.en;
+  const animalNames = ANIMAL_NAMES[locale] || ANIMAL_NAMES.en;
   const direction = useDirection();
   const isRtl = direction === TextDirection.RTL;
   const { playClick, playSuccess, playDrop } = useRetroSounds();
@@ -334,7 +342,7 @@ export function SizeSorterGame() {
                       }`}
                     >
                       <span className="text-5xl sm:text-6xl">{item.emoji}</span>
-                      <span className="text-xs sm:text-sm text-sky-600 font-medium">{item.label}</span>
+                      <span className="text-xs sm:text-sm text-sky-600 font-medium">{animalNames[item.label] || item.label}</span>
                     </motion.button>
                   );
                 })}

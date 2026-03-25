@@ -26,9 +26,14 @@ interface DifficultyConfig {
   wordsPerLevel: number;
   pool: WordChallenge[];
   scoreMultiplier: number;
+  alphabet: string;
 }
 
-const EASY_WORDS: WordChallenge[] = [
+// ---------------------------------------------------------------------------
+// English word pools
+// ---------------------------------------------------------------------------
+
+const EN_EASY: WordChallenge[] = [
   { word: 'CAT', emoji: '🐱', letters: ['C', 'A', 'T'] },
   { word: 'DOG', emoji: '🐶', letters: ['D', 'O', 'G'] },
   { word: 'SUN', emoji: '☀️', letters: ['S', 'U', 'N'] },
@@ -38,9 +43,8 @@ const EASY_WORDS: WordChallenge[] = [
   { word: 'BUS', emoji: '🚌', letters: ['B', 'U', 'S'] },
   { word: 'PIG', emoji: '🐷', letters: ['P', 'I', 'G'] },
 ];
-
-const MEDIUM_WORDS: WordChallenge[] = [
-  ...EASY_WORDS,
+const EN_MEDIUM: WordChallenge[] = [
+  ...EN_EASY,
   { word: 'FISH', emoji: '🐟', letters: ['F', 'I', 'S', 'H'] },
   { word: 'FROG', emoji: '🐸', letters: ['F', 'R', 'O', 'G'] },
   { word: 'STAR', emoji: '⭐', letters: ['S', 'T', 'A', 'R'] },
@@ -50,9 +54,8 @@ const MEDIUM_WORDS: WordChallenge[] = [
   { word: 'TREE', emoji: '🌳', letters: ['T', 'R', 'E', 'E'] },
   { word: 'DUCK', emoji: '🦆', letters: ['D', 'U', 'C', 'K'] },
 ];
-
-const HARD_WORDS: WordChallenge[] = [
-  ...MEDIUM_WORDS,
+const EN_HARD: WordChallenge[] = [
+  ...EN_MEDIUM,
   { word: 'APPLE', emoji: '🍎', letters: ['A', 'P', 'P', 'L', 'E'] },
   { word: 'HOUSE', emoji: '🏠', letters: ['H', 'O', 'U', 'S', 'E'] },
   { word: 'SNAKE', emoji: '🐍', letters: ['S', 'N', 'A', 'K', 'E'] },
@@ -63,11 +66,150 @@ const HARD_WORDS: WordChallenge[] = [
   { word: 'HEART', emoji: '❤️', letters: ['H', 'E', 'A', 'R', 'T'] },
 ];
 
-const DIFFICULTY_CONFIG: Record<Difficulty, DifficultyConfig> = {
-  easy: { totalLevels: 3, wordsPerLevel: 5, pool: EASY_WORDS, scoreMultiplier: 1 },
-  medium: { totalLevels: 4, wordsPerLevel: 6, pool: MEDIUM_WORDS, scoreMultiplier: 1.5 },
-  hard: { totalLevels: 5, wordsPerLevel: 7, pool: HARD_WORDS, scoreMultiplier: 2 },
+// ---------------------------------------------------------------------------
+// Hebrew word pools
+// ---------------------------------------------------------------------------
+
+const HE_EASY: WordChallenge[] = [
+  { word: 'דג', emoji: '🐟', letters: ['ד', 'ג'] },
+  { word: 'פרח', emoji: '🌸', letters: ['פ', 'ר', 'ח'] },
+  { word: 'שמש', emoji: '☀️', letters: ['ש', 'מ', 'ש'] },
+  { word: 'כלב', emoji: '🐶', letters: ['כ', 'ל', 'ב'] },
+  { word: 'בית', emoji: '🏠', letters: ['ב', 'י', 'ת'] },
+  { word: 'יד', emoji: '✋', letters: ['י', 'ד'] },
+  { word: 'עץ', emoji: '🌳', letters: ['ע', 'ץ'] },
+  { word: 'גשם', emoji: '🌧️', letters: ['ג', 'ש', 'ם'] },
+];
+const HE_MEDIUM: WordChallenge[] = [
+  ...HE_EASY,
+  { word: 'חתול', emoji: '🐱', letters: ['ח', 'ת', 'ו', 'ל'] },
+  { word: 'ציפור', emoji: '🐦', letters: ['צ', 'י', 'פ', 'ו', 'ר'] },
+  { word: 'ירח', emoji: '🌙', letters: ['י', 'ר', 'ח'] },
+  { word: 'כוכב', emoji: '⭐', letters: ['כ', 'ו', 'כ', 'ב'] },
+  { word: 'דבש', emoji: '🍯', letters: ['ד', 'ב', 'ש'] },
+  { word: 'אריה', emoji: '🦁', letters: ['א', 'ר', 'י', 'ה'] },
+  { word: 'ענן', emoji: '☁️', letters: ['ע', 'נ', 'ן'] },
+  { word: 'ברווז', emoji: '🦆', letters: ['ב', 'ר', 'ו', 'ז'] },
+];
+const HE_HARD: WordChallenge[] = [
+  ...HE_MEDIUM,
+  { word: 'תפוח', emoji: '🍎', letters: ['ת', 'פ', 'ו', 'ח'] },
+  { word: 'פרפר', emoji: '🦋', letters: ['פ', 'ר', 'פ', 'ר'] },
+  { word: 'נחש', emoji: '🐍', letters: ['נ', 'ח', 'ש'] },
+  { word: 'מטוס', emoji: '✈️', letters: ['מ', 'ט', 'ו', 'ס'] },
+  { word: 'עוגה', emoji: '🎂', letters: ['ע', 'ו', 'ג', 'ה'] },
+  { word: 'לוויתן', emoji: '🐋', letters: ['ל', 'ו', 'י', 'ת', 'ן'] },
+  { word: 'צפרדע', emoji: '🐸', letters: ['צ', 'פ', 'ר', 'ד', 'ע'] },
+  { word: 'שלג', emoji: '❄️', letters: ['ש', 'ל', 'ג'] },
+];
+
+// ---------------------------------------------------------------------------
+// Chinese word pools (character recognition)
+// ---------------------------------------------------------------------------
+
+const ZH_EASY: WordChallenge[] = [
+  { word: '猫', emoji: '🐱', letters: ['猫'] },
+  { word: '狗', emoji: '🐶', letters: ['狗'] },
+  { word: '鱼', emoji: '🐟', letters: ['鱼'] },
+  { word: '花', emoji: '🌸', letters: ['花'] },
+  { word: '山', emoji: '⛰️', letters: ['山'] },
+  { word: '水', emoji: '💧', letters: ['水'] },
+  { word: '火', emoji: '🔥', letters: ['火'] },
+  { word: '月', emoji: '🌙', letters: ['月'] },
+];
+const ZH_MEDIUM: WordChallenge[] = [
+  ...ZH_EASY,
+  { word: '太阳', emoji: '☀️', letters: ['太', '阳'] },
+  { word: '星星', emoji: '⭐', letters: ['星', '星'] },
+  { word: '苹果', emoji: '🍎', letters: ['苹', '果'] },
+  { word: '小鸟', emoji: '🐦', letters: ['小', '鸟'] },
+  { word: '房子', emoji: '🏠', letters: ['房', '子'] },
+  { word: '大树', emoji: '🌳', letters: ['大', '树'] },
+  { word: '白云', emoji: '☁️', letters: ['白', '云'] },
+  { word: '蝴蝶', emoji: '🦋', letters: ['蝴', '蝶'] },
+];
+const ZH_HARD: WordChallenge[] = [
+  ...ZH_MEDIUM,
+  { word: '飞机', emoji: '✈️', letters: ['飞', '机'] },
+  { word: '老虎', emoji: '🐯', letters: ['老', '虎'] },
+  { word: '鲸鱼', emoji: '🐋', letters: ['鲸', '鱼'] },
+  { word: '青蛙', emoji: '🐸', letters: ['青', '蛙'] },
+  { word: '蛋糕', emoji: '🎂', letters: ['蛋', '糕'] },
+  { word: '蜜蜂', emoji: '🐝', letters: ['蜜', '蜂'] },
+  { word: '公共汽车', emoji: '🚌', letters: ['公', '共', '汽', '车'] },
+  { word: '长颈鹿', emoji: '🦒', letters: ['长', '颈', '鹿'] },
+];
+
+// ---------------------------------------------------------------------------
+// Spanish word pools
+// ---------------------------------------------------------------------------
+
+const ES_EASY: WordChallenge[] = [
+  { word: 'SOL', emoji: '☀️', letters: ['S', 'O', 'L'] },
+  { word: 'PEZ', emoji: '🐟', letters: ['P', 'E', 'Z'] },
+  { word: 'PAN', emoji: '🍞', letters: ['P', 'A', 'N'] },
+  { word: 'LUZ', emoji: '💡', letters: ['L', 'U', 'Z'] },
+  { word: 'OSO', emoji: '🐻', letters: ['O', 'S', 'O'] },
+  { word: 'MAR', emoji: '🌊', letters: ['M', 'A', 'R'] },
+  { word: 'OJO', emoji: '👁️', letters: ['O', 'J', 'O'] },
+  { word: 'UVA', emoji: '🍇', letters: ['U', 'V', 'A'] },
+];
+const ES_MEDIUM: WordChallenge[] = [
+  ...ES_EASY,
+  { word: 'GATO', emoji: '🐱', letters: ['G', 'A', 'T', 'O'] },
+  { word: 'LUNA', emoji: '🌙', letters: ['L', 'U', 'N', 'A'] },
+  { word: 'RANA', emoji: '🐸', letters: ['R', 'A', 'N', 'A'] },
+  { word: 'CASA', emoji: '🏠', letters: ['C', 'A', 'S', 'A'] },
+  { word: 'PATO', emoji: '🦆', letters: ['P', 'A', 'T', 'O'] },
+  { word: 'NUBE', emoji: '☁️', letters: ['N', 'U', 'B', 'E'] },
+  { word: 'FLOR', emoji: '🌸', letters: ['F', 'L', 'O', 'R'] },
+  { word: 'MONO', emoji: '🐒', letters: ['M', 'O', 'N', 'O'] },
+];
+const ES_HARD: WordChallenge[] = [
+  ...ES_MEDIUM,
+  { word: 'PERRO', emoji: '🐶', letters: ['P', 'E', 'R', 'R', 'O'] },
+  { word: 'TIGRE', emoji: '🐯', letters: ['T', 'I', 'G', 'R', 'E'] },
+  { word: 'AVION', emoji: '✈️', letters: ['A', 'V', 'I', 'O', 'N'] },
+  { word: 'ABEJA', emoji: '🐝', letters: ['A', 'B', 'E', 'J', 'A'] },
+  { word: 'ARBOL', emoji: '🌳', letters: ['A', 'R', 'B', 'O', 'L'] },
+  { word: 'HIELO', emoji: '❄️', letters: ['H', 'I', 'E', 'L', 'O'] },
+  { word: 'BALLENA', emoji: '🐋', letters: ['B', 'A', 'L', 'L', 'E', 'N', 'A'] },
+  { word: 'ESTRELLA', emoji: '⭐', letters: ['E', 'S', 'T', 'R', 'E', 'L', 'L', 'A'] },
+];
+
+// ---------------------------------------------------------------------------
+// Alphabets for distractors
+// ---------------------------------------------------------------------------
+
+const ALPHABETS: Record<string, string> = {
+  en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  he: 'אבגדהוזחטיכלמנסעפצקרשת',
+  zh: '人大小山水火月日木金土石花鸟虫牛马羊鱼猫狗鹿龙风雨雪云天地星海河',
+  es: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
 };
+
+// ---------------------------------------------------------------------------
+// Config builder
+// ---------------------------------------------------------------------------
+
+const WORD_POOLS: Record<string, { easy: WordChallenge[]; medium: WordChallenge[]; hard: WordChallenge[] }> = {
+  en: { easy: EN_EASY, medium: EN_MEDIUM, hard: EN_HARD },
+  he: { easy: HE_EASY, medium: HE_MEDIUM, hard: HE_HARD },
+  zh: { easy: ZH_EASY, medium: ZH_MEDIUM, hard: ZH_HARD },
+  es: { easy: ES_EASY, medium: ES_MEDIUM, hard: ES_HARD },
+};
+
+function getDifficultyConfig(difficulty: Difficulty, locale: string): DifficultyConfig {
+  const pools = WORD_POOLS[locale] || WORD_POOLS.en;
+  const pool = pools[difficulty];
+  const alphabet = ALPHABETS[locale] || ALPHABETS.en;
+  const base: Record<Difficulty, Omit<DifficultyConfig, 'pool' | 'alphabet'>> = {
+    easy: { totalLevels: 3, wordsPerLevel: 5, scoreMultiplier: 1 },
+    medium: { totalLevels: 4, wordsPerLevel: 6, scoreMultiplier: 1.5 },
+    hard: { totalLevels: 5, wordsPerLevel: 7, scoreMultiplier: 2 },
+  };
+  return { ...base[difficulty], pool, alphabet };
+}
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -186,7 +328,7 @@ export function LetterSoupGame() {
   const [typedLetters, setTypedLetters] = useState<string[]>([]);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
 
-  const config = DIFFICULTY_CONFIG[difficulty];
+  const config = getDifficultyConfig(difficulty, locale);
 
   const challenges = useMemo(() => {
     return shuffle(config.pool).slice(0, config.wordsPerLevel);
@@ -197,7 +339,7 @@ export function LetterSoupGame() {
   // Scrambled letters (the word letters + some distractors, shuffled)
   const availableLetters = useMemo(() => {
     if (!current) return [];
-    const distractors = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+    const distractors = config.alphabet.split('')
       .filter(l => !current.letters.includes(l));
     const extra = shuffle(distractors).slice(0, Math.min(3, distractors.length));
     return shuffle([...current.letters, ...extra]);
@@ -328,8 +470,8 @@ export function LetterSoupGame() {
                 <p className="text-base text-rose-600 mt-2">{strings.spellWord}</p>
               </div>
 
-              {/* Letter slots — always LTR since words are English/Latin */}
-              <div className="flex justify-center gap-2 mb-4" dir="ltr">
+              {/* Letter slots */}
+              <div className="flex justify-center gap-2 mb-4" dir={locale === 'he' ? 'rtl' : 'ltr'}>
                 {current.letters.map((l, i) => (
                   <div
                     key={i}
@@ -346,8 +488,8 @@ export function LetterSoupGame() {
                 ))}
               </div>
 
-              {/* Available letters — always LTR since letters are English/Latin */}
-              <div className="bg-white/60 rounded-2xl p-3 mb-4" dir="ltr">
+              {/* Available letters */}
+              <div className="bg-white/60 rounded-2xl p-3 mb-4" dir={locale === 'he' ? 'rtl' : 'ltr'}>
                 <p className="text-sm text-rose-500 mb-2 text-center">{strings.tapLetters}</p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {availableLetters.map((letter, idx) => (

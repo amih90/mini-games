@@ -307,7 +307,7 @@ export function PlantGrowerGame() {
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div className="bg-white/60 rounded-xl p-3">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm">💧 Water</span>
+                    <span className="text-sm">💧 {strings.water}</span>
                     <span className={`text-xs font-bold ${waterDanger ? 'text-red-500' : 'text-blue-600'}`}>{water}/{config.waterNeeded}</span>
                   </div>
                   <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
@@ -319,7 +319,7 @@ export function PlantGrowerGame() {
                 </div>
                 <div className="bg-white/60 rounded-xl p-3">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm">☀️ Sun</span>
+                    <span className="text-sm">☀️ {strings.sunshine}</span>
                     <span className={`text-xs font-bold ${sunDanger ? 'text-red-500' : 'text-yellow-600'}`}>{sun}/{config.sunNeeded}</span>
                   </div>
                   <div className="h-3 bg-gray-200 rounded-full overflow-hidden">

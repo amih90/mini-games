@@ -29,7 +29,11 @@ interface DifficultyConfig {
   scoreMultiplier: number;
 }
 
-const EASY_PAIRS: RhymePair[] = [
+// ---------------------------------------------------------------------------
+// Locale-specific rhyme pools
+// ---------------------------------------------------------------------------
+
+const EN_EASY: RhymePair[] = [
   { word: 'Cat', emoji: '🐱', rhyme: 'Hat', rhymeEmoji: '🎩' },
   { word: 'Dog', emoji: '🐶', rhyme: 'Log', rhymeEmoji: '🪵' },
   { word: 'Sun', emoji: '☀️', rhyme: 'Fun', rhymeEmoji: '🎉' },
@@ -37,9 +41,8 @@ const EASY_PAIRS: RhymePair[] = [
   { word: 'Star', emoji: '⭐', rhyme: 'Car', rhymeEmoji: '🚗' },
   { word: 'Moon', emoji: '🌙', rhyme: 'Spoon', rhymeEmoji: '🥄' },
 ];
-
-const MEDIUM_PAIRS: RhymePair[] = [
-  ...EASY_PAIRS,
+const EN_MEDIUM: RhymePair[] = [
+  ...EN_EASY,
   { word: 'Cake', emoji: '🎂', rhyme: 'Snake', rhymeEmoji: '🐍' },
   { word: 'Fish', emoji: '🐟', rhyme: 'Dish', rhymeEmoji: '🍽️' },
   { word: 'Bear', emoji: '🐻', rhyme: 'Chair', rhymeEmoji: '🪑' },
@@ -47,9 +50,8 @@ const MEDIUM_PAIRS: RhymePair[] = [
   { word: 'Boat', emoji: '⛵', rhyme: 'Goat', rhymeEmoji: '🐐' },
   { word: 'Fox', emoji: '🦊', rhyme: 'Box', rhymeEmoji: '📦' },
 ];
-
-const HARD_PAIRS: RhymePair[] = [
-  ...MEDIUM_PAIRS,
+const EN_HARD: RhymePair[] = [
+  ...EN_MEDIUM,
   { word: 'Train', emoji: '🚂', rhyme: 'Rain', rhymeEmoji: '🌧️' },
   { word: 'Whale', emoji: '🐋', rhyme: 'Snail', rhymeEmoji: '🐌' },
   { word: 'Frog', emoji: '🐸', rhyme: 'Fog', rhymeEmoji: '🌫️' },
@@ -58,11 +60,108 @@ const HARD_PAIRS: RhymePair[] = [
   { word: 'Clock', emoji: '🕐', rhyme: 'Rock', rhymeEmoji: '🪨' },
 ];
 
-const DIFFICULTY_CONFIG: Record<Difficulty, DifficultyConfig> = {
-  easy: { totalLevels: 3, pairsPerLevel: 3, pool: EASY_PAIRS, scoreMultiplier: 1 },
-  medium: { totalLevels: 4, pairsPerLevel: 4, pool: MEDIUM_PAIRS, scoreMultiplier: 1.5 },
-  hard: { totalLevels: 5, pairsPerLevel: 5, pool: HARD_PAIRS, scoreMultiplier: 2 },
+// Hebrew rhymes — based on Hebrew phonetics
+const HE_EASY: RhymePair[] = [
+  { word: 'דג', emoji: '🐟', rhyme: 'חג', rhymeEmoji: '🎉' },
+  { word: 'פרח', emoji: '🌸', rhyme: 'ירח', rhymeEmoji: '🌙' },
+  { word: 'שמש', emoji: '☀️', rhyme: 'חמש', rhymeEmoji: '5️⃣' },
+  { word: 'כלב', emoji: '🐶', rhyme: 'לב', rhymeEmoji: '❤️' },
+  { word: 'יד', emoji: '✋', rhyme: 'ילד', rhymeEmoji: '👦' },
+  { word: 'גשם', emoji: '🌧️', rhyme: 'רשם', rhymeEmoji: '✏️' },
+];
+const HE_MEDIUM: RhymePair[] = [
+  ...HE_EASY,
+  { word: 'חתול', emoji: '🐱', rhyme: 'תול', rhymeEmoji: '🪱' },
+  { word: 'ציפור', emoji: '🐦', rhyme: 'כדור', rhymeEmoji: '⚽' },
+  { word: 'בית', emoji: '🏠', rhyme: 'זית', rhymeEmoji: '🫒' },
+  { word: 'אריה', emoji: '🦁', rhyme: 'שירה', rhymeEmoji: '🎵' },
+  { word: 'דבש', emoji: '🍯', rhyme: 'כבש', rhymeEmoji: '🐑' },
+  { word: 'עכבר', emoji: '🐭', rhyme: 'דבר', rhymeEmoji: '💬' },
+];
+const HE_HARD: RhymePair[] = [
+  ...HE_MEDIUM,
+  { word: 'כוכב', emoji: '⭐', rhyme: 'זהב', rhymeEmoji: '🥇' },
+  { word: 'עוגה', emoji: '🎂', rhyme: 'סוגה', rhymeEmoji: '🧶' },
+  { word: 'שלג', emoji: '❄️', rhyme: 'דגל', rhymeEmoji: '🏳️' },
+  { word: 'ספר', emoji: '📖', rhyme: 'כפר', rhymeEmoji: '🏘️' },
+  { word: 'מכונית', emoji: '🚗', rhyme: 'חנות', rhymeEmoji: '🏪' },
+  { word: 'פרפר', emoji: '🦋', rhyme: 'ספר', rhymeEmoji: '📚' },
+];
+
+// Chinese rhymes — based on Mandarin tonal rhyming
+const ZH_EASY: RhymePair[] = [
+  { word: '猫', emoji: '🐱', rhyme: '桃', rhymeEmoji: '🍑' },
+  { word: '鱼', emoji: '🐟', rhyme: '雨', rhymeEmoji: '🌧️' },
+  { word: '花', emoji: '🌸', rhyme: '瓜', rhymeEmoji: '🍈' },
+  { word: '星', emoji: '⭐', rhyme: '灯', rhymeEmoji: '💡' },
+  { word: '山', emoji: '⛰️', rhyme: '天', rhymeEmoji: '🌤️' },
+  { word: '船', emoji: '⛵', rhyme: '圆', rhymeEmoji: '⭕' },
+];
+const ZH_MEDIUM: RhymePair[] = [
+  ...ZH_EASY,
+  { word: '月', emoji: '🌙', rhyme: '雪', rhymeEmoji: '❄️' },
+  { word: '鸟', emoji: '🐦', rhyme: '桥', rhymeEmoji: '🌉' },
+  { word: '牛', emoji: '🐮', rhyme: '球', rhymeEmoji: '⚽' },
+  { word: '虫', emoji: '🐛', rhyme: '风', rhymeEmoji: '💨' },
+  { word: '树', emoji: '🌳', rhyme: '兔', rhymeEmoji: '🐰' },
+  { word: '门', emoji: '🚪', rhyme: '人', rhymeEmoji: '🧑' },
+];
+const ZH_HARD: RhymePair[] = [
+  ...ZH_MEDIUM,
+  { word: '蛙', emoji: '🐸', rhyme: '家', rhymeEmoji: '🏠' },
+  { word: '狗', emoji: '🐶', rhyme: '手', rhymeEmoji: '✋' },
+  { word: '蝶', emoji: '🦋', rhyme: '叶', rhymeEmoji: '🍃' },
+  { word: '龙', emoji: '🐲', rhyme: '红', rhymeEmoji: '🔴' },
+  { word: '鹅', emoji: '🦢', rhyme: '河', rhymeEmoji: '🏞️' },
+  { word: '熊', emoji: '🐻', rhyme: '鹰', rhymeEmoji: '🦅' },
+];
+
+// Spanish rhymes — based on Spanish phonetics
+const ES_EASY: RhymePair[] = [
+  { word: 'Gato', emoji: '🐱', rhyme: 'Pato', rhymeEmoji: '🦆' },
+  { word: 'Sol', emoji: '☀️', rhyme: 'Gol', rhymeEmoji: '⚽' },
+  { word: 'Flor', emoji: '🌸', rhyme: 'Color', rhymeEmoji: '🎨' },
+  { word: 'Mar', emoji: '🌊', rhyme: 'Hogar', rhymeEmoji: '🏠' },
+  { word: 'Pan', emoji: '🍞', rhyme: 'Can', rhymeEmoji: '🐶' },
+  { word: 'Luz', emoji: '💡', rhyme: 'Cruz', rhymeEmoji: '✝️' },
+];
+const ES_MEDIUM: RhymePair[] = [
+  ...ES_EASY,
+  { word: 'Luna', emoji: '🌙', rhyme: 'Cuna', rhymeEmoji: '🛏️' },
+  { word: 'Oso', emoji: '🐻', rhyme: 'Oso', rhymeEmoji: '🧸' },
+  { word: 'Pez', emoji: '🐟', rhyme: 'Diez', rhymeEmoji: '🔟' },
+  { word: 'Coche', emoji: '🚗', rhyme: 'Noche', rhymeEmoji: '🌙' },
+  { word: 'Perro', emoji: '🐶', rhyme: 'Cerro', rhymeEmoji: '⛰️' },
+  { word: 'Casa', emoji: '🏠', rhyme: 'Masa', rhymeEmoji: '🫓' },
+];
+const ES_HARD: RhymePair[] = [
+  ...ES_MEDIUM,
+  { word: 'Tren', emoji: '🚂', rhyme: 'Cien', rhymeEmoji: '💯' },
+  { word: 'Vela', emoji: '🕯️', rhyme: 'Estrella', rhymeEmoji: '⭐' },
+  { word: 'Rana', emoji: '🐸', rhyme: 'Manzana', rhymeEmoji: '🍎' },
+  { word: 'León', emoji: '🦁', rhyme: 'Ratón', rhymeEmoji: '🐭' },
+  { word: 'Abeja', emoji: '🐝', rhyme: 'Oveja', rhymeEmoji: '🐑' },
+  { word: 'Ballena', emoji: '🐋', rhyme: 'Arena', rhymeEmoji: '🏖️' },
+];
+
+// Pools keyed by locale
+const RHYME_POOLS: Record<string, { easy: RhymePair[]; medium: RhymePair[]; hard: RhymePair[] }> = {
+  en: { easy: EN_EASY, medium: EN_MEDIUM, hard: EN_HARD },
+  he: { easy: HE_EASY, medium: HE_MEDIUM, hard: HE_HARD },
+  zh: { easy: ZH_EASY, medium: ZH_MEDIUM, hard: ZH_HARD },
+  es: { easy: ES_EASY, medium: ES_MEDIUM, hard: ES_HARD },
 };
+
+function getDifficultyConfig(difficulty: Difficulty, locale: string): DifficultyConfig {
+  const pools = RHYME_POOLS[locale] || RHYME_POOLS.en;
+  const pool = pools[difficulty];
+  const base: Record<Difficulty, Omit<DifficultyConfig, 'pool'>> = {
+    easy: { totalLevels: 3, pairsPerLevel: 3, scoreMultiplier: 1 },
+    medium: { totalLevels: 4, pairsPerLevel: 4, scoreMultiplier: 1.5 },
+    hard: { totalLevels: 5, pairsPerLevel: 5, scoreMultiplier: 2 },
+  };
+  return { ...base[difficulty], pool };
+}
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -131,7 +230,7 @@ const INSTRUCTIONS_DATA: Record<string, { instructions: { icon: string; title: s
       { icon: '👈', description: 'הקישו על מילה בשמאל לבחירה' },
       { icon: '👉', description: 'ואז הקישו על המילה המתחרזת בימין' },
     ],
-    tip: "הקשיבו לצלילים בסוף — Cat ו-Hat שניהם נגמרים ב-'-at'!",
+    tip: "הקשיבו לצלילים בסוף — דג ו-חג שניהם נגמרים באותו צליל!",
   },
   zh: {
     instructions: [
@@ -143,7 +242,7 @@ const INSTRUCTIONS_DATA: Record<string, { instructions: { icon: string; title: s
       { icon: '👈', description: '点击左边的单词选择它' },
       { icon: '👉', description: '然后点击右边押韵的单词' },
     ],
-    tip: "听结尾的发音 — Cat和Hat都以'-at'结尾！",
+    tip: "听结尾的发音 — 猫和桃都以'ao'结尾！",
   },
   es: {
     instructions: [
@@ -155,7 +254,7 @@ const INSTRUCTIONS_DATA: Record<string, { instructions: { icon: string; title: s
       { icon: '👈', description: 'Toca una palabra a la izquierda para seleccionarla' },
       { icon: '👉', description: 'Luego toca la palabra que rima a la derecha' },
     ],
-    tip: "¡Escucha los sonidos finales — Cat y Hat terminan en '-at'!",
+    tip: "¡Escucha los sonidos finales — Gato y Pato terminan en '-ato'!",
   },
 };
 
@@ -177,7 +276,7 @@ export function RhymeTimeGame() {
   const [matched, setMatched] = useState<Set<number>>(new Set());
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
 
-  const config = DIFFICULTY_CONFIG[difficulty];
+  const config = getDifficultyConfig(difficulty, locale);
 
   const { leftWords, rightWords, pairs } = useMemo(() => {
     const picked = shuffle(config.pool).slice(0, config.pairsPerLevel);

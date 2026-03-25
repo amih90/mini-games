@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations, useLocale } from 'next-intl';
-import { Link } from '@/i18n/navigation';
+import { Link, useRouter, usePathname } from '@/i18n/navigation';
 import { Header } from '@/components/Header';
 import { getAllGames, getAllCategories, getGamesByCategory, type GameCategory } from '@/features/games/registry';
 import type { Locale } from '@/i18n/routing';
@@ -12,12 +13,35 @@ import { ScrollReveal, GradientOrbs } from '@/components/animations';
 export function GamesPageContent() {
   const t = useTranslations();
   const locale = useLocale() as Locale;
-  const [selectedCategory, setSelectedCategory] = useState<GameCategory | null>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const categories = getAllCategories();
+  const categoryParam = searchParams.get('category');
+  const selectedCategory: GameCategory | null =
+    categoryParam && categories.includes(categoryParam as GameCategory)
+      ? (categoryParam as GameCategory)
+      : null;
+
+  const setSelectedCategory = useCallback(
+    (category: GameCategory | null) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (category) {
+        params.set('category', category);
+      } else {
+        params.delete('category');
+      }
+      const qs = params.toString();
+      router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [searchParams, router, pathname]
+  );
+
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  const categories = getAllCategories();
   const games = useMemo(() => {
     if (selectedCategory) {
       return getGamesByCategory(selectedCategory);
