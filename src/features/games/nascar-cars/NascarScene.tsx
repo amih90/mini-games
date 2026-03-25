@@ -22,6 +22,47 @@ interface NascarSceneProps {
   locale: string;
 }
 
+// ─── Countdown — follows the camera ─────────────────────────
+function CountdownText({
+  cameraTarget,
+  cameraPos,
+  countdown,
+  goLabel,
+}: {
+  cameraTarget: React.MutableRefObject<THREE.Vector3>;
+  cameraPos: React.MutableRefObject<THREE.Vector3>;
+  countdown: number;
+  goLabel: string;
+}) {
+  const ref = useRef<THREE.Group>(null);
+
+  useFrame(() => {
+    if (!ref.current) return;
+    // Place text halfway between camera and look-at, elevated
+    const mid = new THREE.Vector3()
+      .addVectors(cameraPos.current, cameraTarget.current)
+      .multiplyScalar(0.5);
+    mid.y = 5;
+    ref.current.position.copy(mid);
+    ref.current.lookAt(cameraPos.current);
+  });
+
+  return (
+    <group ref={ref}>
+      <Text
+        fontSize={3}
+        color={countdown > 1 ? '#ef5350' : '#ffeb3b'}
+        anchorX="center"
+        anchorY="middle"
+        outlineWidth={0.15}
+        outlineColor="black"
+      >
+        {countdown > 0.5 ? Math.ceil(countdown).toString() : goLabel}
+      </Text>
+    </group>
+  );
+}
+
 // ─── Main Scene ──────────────────────────────────────────────
 export function NascarScene({
   raceStateRef,
@@ -79,19 +120,17 @@ export function NascarScene({
     });
 
     // 3rd-person camera following player
-    const camDist = 6;
-    const camHeight = 3.5;
-    const behindAngle = player.angle - 0.15;
+    const camDist = 7;
+    const camHeight = 4;
+    const behindAngle = player.angle - 0.18;
     const behindPos = getTrackPosition(behindAngle, TRACK_RADIUS_X + camDist, TRACK_RADIUS_Z + camDist, 0);
 
-    cameraPos.current.lerp(
-      new THREE.Vector3(behindPos.x, camHeight, behindPos.z),
-      0.05,
-    );
-    cameraTarget.current.lerp(
-      new THREE.Vector3(playerPos.x, 0.5, playerPos.z),
-      0.1,
-    );
+    const targetCamPos = new THREE.Vector3(behindPos.x, camHeight, behindPos.z);
+    const targetLookAt = new THREE.Vector3(playerPos.x, 0.5, playerPos.z);
+
+    // Faster lerp for responsive camera — 0.12 position, 0.18 look-at
+    cameraPos.current.lerp(targetCamPos, 0.12);
+    cameraTarget.current.lerp(targetLookAt, 0.18);
 
     camera.position.copy(cameraPos.current);
     camera.lookAt(cameraTarget.current);
@@ -156,23 +195,14 @@ export function NascarScene({
         </group>
       ))}
 
-      {/* Countdown text */}
+      {/* Countdown text — positioned in front of camera */}
       {countdown > 0 && (
-        <Text
-          position={[
-            raceStateRef.current.player.angle === 0 ? TRACK_RADIUS_X : 0,
-            5,
-            0,
-          ]}
-          fontSize={3}
-          color={countdown > 1 ? '#ef5350' : '#ffeb3b'}
-          anchorX="center"
-          anchorY="middle"
-          outlineWidth={0.1}
-          outlineColor="black"
-        >
-          {countdown > 0.5 ? Math.ceil(countdown).toString() : labels.go}
-        </Text>
+        <CountdownText
+          cameraTarget={cameraTarget}
+          cameraPos={cameraPos}
+          countdown={countdown}
+          goLabel={labels.go}
+        />
       )}
 
 

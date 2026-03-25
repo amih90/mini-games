@@ -7,17 +7,6 @@ import { pingPongConfig } from '../ping-pong/game.config';
 import { nascarCarsConfig } from '../nascar-cars/game.config';
 import { sprintRacePhaserConfig } from '../sprint-race-phaser/game.config';
 import { colorMixConfig } from '../color-mix/game.config';
-import { shapeBuilderConfig } from '../shape-builder/game.config';
-import { patternMakerConfig } from '../pattern-maker/game.config';
-import { numberMuncherConfig } from '../number-muncher/game.config';
-import { rhymeTimeConfig } from '../rhyme-time/game.config';
-import { letterSoupConfig } from '../letter-soup/game.config';
-import { sizeSorterConfig } from '../size-sorter/game.config';
-import { weatherDressUpConfig } from '../weather-dress-up/game.config';
-import { plantGrowerConfig } from '../plant-grower/game.config';
-import { fractionPizzaConfig } from '../fraction-pizza/game.config';
-import { mirrorDrawConfig } from '../mirror-draw/game.config';
-import { matchPairsConfig } from '../match-pairs/game.config';
 
 // Re-export types
 export type { GameConfig, GameCategory } from './types';
@@ -39,8 +28,7 @@ export const gameRegistry: Record<string, GameConfig> = {
     },
     categories: ['colors', 'ages-3-5'],
     ageRange: { min: 3, max: 5 },
-    icon: '🎨',
-    thumbnail: '/images/games/screenshots/color-match.png',
+    thumbnail: '/images/games/color-match.svg',
     engine: 'react',
     i18nNamespace: 'colorMatch',
   },
@@ -56,8 +44,7 @@ export const gameRegistry: Record<string, GameConfig> = {
     },
     categories: ['memory', 'ages-3-5', 'ages-6-8'],
     ageRange: { min: 4, max: 7 },
-    icon: '🃏',
-    thumbnail: '/images/games/screenshots/memory-cards.png',
+    thumbnail: '/images/games/memory-cards.svg',
     engine: 'react',
     i18nNamespace: 'memoryCards',
   },
@@ -73,8 +60,7 @@ export const gameRegistry: Record<string, GameConfig> = {
     },
     categories: ['reaction', 'ages-6-8'],
     ageRange: { min: 5, max: 12 },
-    icon: '🐤',
-    thumbnail: '/images/games/screenshots/flappy-bird.png',
+    thumbnail: '/images/games/flappy-bird.svg',
     engine: 'canvas',
     i18nNamespace: 'flappyBird',
   },
@@ -90,8 +76,7 @@ export const gameRegistry: Record<string, GameConfig> = {
     },
     categories: ['reaction', 'ages-6-8'],
     ageRange: { min: 6, max: 12 },
-    icon: '🐔',
-    thumbnail: '/images/games/screenshots/chicken-invaders.png',
+    thumbnail: '/images/games/chicken-invaders.svg',
     engine: 'canvas',
     i18nNamespace: 'chickenInvaders',
   },
@@ -107,8 +92,7 @@ export const gameRegistry: Record<string, GameConfig> = {
     },
     categories: ['reaction', 'ages-6-8'],
     ageRange: { min: 6, max: 12 },
-    icon: '🧱',
-    thumbnail: '/images/games/screenshots/tetris.png',
+    thumbnail: '/images/games/tetris.svg',
     engine: 'canvas',
     i18nNamespace: 'tetris',
   },
@@ -124,8 +108,7 @@ export const gameRegistry: Record<string, GameConfig> = {
     },
     categories: ['reaction', 'ages-6-8'],
     ageRange: { min: 5, max: 12 },
-    icon: '🐍',
-    thumbnail: '/images/games/screenshots/snake.png',
+    thumbnail: '/images/games/snake.svg',
     engine: 'canvas',
     i18nNamespace: 'snake',
   },
@@ -141,8 +124,7 @@ export const gameRegistry: Record<string, GameConfig> = {
     },
     categories: ['reaction', 'ages-6-8'],
     ageRange: { min: 5, max: 12 },
-    icon: '🧱',
-    thumbnail: '/images/games/screenshots/brick-breaker.png',
+    thumbnail: '/images/games/brick-breaker.svg',
     engine: 'canvas',
     i18nNamespace: 'brickBreaker',
   },
@@ -158,8 +140,7 @@ export const gameRegistry: Record<string, GameConfig> = {
     },
     categories: ['reaction', 'ages-6-8'],
     ageRange: { min: 4, max: 10 },
-    icon: '🦕',
-    thumbnail: '/images/games/screenshots/dino-run.png',
+    thumbnail: '/images/games/dino-run.svg',
     engine: 'canvas',
     i18nNamespace: 'dinoRun',
   },
@@ -175,8 +156,7 @@ export const gameRegistry: Record<string, GameConfig> = {
     },
     categories: ['reaction', 'ages-3-5', 'ages-6-8'],
     ageRange: { min: 3, max: 10 },
-    icon: '🔨',
-    thumbnail: '/images/games/screenshots/whack-a-mole.png',
+    thumbnail: '/images/games/whack-a-mole.svg',
     engine: 'canvas',
     i18nNamespace: 'whackAMole',
   },
@@ -192,8 +172,7 @@ export const gameRegistry: Record<string, GameConfig> = {
     },
     categories: ['reaction', 'ages-6-8'],
     ageRange: { min: 5, max: 12 },
-    icon: '⚽',
-    thumbnail: '/images/games/screenshots/penalty-kick.png',
+    thumbnail: '/images/games/penalty-kick.svg',
     engine: 'canvas',
     i18nNamespace: 'penaltyKick',
   },
@@ -209,8 +188,7 @@ export const gameRegistry: Record<string, GameConfig> = {
     },
     categories: ['reaction', 'ages-6-8'],
     ageRange: { min: 5, max: 12 },
-    icon: '🏃',
-    thumbnail: '/images/games/screenshots/sprint-race.png',
+    thumbnail: '/images/games/sprint-race.svg',
     engine: 'canvas',
     i18nNamespace: 'sprintRace',
   },
@@ -226,8 +204,7 @@ export const gameRegistry: Record<string, GameConfig> = {
     },
     categories: ['reaction', 'ages-6-8'],
     ageRange: { min: 6, max: 12 },
-    icon: '🏰',
-    thumbnail: '/images/games/screenshots/tower-defense.png',
+    thumbnail: '/images/games/tower-defense.svg',
     engine: 'canvas',
     i18nNamespace: 'towerDefense',
   },
@@ -239,17 +216,6 @@ export const gameRegistry: Record<string, GameConfig> = {
   'nascar-cars': nascarCarsConfig,
   'sprint-race-phaser': sprintRacePhaserConfig,
   'color-mix': colorMixConfig,
-  'shape-builder': shapeBuilderConfig,
-  'pattern-maker': patternMakerConfig,
-  'number-muncher': numberMuncherConfig,
-  'rhyme-time': rhymeTimeConfig,
-  'letter-soup': letterSoupConfig,
-  'size-sorter': sizeSorterConfig,
-  'weather-dress-up': weatherDressUpConfig,
-  'plant-grower': plantGrowerConfig,
-  'fraction-pizza': fractionPizzaConfig,
-  'mirror-draw': mirrorDrawConfig,
-  'match-pairs': matchPairsConfig,
 };
 
 /**

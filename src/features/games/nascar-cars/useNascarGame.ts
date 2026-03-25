@@ -1,14 +1,13 @@
 import { useRef, useCallback } from 'react';
 import { getTrackPosition } from './Track';
-import { clamp } from '../shared/phaser/gameUtils';
 
 // ─── Types ───────────────────────────────────────────────────
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
 export interface CarState {
   angle: number;        // Position on track (radians, 0 = start)
-  speed: number;        // Current speed
-  laneOffset: number;   // Lateral offset from track center
+  speed: number;        // Current speed (radians/s along track)
+  laneOffset: number;   // Lateral offset from track center (-2 to 2)
   laps: number;         // Completed laps
   lastCheckpoint: number;
   finished: boolean;
@@ -30,15 +29,17 @@ export interface DifficultySettings {
   steerSpeed: number;
   autoAccelerate: boolean;
   aiAggressiveness: number;
+  friction: number;
 }
 
 export interface RaceState {
   player: CarState;
   aiCars: CarState[];
   raceTime: number;
-  countdown: number;    // 3, 2, 1, 0(go), -1(racing)
+  countdown: number;    // 3→0 countdown, then -1 = racing
   raceFinished: boolean;
-  playerPosition: number; // 1st, 2nd, etc.
+  playerPosition: number;
+  playerSpeedPct: number; // 0-100 for HUD display
 }
 
 // ─── Constants ───────────────────────────────────────────────
@@ -46,8 +47,9 @@ const TRACK_RADIUS_X = 14;
 const TRACK_RADIUS_Z = 8;
 const TWO_PI = Math.PI * 2;
 const LANE_WIDTH = 1.2;
-const MAX_LANE_OFFSET = 1.5;
-const CHECKPOINT_COUNT = 4; // Split track into 4 checkpoints
+const MAX_LANE_OFFSET = 2.0;
+const CHECKPOINT_COUNT = 4;
+const CAR_HITBOX = 1.6; // Collision distance between cars
 
 export const GAME_CONSTANTS = {
   TRACK_RADIUS_X,
@@ -89,212 +91,39 @@ export const CAREER_LEVELS: Record<string, Omit<LevelConfig, 'unlocked'>[]> = {
 
 export const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
   easy: {
-    maxSpeed: 3.0,
-    acceleration: 1.8,
-    braking: 3.0,
-    steerSpeed: 2.5,
+    maxSpeed: 1.6,
+    acceleration: 1.0,
+    braking: 2.0,
+    steerSpeed: 4.0,
     autoAccelerate: true,
-    aiAggressiveness: 0.5,
+    aiAggressiveness: 0.55,
+    friction: 0.3,
   },
   medium: {
-    maxSpeed: 3.8,
-    acceleration: 2.2,
-    braking: 3.5,
-    steerSpeed: 2.8,
+    maxSpeed: 2.2,
+    acceleration: 1.3,
+    braking: 2.5,
+    steerSpeed: 4.5,
     autoAccelerate: false,
     aiAggressiveness: 0.75,
+    friction: 0.25,
   },
   hard: {
-    maxSpeed: 4.5,
-    acceleration: 2.5,
-    braking: 4.0,
-    steerSpeed: 3.0,
+    maxSpeed: 2.8,
+    acceleration: 1.5,
+    braking: 3.0,
+    steerSpeed: 5.0,
     autoAccelerate: false,
-    aiAggressiveness: 1.0,
+    aiAggressiveness: 0.95,
+    friction: 0.2,
   },
 };
 
-// ─── Hook ────────────────────────────────────────────────────
-export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale: string) {
-  const settings = DIFFICULTY_SETTINGS[difficulty];
-  const levels = CAREER_LEVELS[locale] || CAREER_LEVELS.en;
-  const levelConfig = levels[Math.min(levelIndex, levels.length - 1)];
-
-  const raceState = useRef<RaceState>({
-    player: { angle: 0, speed: 0, laneOffset: 0, laps: 0, lastCheckpoint: 0, finished: false },
-    aiCars: [],
-    raceTime: 0,
-    countdown: 3,
-    raceFinished: false,
-    playerPosition: 1,
-  });
-
-  const aiTargetLanes = useRef<number[]>([]);
-  const aiSpeedFactors = useRef<number[]>([]);
-
-  const initRace = useCallback(() => {
-    const numOpponents = levelConfig.opponents;
-
-    // Initialize AI cars at staggered starting positions
-    const aiCars: CarState[] = [];
-    const targetLanes: number[] = [];
-    const speedFactors: number[] = [];
-
-    for (let i = 0; i < numOpponents; i++) {
-      const startAngle = -((i + 1) * 0.08);
-      const lane = ((i % 3) - 1) * LANE_WIDTH * 0.5;
-      aiCars.push({
-        angle: startAngle,
-        speed: 0,
-        laneOffset: lane,
-        laps: 0,
-        lastCheckpoint: 0,
-        finished: false,
-      });
-      targetLanes.push(lane);
-      speedFactors.push(
-        levelConfig.aiSpeedBase + (Math.random() - 0.5) * levelConfig.aiSpeedVariance,
-      );
-    }
-
-    raceState.current = {
-      player: { angle: 0, speed: 0, laneOffset: 0, laps: 0, lastCheckpoint: 0, finished: false },
-      aiCars,
-      raceTime: 0,
-      countdown: 3,
-      raceFinished: false,
-      playerPosition: numOpponents + 1,
-    };
-    aiTargetLanes.current = targetLanes;
-    aiSpeedFactors.current = speedFactors;
-  }, [levelConfig]);
-
-  const update = useCallback((
-    delta: number,
-    steerInput: number,   // -1 (left) to 1 (right)
-    accelerating: boolean,
-    braking: boolean,
-    onLapComplete: (lap: number) => void,
-    onRaceFinish: (position: number) => void,
-  ) => {
-    const state = raceState.current;
-    const clampedDelta = Math.min(delta, 0.05);
-
-    // ── Countdown ──
-    if (state.countdown > -1) {
-      state.countdown -= clampedDelta;
-      if (state.countdown <= -1) state.countdown = -1;
-      return { ...state };
-    }
-
-    if (state.raceFinished) return { ...state };
-
-    state.raceTime += clampedDelta;
-
-    // ── Player physics ──
-    const player = state.player;
-    if (!player.finished) {
-      // Acceleration
-      if (accelerating || settings.autoAccelerate) {
-        player.speed = Math.min(player.speed + settings.acceleration * clampedDelta, settings.maxSpeed);
-      } else if (braking) {
-        player.speed = Math.max(player.speed - settings.braking * clampedDelta, 0);
-      } else {
-        // Friction / coast
-        player.speed = Math.max(player.speed - 0.5 * clampedDelta, 0);
-      }
-
-      // Steering — adjust lane offset
-      player.laneOffset = clamp(
-        player.laneOffset + steerInput * settings.steerSpeed * clampedDelta,
-        -MAX_LANE_OFFSET,
-        MAX_LANE_OFFSET,
-      );
-
-      // Move along track
-      player.angle += player.speed * clampedDelta / TRACK_RADIUS_X;
-
-      // Lap detection
-      updateLaps(player, levelConfig.laps, onLapComplete);
-    }
-
-    // ── AI cars ──
-    state.aiCars.forEach((aiCar, i) => {
-      if (aiCar.finished) return;
-
-      const factor = aiSpeedFactors.current[i] * settings.aiAggressiveness;
-      const targetSpeed = settings.maxSpeed * factor;
-
-      // AI accelerates to target speed with some variance
-      if (aiCar.speed < targetSpeed) {
-        aiCar.speed = Math.min(aiCar.speed + settings.acceleration * 0.8 * clampedDelta, targetSpeed);
-      }
-
-      // Random lane changes
-      if (Math.random() < 0.01) {
-        aiTargetLanes.current[i] = (Math.random() - 0.5) * LANE_WIDTH;
-      }
-
-      // Smooth lane movement
-      const laneDiff = aiTargetLanes.current[i] - aiCar.laneOffset;
-      aiCar.laneOffset += clamp(laneDiff, -1.5 * clampedDelta, 1.5 * clampedDelta);
-
-      // Move along track
-      aiCar.angle += aiCar.speed * clampedDelta / TRACK_RADIUS_X;
-
-      // Lap detection
-      updateLaps(aiCar, levelConfig.laps, () => {});
-    });
-
-    // ── Simple collision (bump) ──
-    const playerPos = getTrackPosition(player.angle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
-    state.aiCars.forEach((aiCar) => {
-      const aiPos = getTrackPosition(aiCar.angle, TRACK_RADIUS_X, TRACK_RADIUS_Z, aiCar.laneOffset);
-      const dx = playerPos.x - aiPos.x;
-      const dz = playerPos.z - aiPos.z;
-      const dist = Math.sqrt(dx * dx + dz * dz);
-      if (dist < 1.8) {
-        // Push apart
-        const push = (1.8 - dist) * 0.5;
-        player.laneOffset += (dx > 0 ? 1 : -1) * push * 0.3;
-        player.speed *= 0.95;
-      }
-    });
-
-    // ── Calculate position ──
-    const playerProgress = player.laps * TWO_PI + normalizeAngle(player.angle);
-    let position = 1;
-    state.aiCars.forEach((aiCar) => {
-      const aiProgress = aiCar.laps * TWO_PI + normalizeAngle(aiCar.angle);
-      if (aiProgress > playerProgress) position++;
-    });
-    state.playerPosition = position;
-
-    // ── Check race finish ──
-    if (player.finished && !state.raceFinished) {
-      state.raceFinished = true;
-      onRaceFinish(position);
-    }
-    // Also finish if all AI done and player done
-    const allFinished = state.aiCars.every((c) => c.finished) && player.finished;
-    if (allFinished && !state.raceFinished) {
-      state.raceFinished = true;
-      onRaceFinish(position);
-    }
-
-    return { ...state };
-  }, [settings, levelConfig]);
-
-  return {
-    raceState,
-    settings,
-    levelConfig,
-    initRace,
-    update,
-  };
+// ─── Helpers ─────────────────────────────────────────────────
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
 }
 
-// ─── Helpers ─────────────────────────────────────────────────
 function normalizeAngle(angle: number): number {
   return ((angle % TWO_PI) + TWO_PI) % TWO_PI;
 }
@@ -316,4 +145,199 @@ function updateLaps(
     }
   }
   car.lastCheckpoint = checkpoint;
+}
+
+// ─── Hook ────────────────────────────────────────────────────
+export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale: string) {
+  const settings = DIFFICULTY_SETTINGS[difficulty];
+  const levels = CAREER_LEVELS[locale] || CAREER_LEVELS.en;
+  const levelConfig = levels[Math.min(levelIndex, levels.length - 1)];
+
+  const raceState = useRef<RaceState>({
+    player: { angle: 0, speed: 0, laneOffset: 0, laps: 0, lastCheckpoint: 0, finished: false },
+    aiCars: [],
+    raceTime: 0,
+    countdown: 3,
+    raceFinished: false,
+    playerPosition: 1,
+    playerSpeedPct: 0,
+  });
+
+  const aiTargetLanes = useRef<number[]>([]);
+  const aiSpeedFactors = useRef<number[]>([]);
+
+  const initRace = useCallback(() => {
+    const numOpponents = levelConfig.opponents;
+
+    // Initialize AI cars in a staggered grid AROUND the player
+    const aiCars: CarState[] = [];
+    const targetLanes: number[] = [];
+    const speedFactors: number[] = [];
+
+    for (let i = 0; i < numOpponents; i++) {
+      // Grid: alternate left/right lanes, stagger by row
+      const row = Math.floor(i / 2);
+      const side = i % 2 === 0 ? -1 : 1;
+      const startAngle = -((row + 1) * 0.06); // Slightly behind in rows
+      const lane = side * LANE_WIDTH * 0.6;
+      aiCars.push({
+        angle: startAngle,
+        speed: 0,
+        laneOffset: lane,
+        laps: 0,
+        lastCheckpoint: 0,
+        finished: false,
+      });
+      targetLanes.push(lane);
+      speedFactors.push(
+        levelConfig.aiSpeedBase + (Math.random() - 0.5) * levelConfig.aiSpeedVariance * 2,
+      );
+    }
+
+    raceState.current = {
+      player: { angle: 0, speed: 0, laneOffset: 0, laps: 0, lastCheckpoint: 0, finished: false },
+      aiCars,
+      raceTime: 0,
+      countdown: 3,
+      raceFinished: false,
+      playerPosition: numOpponents + 1,
+      playerSpeedPct: 0,
+    };
+    aiTargetLanes.current = targetLanes;
+    aiSpeedFactors.current = speedFactors;
+  }, [levelConfig]);
+
+  const update = useCallback((
+    delta: number,
+    steerInput: number,
+    accelerating: boolean,
+    braking: boolean,
+    onLapComplete: (lap: number) => void,
+    onRaceFinish: (position: number) => void,
+  ) => {
+    const state = raceState.current;
+    const dt = Math.min(delta, 0.05); // Cap delta
+
+    // ── Countdown ──
+    if (state.countdown > -1) {
+      state.countdown -= dt;
+      if (state.countdown <= -1) state.countdown = -1;
+      return { ...state };
+    }
+
+    if (state.raceFinished) return { ...state };
+
+    state.raceTime += dt;
+
+    // ── Player physics ──
+    const player = state.player;
+    if (!player.finished) {
+      // Acceleration / braking / friction
+      if (accelerating || settings.autoAccelerate) {
+        player.speed += settings.acceleration * dt;
+      } else if (braking) {
+        player.speed -= settings.braking * dt;
+      } else {
+        player.speed -= settings.friction * dt;
+      }
+      player.speed = clamp(player.speed, 0, settings.maxSpeed);
+
+      // Steering — lateral offset (feels like changing lanes)
+      if (steerInput !== 0) {
+        player.laneOffset += steerInput * settings.steerSpeed * dt;
+        player.laneOffset = clamp(player.laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
+      }
+
+      // Angular speed depends on lane offset — outside lane is longer path
+      // This creates a real overtaking mechanic: inside lane = faster laps
+      const effectiveRadius = TRACK_RADIUS_X + player.laneOffset * 0.3;
+      player.angle += (player.speed / effectiveRadius) * dt * TRACK_RADIUS_X;
+
+      updateLaps(player, levelConfig.laps, onLapComplete);
+    }
+
+    // Speed for HUD (0-100%)
+    state.playerSpeedPct = Math.round((player.speed / settings.maxSpeed) * 100);
+
+    // ── AI cars ──
+    state.aiCars.forEach((aiCar, i) => {
+      if (aiCar.finished) return;
+
+      const factor = aiSpeedFactors.current[i];
+      const targetSpeed = settings.maxSpeed * factor * settings.aiAggressiveness;
+
+      // AI ramps up speed (faster than player to create challenge)
+      if (aiCar.speed < targetSpeed) {
+        aiCar.speed += settings.acceleration * 0.9 * dt;
+      } else {
+        aiCar.speed -= settings.friction * 0.5 * dt;
+      }
+      aiCar.speed = clamp(aiCar.speed, 0, settings.maxSpeed * 1.05);
+
+      // AI lane changes — try to find open lanes and avoid collisions
+      if (Math.random() < 0.02) {
+        // Random target lane
+        aiTargetLanes.current[i] = (Math.random() - 0.5) * MAX_LANE_OFFSET * 1.5;
+      }
+
+      // Smooth lane movement
+      const laneDiff = aiTargetLanes.current[i] - aiCar.laneOffset;
+      aiCar.laneOffset += clamp(laneDiff * 3 * dt, -2 * dt, 2 * dt);
+      aiCar.laneOffset = clamp(aiCar.laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
+
+      // Move along track
+      const aiEffective = TRACK_RADIUS_X + aiCar.laneOffset * 0.3;
+      aiCar.angle += (aiCar.speed / aiEffective) * dt * TRACK_RADIUS_X;
+
+      updateLaps(aiCar, levelConfig.laps, () => {});
+    });
+
+    // ── Collisions (bump between cars) ──
+    const playerPos = getTrackPosition(player.angle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
+    state.aiCars.forEach((aiCar) => {
+      if (aiCar.finished) return;
+      const aiPos = getTrackPosition(aiCar.angle, TRACK_RADIUS_X, TRACK_RADIUS_Z, aiCar.laneOffset);
+      const dx = playerPos.x - aiPos.x;
+      const dz = playerPos.z - aiPos.z;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      if (dist < CAR_HITBOX && dist > 0.01) {
+        const overlap = (CAR_HITBOX - dist) * 0.5;
+        const pushX = (dx / dist) * overlap;
+        const pushZ = (dz / dist) * overlap;
+        // Push player laterally (lane shift) and slow down
+        player.laneOffset += pushX * 0.15;
+        player.laneOffset = clamp(player.laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
+        player.speed *= 0.92;
+        // Push AI too
+        aiCar.laneOffset -= pushX * 0.1;
+        aiCar.laneOffset = clamp(aiCar.laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
+        aiCar.speed *= 0.95;
+      }
+    });
+
+    // ── Calculate position ──
+    const playerProgress = player.laps * TWO_PI + normalizeAngle(player.angle);
+    let position = 1;
+    state.aiCars.forEach((aiCar) => {
+      const aiProgress = aiCar.laps * TWO_PI + normalizeAngle(aiCar.angle);
+      if (aiProgress > playerProgress) position++;
+    });
+    state.playerPosition = position;
+
+    // ── Check race finish ──
+    if (player.finished && !state.raceFinished) {
+      state.raceFinished = true;
+      onRaceFinish(position);
+    }
+
+    return { ...state };
+  }, [settings, levelConfig]);
+
+  return {
+    raceState,
+    settings,
+    levelConfig,
+    initRace,
+    update,
+  };
 }

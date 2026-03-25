@@ -219,7 +219,7 @@ export function Track({
 
 /**
  * Get position on the oval track at a given angle (radians).
- * Returns [x, z] and the tangent angle for car rotation.
+ * laneOffset pushes the car perpendicular to the track tangent (positive = outward).
  */
 export function getTrackPosition(
   angle: number,
@@ -229,13 +229,26 @@ export function getTrackPosition(
 ): { x: number; z: number; rotation: number } {
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
-  const x = cos * (radiusX + laneOffset);
-  const z = sin * (radiusZ + laneOffset);
 
-  // Tangent angle (perpendicular to radius at this point on ellipse)
-  const dx = -sin * radiusX;
-  const dz = cos * radiusZ;
-  const rotation = Math.atan2(dx, dz);
+  // Base position on ellipse
+  const baseX = cos * radiusX;
+  const baseZ = sin * radiusZ;
+
+  // Tangent direction (derivative of ellipse)
+  const tx = -sin * radiusX;
+  const tz = cos * radiusZ;
+
+  // Normal direction (perpendicular to tangent, pointing outward)
+  const nLen = Math.sqrt(tx * tx + tz * tz);
+  const nx = tz / nLen;   // rotate tangent 90° CW
+  const nz = -tx / nLen;
+
+  // Offset along normal
+  const x = baseX + nx * laneOffset;
+  const z = baseZ + nz * laneOffset;
+
+  // Car rotation = tangent direction
+  const rotation = Math.atan2(tx, tz);
 
   return { x, z, rotation };
 }

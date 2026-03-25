@@ -224,6 +224,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
   const [countdown, setCountdown] = useState(3);
   const [raceFinished, setRaceFinished] = useState(false);
   const [finishPosition, setFinishPosition] = useState(1);
+  const [speedPct, setSpeedPct] = useState(0);
 
   const { playHit, playSuccess, playGameOver, playWin, playClick, playLevelUp } = useRetroSounds();
 
@@ -317,6 +318,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
 
     setPlayerPosition(state.playerPosition);
     setCountdown(state.countdown);
+    setSpeedPct(state.playerSpeedPct);
   }, [update, levelIndex, unlockedLevel, careerLevels.length, playLevelUp, playWin, playGameOver]);
 
   // ── Difficulty options ──
@@ -452,6 +454,20 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                 <span className="text-sm text-slate-500">
                   {t.lap}: {Math.min(playerLap + 1, levelConfig.laps)}/{levelConfig.laps}
                 </span>
+                {/* Speed bar */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-500">{t.speed}</span>
+                  <div className="w-24 h-3 rounded-full bg-slate-200 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-100"
+                      style={{
+                        width: `${speedPct}%`,
+                        background: speedPct > 80 ? '#ef4444' : speedPct > 50 ? '#f59e0b' : '#22c55e',
+                      }}
+                    />
+                  </div>
+                  <span className="text-xs font-mono text-slate-500 w-8">{speedPct}%</span>
+                </div>
               </div>
               <LevelDisplay level={levelIndex + 1} />
             </div>
