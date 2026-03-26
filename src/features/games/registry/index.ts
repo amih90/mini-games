@@ -23,6 +23,7 @@ import { oddOneOutConfig } from '../odd-one-out/game.config';
 import { shadowMatchConfig } from '../shadow-match/game.config';
 import { countingBubblesConfig } from '../counting-bubbles/game.config';
 import { armyRunnerConfig } from '../army-runner/game.config';
+import { potionCraftConfig } from '../potion-craft/game.config';
 
 // Re-export types
 export type { GameConfig, GameCategory } from './types';
@@ -260,6 +261,7 @@ export const gameRegistry: Record<string, GameConfig> = {
   'shadow-match': shadowMatchConfig,
   'counting-bubbles': countingBubblesConfig,
   'army-runner': armyRunnerConfig,
+  'potion-craft': potionCraftConfig,
 };
 
 /**

@@ -158,6 +158,14 @@ const ArmyRunnerGame = dynamic(
   }
 );
 
+const PotionCraftGame = dynamic(
+  () => import('@/features/games/potion-craft/PotionCraftGame'),
+  {
+    loading: () => <GameLoadingSkeleton />,
+    ssr: false,
+  }
+);
+
 const SprintRacePhaserGame = dynamic(
   () => import('@/features/games/sprint-race-phaser/SprintRacePhaserGame'),
   {
@@ -356,6 +364,8 @@ export function GameLoader({ slug }: GameLoaderProps) {
       return <NascarCarsGame locale={locale} />;
     case 'army-runner':
       return <ArmyRunnerGame locale={locale} />;
+    case 'potion-craft':
+      return <PotionCraftGame locale={locale} />;
     case 'sprint-race-phaser':
       return <SprintRacePhaserGame />;
     case 'color-mix':
