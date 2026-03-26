@@ -19,7 +19,7 @@ export const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
   hard: { speed: 9, startSoldiers: 1, obstacleFrequency: 0.55, enemyMultiplier: 1.4 },
 };
 
-export type GateOp = '+' | 'x';
+export type GateOp = '+' | '-' | 'x' | '÷';
 
 export interface GateData {
   op: GateOp;
@@ -84,6 +84,7 @@ export interface GameState {
   level: number;
   segments: Segment[];
   totalTrackLength: number;
+  elapsedTime: number;
 }
 
 // ─── Constants ──────────────────────────────────────────────
@@ -94,8 +95,44 @@ const SEGMENTS_PER_LEVEL = 22;
 const TRIGGER_DISTANCE = 1.5;
 const GROUP_MOVE_SPEED = 12;
 const MAX_VISUAL_SOLDIERS = 80;
-const OBSTACLE_HIT_RADIUS = 1.2;
+const ARMY_HALF_WIDTH = 0.6;
 const NARROW_GAP_WIDTH = 2.0;
+
+// Per-obstacle-type spatial collision check
+function checkObstacleCollision(kind: ObstacleKind, groupX: number, elapsedTime: number): boolean {
+  const armyLeft = groupX - ARMY_HALF_WIDTH;
+  const armyRight = groupX + ARMY_HALF_WIDTH;
+
+  switch (kind) {
+    case 'rotating-bar': {
+      // Bar is 5 units long, 0.3 wide, rotates around Y at center.
+      // At any angle, the bar projects onto the X axis as cos(angle)*2.5
+      const angle = elapsedTime * 2.5;
+      const barHalfSpan = Math.abs(Math.cos(angle)) * 2.5;
+      const barLeft = -barHalfSpan;
+      const barRight = barHalfSpan;
+      return armyRight > barLeft && armyLeft < barRight;
+    }
+    case 'moving-wall': {
+      // Wall is 2 units wide, oscillates with sin(t*2) * 2.5
+      const wallX = Math.sin(elapsedTime * 2) * 2.5;
+      const wallHalfWidth = 1.0;
+      return armyRight > wallX - wallHalfWidth && armyLeft < wallX + wallHalfWidth;
+    }
+    case 'saw-blade': {
+      // Circular blade at center with radius 1.2
+      const bladeRadius = 1.2;
+      return armyRight > -bladeRadius && armyLeft < bladeRadius;
+    }
+    case 'narrow-passage': {
+      // Walls on both sides, gap of 2.0 centered at 0
+      const gapHalf = NARROW_GAP_WIDTH / 2;
+      return armyLeft < -gapHalf || armyRight > gapHalf;
+    }
+    default:
+      return false;
+  }
+}
 
 // ─── Helpers ────────────────────────────────────────────────
 function randomChoice<T>(arr: T[]): T {
@@ -120,10 +157,26 @@ function generateSoldierOffsets(count: number): SoldierOffset[] {
 
 function generateGateOp(level: number): { op: GateOp; value: number } {
   const rand = Math.random();
-  if (rand < 0.5 + level * 0.02) {
+  if (rand < 0.35 + level * 0.01) {
     return { op: '+', value: Math.floor(Math.random() * 8) + 2 };
+  } else if (rand < 0.55 + level * 0.01) {
+    return { op: '-', value: Math.floor(Math.random() * 5) + 1 };
+  } else if (rand < 0.8) {
+    return { op: 'x', value: Math.random() < 0.5 ? 2 : 3 };
   }
-  return { op: 'x', value: Math.random() < 0.5 ? 2 : 3 };
+  return { op: '÷', value: Math.random() < 0.5 ? 2 : 3 };
+}
+
+function generateGatePair(level: number): { left: { op: GateOp; value: number }; right: { op: GateOp; value: number } } {
+  const left = generateGateOp(level);
+  let right = generateGateOp(level);
+  // Ensure the two sides are never identical
+  let attempts = 0;
+  while (right.op === left.op && right.value === left.value && attempts < 10) {
+    right = generateGateOp(level);
+    attempts++;
+  }
+  return { left, right };
 }
 
 function generateLevel(level: number, settings: DifficultySettings): Segment[] {
@@ -136,11 +189,12 @@ function generateLevel(level: number, settings: DifficultySettings): Segment[] {
 
     if (i % 3 === 0) {
       // Gate pair every 3rd segment
+      const pair = generateGatePair(level);
       segments.push({
         type: 'gate-pair',
         z,
-        left: generateGateOp(level),
-        right: generateGateOp(level),
+        left: pair.left,
+        right: pair.right,
         triggered: false,
       });
     } else if (rand < settings.obstacleFrequency && progress < 0.9) {
@@ -179,7 +233,9 @@ function generateLevel(level: number, settings: DifficultySettings): Segment[] {
 
 function applyGateOp(count: number, op: GateOp, value: number): number {
   if (op === '+') return count + value;
+  if (op === '-') return count - value;
   if (op === 'x') return count * value;
+  if (op === '÷') return Math.floor(count / value);
   return count;
 }
 
@@ -190,6 +246,7 @@ function updateGameFrame(state: GameState, delta: number): string[] {
 
   // Advance track
   state.trackZ += state.speed * clampedDelta;
+  state.elapsedTime += clampedDelta;
 
   // Move group horizontally
   const dx = state.targetGroupX - state.groupX;
@@ -211,27 +268,18 @@ function updateGameFrame(state: GameState, delta: number): string[] {
         const oldCount = state.soldierCount;
         state.soldierCount = applyGateOp(state.soldierCount, chosenGate.op, chosenGate.value);
         state.soldierCount = Math.max(0, Math.min(state.soldierCount, 200));
-        if (state.soldierCount > oldCount) {
+        if (state.soldierCount !== oldCount) {
           state.soldierOffsets = generateSoldierOffsets(state.soldierCount);
-          events.push('powerup');
+          events.push(state.soldierCount > oldCount ? 'powerup' : 'hit');
         }
       }
 
       if (seg.type === 'obstacle' && !seg.triggered) {
-        seg.triggered = true;
-        let loss = 0;
-        if (seg.kind === 'narrow-passage') {
-          const gapCenter = 0;
-          if (Math.abs(state.groupX - gapCenter) > NARROW_GAP_WIDTH / 2) {
-            loss = Math.ceil(state.soldierCount * 0.3);
-          }
-        } else {
-          loss = Math.ceil(state.soldierCount * 0.15);
-          if (Math.abs(state.groupX) < OBSTACLE_HIT_RADIUS) {
-            loss = Math.ceil(state.soldierCount * 0.25);
-          }
-        }
-        if (loss > 0) {
+        if (checkObstacleCollision(seg.kind, state.groupX, state.elapsedTime)) {
+          seg.triggered = true;
+          const loss = seg.kind === 'narrow-passage'
+            ? Math.ceil(state.soldierCount * 0.3)
+            : Math.ceil(state.soldierCount * 0.25);
           state.soldierCount = Math.max(0, state.soldierCount - loss);
           state.soldierOffsets = generateSoldierOffsets(state.soldierCount);
           events.push('hit');
@@ -239,16 +287,24 @@ function updateGameFrame(state: GameState, delta: number): string[] {
       }
 
       if (seg.type === 'enemy' && !seg.triggered) {
-        seg.triggered = true;
-        if (state.soldierCount > seg.count) {
-          state.soldierCount -= seg.count;
-          state.score += seg.count * 10;
-          events.push('combat-win');
-        } else {
-          state.soldierCount = 0;
-          events.push('combat-lose');
+        // Enemy group is centered at X=0 with a spread based on count
+        const enemyCols = Math.ceil(Math.sqrt(Math.min(seg.count, 40)));
+        const enemyHalfWidth = ((enemyCols - 1) / 2) * 0.45 + 0.25;
+        const armyLeft = state.groupX - ARMY_HALF_WIDTH;
+        const armyRight = state.groupX + ARMY_HALF_WIDTH;
+
+        if (armyRight > -enemyHalfWidth && armyLeft < enemyHalfWidth) {
+          seg.triggered = true;
+          if (state.soldierCount > seg.count) {
+            state.soldierCount -= seg.count;
+            state.score += seg.count * 10;
+            events.push('combat-win');
+          } else {
+            state.soldierCount = 0;
+            events.push('combat-lose');
+          }
+          state.soldierOffsets = generateSoldierOffsets(state.soldierCount);
         }
-        state.soldierOffsets = generateSoldierOffsets(state.soldierCount);
       }
 
       if (seg.type === 'coins' && !(seg as CoinSegment).collected) {
@@ -291,6 +347,7 @@ function initGameState(settings: DifficultySettings, level: number): GameState {
     level,
     segments,
     totalTrackLength: totalLength,
+    elapsedTime: 0,
   };
 }
 

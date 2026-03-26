@@ -21,72 +21,134 @@ interface ArmyRunnerSceneProps {
 }
 
 // ─── Player crowd rendered imperatively via InstancedMesh ───
-const bodyGeom = new THREE.BoxGeometry(0.25, 0.4, 0.2);
-const headGeom = new THREE.SphereGeometry(0.1, 8, 6);
+const bodyGeom = new THREE.BoxGeometry(0.22, 0.38, 0.18);
+const headGeom = new THREE.SphereGeometry(0.1, 12, 8);
 const legGeom = new THREE.BoxGeometry(0.08, 0.25, 0.08);
+const armGeom = new THREE.BoxGeometry(0.07, 0.22, 0.07);
+const helmetGeom = (() => {
+  const g = new THREE.SphereGeometry(0.12, 12, 8);
+  g.scale(1, 0.6, 1);
+  return g;
+})();
 
 function PlayerCrowd({ gameStateRef }: { gameStateRef: React.RefObject<GameState> }) {
+  const MAX = 80;
   const bodyRef = useRef<THREE.InstancedMesh>(null);
   const headRef = useRef<THREE.InstancedMesh>(null);
   const lLegRef = useRef<THREE.InstancedMesh>(null);
   const rLegRef = useRef<THREE.InstancedMesh>(null);
+  const lArmRef = useRef<THREE.InstancedMesh>(null);
+  const rArmRef = useRef<THREE.InstancedMesh>(null);
+  const helmetRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
+  const prevCountRef = useRef(0);
+  const spawnTimestamps = useRef(new Float32Array(MAX));
   const mat = useMemo(() => new THREE.Matrix4(), []);
+  const scaleVec = useMemo(() => new THREE.Vector3(), []);
 
-  const bodyMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#4488ff', roughness: 0.6 }), []);
+  const bodyMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#2266dd', roughness: 0.6 }), []);
   const headMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#ffcc88', roughness: 0.5 }), []);
-  const legMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#3366cc', roughness: 0.7 }), []);
-
-  const MAX = 80;
+  const legMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#1a4faa', roughness: 0.7 }), []);
+  const helmetMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#556b2f', roughness: 0.8 }), []);
 
   useFrame((_, delta) => {
     const state = gameStateRef.current;
-    if (!state || !bodyRef.current || !headRef.current || !lLegRef.current || !rLegRef.current) return;
+    if (!state || !bodyRef.current || !headRef.current || !lLegRef.current ||
+        !rLegRef.current || !lArmRef.current || !rArmRef.current || !helmetRef.current) return;
 
     timeRef.current += delta;
     const t = timeRef.current;
     const offsets = state.soldierOffsets;
     const count = Math.min(offsets.length, MAX);
 
+    // Spawn timestamps for new soldiers
+    if (count > prevCountRef.current) {
+      for (let i = prevCountRef.current; i < count; i++) {
+        spawnTimestamps.current[i] = t;
+      }
+    }
+    prevCountRef.current = count;
+
     bodyRef.current.count = count;
     headRef.current.count = count;
     lLegRef.current.count = count;
     rLegRef.current.count = count;
+    lArmRef.current.count = count;
+    rArmRef.current.count = count;
+    helmetRef.current.count = count;
 
     for (let i = 0; i < count; i++) {
       const off = offsets[i];
       const x = state.groupX + off.x;
       const z = state.trackZ + off.z;
-      const bounce = Math.sin(t * 8 + off.phase) * 0.05;
-      const legSwing = Math.sin(t * 10 + off.phase) * 0.3;
 
-      mat.makeTranslation(x, 0.45 + bounce, z);
+      const spawnAge = t - spawnTimestamps.current[i];
+      const s = Math.min(1, spawnAge / 0.3);
+
+      const bounce = Math.sin(t * 8 + off.phase) * 0.07;
+      const legSwing = Math.sin(t * 10 + off.phase) * 0.3;
+      const armSwing = Math.sin(t * 10 + off.phase) * 0.25;
+      const sway = Math.sin(t * 5 + off.phase) * 0.02;
+
+      // Body — forward lean + sway
+      mat.makeRotationX(0.1);
+      mat.scale(scaleVec.set(s, s, s));
+      mat.setPosition(x + sway, (0.45 + bounce) * s, z);
       bodyRef.current.setMatrixAt(i, mat);
 
-      mat.makeTranslation(x, 0.75 + bounce, z);
+      // Head
+      mat.makeScale(s, s, s);
+      mat.setPosition(x + sway, (0.75 + bounce) * s, z);
       headRef.current.setMatrixAt(i, mat);
 
+      // Helmet
+      mat.makeScale(s, s, s);
+      mat.setPosition(x + sway, (0.82 + bounce) * s, z);
+      helmetRef.current.setMatrixAt(i, mat);
+
+      // Left leg
       mat.makeRotationX(legSwing);
-      mat.setPosition(x - 0.07, 0.12, z);
+      mat.scale(scaleVec.set(s, s, s));
+      mat.setPosition(x - 0.07, 0.12 * s, z);
       lLegRef.current.setMatrixAt(i, mat);
 
+      // Right leg
       mat.makeRotationX(-legSwing);
-      mat.setPosition(x + 0.07, 0.12, z);
+      mat.scale(scaleVec.set(s, s, s));
+      mat.setPosition(x + 0.07, 0.12 * s, z);
       rLegRef.current.setMatrixAt(i, mat);
+
+      // Left arm — opposite to left leg
+      mat.makeRotationX(-armSwing);
+      mat.scale(scaleVec.set(s, s, s));
+      mat.setPosition(x - 0.15, (0.38 + bounce) * s, z);
+      lArmRef.current.setMatrixAt(i, mat);
+
+      // Right arm — opposite to right leg
+      mat.makeRotationX(armSwing);
+      mat.scale(scaleVec.set(s, s, s));
+      mat.setPosition(x + 0.15, (0.38 + bounce) * s, z);
+      rArmRef.current.setMatrixAt(i, mat);
     }
 
     bodyRef.current.instanceMatrix.needsUpdate = true;
     headRef.current.instanceMatrix.needsUpdate = true;
     lLegRef.current.instanceMatrix.needsUpdate = true;
     rLegRef.current.instanceMatrix.needsUpdate = true;
+    lArmRef.current.instanceMatrix.needsUpdate = true;
+    rArmRef.current.instanceMatrix.needsUpdate = true;
+    helmetRef.current.instanceMatrix.needsUpdate = true;
   });
 
   return (
     <group>
       <instancedMesh ref={bodyRef} args={[bodyGeom, bodyMat, MAX]} frustumCulled={false} />
       <instancedMesh ref={headRef} args={[headGeom, headMat, MAX]} frustumCulled={false} />
+      <instancedMesh ref={helmetRef} args={[helmetGeom, helmetMat, MAX]} frustumCulled={false} />
       <instancedMesh ref={lLegRef} args={[legGeom, legMat, MAX]} frustumCulled={false} />
       <instancedMesh ref={rLegRef} args={[legGeom, legMat, MAX]} frustumCulled={false} />
+      <instancedMesh ref={lArmRef} args={[armGeom, bodyMat, MAX]} frustumCulled={false} />
+      <instancedMesh ref={rArmRef} args={[armGeom, bodyMat, MAX]} frustumCulled={false} />
     </group>
   );
 }
@@ -106,9 +168,12 @@ function SegmentWrapper({
   useFrame(() => {
     if (!ref.current || !gameStateRef.current) return;
     const dist = segment.z - gameStateRef.current.trackZ;
-    const hidden =
+    // Obstacles stay visible (they're physical objects). Only gates/coins/enemies hide on trigger.
+    const isObstacle = segment.type === 'obstacle';
+    const hidden = !isObstacle && (
       ('triggered' in segment && (segment as { triggered: boolean }).triggered) ||
-      ('collected' in segment && (segment as { collected: boolean }).collected);
+      ('collected' in segment && (segment as { collected: boolean }).collected)
+    );
     ref.current.visible = dist > -5 && dist < 80 && !hidden;
   });
 
@@ -167,8 +232,8 @@ export function ArmyRunnerScene({
     // Keyboard input
     const keys = keysRef.current;
     const speed = 8;
-    if (keys.has('arrowleft') || keys.has('a')) moveGroup(-speed * delta);
-    if (keys.has('arrowright') || keys.has('d')) moveGroup(speed * delta);
+    if (keys.has('arrowleft') || keys.has('a')) moveGroup(speed * delta);
+    if (keys.has('arrowright') || keys.has('d')) moveGroup(-speed * delta);
 
     // Game logic tick
     const events = onFrame(delta);

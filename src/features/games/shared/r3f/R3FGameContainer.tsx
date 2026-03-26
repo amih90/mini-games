@@ -14,6 +14,26 @@ interface R3FGameContainerProps {
   };
 }
 
+// Check WebGL support once and cache the result
+let webGLSupported: boolean | null = null;
+function isWebGLSupported(): boolean {
+  if (webGLSupported !== null) return webGLSupported;
+  if (typeof window === 'undefined') return true;
+  try {
+    const testCanvas = document.createElement('canvas');
+    const gl = testCanvas.getContext('webgl2') || testCanvas.getContext('webgl');
+    if (gl) {
+      // Release the test context immediately
+      const loseExt = gl.getExtension('WEBGL_lose_context');
+      if (loseExt) loseExt.loseContext();
+    }
+    webGLSupported = !!gl;
+  } catch {
+    webGLSupported = false;
+  }
+  return webGLSupported;
+}
+
 function WebGLFallback() {
   return (
     <div className="flex items-center justify-center h-full min-h-[400px] bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl">
@@ -46,16 +66,7 @@ export function R3FGameContainer({
   className = '',
   camera = { position: [0, 8, 12], fov: 50 },
 }: R3FGameContainerProps) {
-  // Check WebGL support
-  if (typeof window !== 'undefined') {
-    try {
-      const testCanvas = document.createElement('canvas');
-      const gl = testCanvas.getContext('webgl2') || testCanvas.getContext('webgl');
-      if (!gl) return <WebGLFallback />;
-    } catch {
-      return <WebGLFallback />;
-    }
-  }
+  if (!isWebGLSupported()) return <WebGLFallback />;
 
   return (
     <div className={`w-full aspect-[4/3] max-w-[800px] mx-auto ${className}`}>
