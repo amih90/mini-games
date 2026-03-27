@@ -232,8 +232,8 @@ export function ArmyRunnerScene({
     // Keyboard input
     const keys = keysRef.current;
     const speed = 8;
-    if (keys.has('arrowleft') || keys.has('a')) moveGroup(speed * delta);
-    if (keys.has('arrowright') || keys.has('d')) moveGroup(-speed * delta);
+    if (keys.has('arrowleft') || keys.has('a')) moveGroup(-speed * delta);
+    if (keys.has('arrowright') || keys.has('d')) moveGroup(speed * delta);
 
     // Game logic tick
     const events = onFrame(delta);

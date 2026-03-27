@@ -14,5 +14,14 @@
       },
       "castBy": "Ami Hollander"
     }
+    {
+      "timestamp": "2026-03-27",
+      "event": "new-member-added",
+      "universe": "The Goonies",
+      "assignments": {
+        "andy": { "role": "3D Game Designer", "reason": "Creative and expressive — Three.js, WebGL shaders, 3D visuals" }
+      },
+      "castBy": "Ami Hollander"
+    }
   ]
 }

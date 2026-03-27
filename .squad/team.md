@@ -16,6 +16,7 @@
 | ⚛️ Data | Frontend Dev | [charter](agents/data/charter.md) | ✅ Active |
 | 🔧 Chunk | Game Dev | [charter](agents/chunk/charter.md) | ✅ Active |
 | 🧪 Mouth | Tester | [charter](agents/mouth/charter.md) | ✅ Active |
+| 🎨 Andy | 3D Game Designer | [charter](agents/andy/charter.md) | ✅ Active |
 | 📋 Scribe | Scribe (silent) | [charter](agents/scribe/charter.md) | ✅ Active |
 | 🔄 Ralph | Monitor | [charter](agents/ralph/charter.md) | ✅ Active |
 

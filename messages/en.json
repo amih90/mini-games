@@ -226,5 +226,17 @@
   "armyRunner": {
     "title": "Army Runner 3D",
     "description": "Lead your army through gates, dodge obstacles, and crush enemies!"
+  },
+  "shapeSorter3D": {
+    "title": "3D Shape Sorter",
+    "description": "Sort 3D shapes into the right slots! Learn cubes, spheres, and more!"
+  },
+  "solarSystem3D": {
+    "title": "Solar System Explorer",
+    "description": "Explore the solar system! Click glowing planets to learn amazing facts!"
+  },
+  "numberTower3D": {
+    "title": "3D Number Tower",
+    "description": "Stack number blocks to reach the target sum! Build a tower with math!"
   }
 }

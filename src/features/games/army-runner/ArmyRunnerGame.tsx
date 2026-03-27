@@ -477,10 +477,10 @@ export default function ArmyRunnerGame({ locale = 'en' }: ArmyRunnerGameProps) {
 
         {/* On-screen mobile left/right buttons (shown when playing on small screens) */}
         {phase === 'playing' && (
-          <div className="flex md:hidden justify-between gap-4 mt-3 w-full px-2">
+          <div className="flex md:hidden justify-between gap-4 mt-3 w-full px-2" dir="ltr">
             <motion.button
               whileTap={{ scale: 0.88 }}
-              onPointerDown={(e) => { e.preventDefault(); startMobileMove(1); }}
+              onPointerDown={(e) => { e.preventDefault(); startMobileMove(-1); }}
               onPointerUp={stopMobileMove}
               onPointerLeave={stopMobileMove}
               onPointerCancel={stopMobileMove}
@@ -491,7 +491,7 @@ export default function ArmyRunnerGame({ locale = 'en' }: ArmyRunnerGameProps) {
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.88 }}
-              onPointerDown={(e) => { e.preventDefault(); startMobileMove(-1); }}
+              onPointerDown={(e) => { e.preventDefault(); startMobileMove(1); }}
               onPointerUp={stopMobileMove}
               onPointerLeave={stopMobileMove}
               onPointerCancel={stopMobileMove}

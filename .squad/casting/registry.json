@@ -55,6 +55,15 @@
       "universe": "The Goonies",
       "status": "active",
       "mode": "monitor"
+    },
+    "andy": {
+      "name": "Andy",
+      "role": "3D Game Designer",
+      "emoji": "🎨",
+      "charter": ".squad/agents/andy/charter.md",
+      "history": ".squad/agents/andy/history.md",
+      "universe": "The Goonies",
+      "status": "active"
     }
   }
 }

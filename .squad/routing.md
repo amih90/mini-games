@@ -8,6 +8,7 @@ How to decide who handles what.
 |-----------|----------|----------|
 | UI / Components / Styling | Data | React components, Tailwind CSS, animations, layouts, kid-friendly UI |
 | Game Logic / Mechanics | Chunk | Game state, physics, scoring, game loops, new game features |
+| 3D Design / Visuals / Shaders | Andy | Three.js, React Three Fiber, WebGL shaders, lighting, camera, particles, 3D assets |
 | Architecture / Scope | Mikey | System design, feature scoping, trade-offs, tech decisions |
 | Code review | Mikey | Review PRs, check quality, approve/reject changes |
 | Testing | Mouth | Write tests, find edge cases, verify fixes, quality gates |

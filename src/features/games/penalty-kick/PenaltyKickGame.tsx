@@ -11,6 +11,25 @@ import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { useDirection } from '@/hooks/useDirection';
 import { TextDirection } from '@/i18n/routing';
 
+// ============================================================================
+// PENALTY KICK — redesigned
+//
+// Physics model:
+//   • 3-D perspective view.  The ball starts at penalty spot (bottom-centre)
+//     and shrinks as it "flies" toward the goal face at the top of the canvas.
+//   • Shot target = a point on the GOAL FACE plane.  On "aiming" the player
+//     drags a target dot directly on the rendered goal face.
+//   • Power bar = hold mouse/space; release to shoot.  More power = faster
+//     shot and harder to save but also slightly less controllable.
+//   • Keeper AI: at the moment of kick the keeper picks a dive direction.
+//     On Easy it's usually wrong.  On Hard it usually reads the target side.
+//   • Save detection: simple rectangle overlap between ball landing-rect and
+//     keeper body-rect, all normalised in goal-face coordinates [-1,1].
+//   • Miss detection: ball landing outside the goal frame.
+//   • Wobble: on medium/hard the keeper sways while the player is aiming
+//     to try to distract them.
+// ============================================================================
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -23,163 +42,185 @@ interface PenaltyKickGameProps {
   locale?: string;
 }
 
+// Goal-face normalised coord: x in [-1, 1], y in [-1, 1] (y=1 is top of goal)
+interface GCoord {
+  x: number;
+  y: number;
+}
+
 interface DifficultySettings {
-  keeperSpeed: number;
-  keeperGuessAccuracy: number;
-  goalWidth: number;
-  keeperWidth: number;
+  keeperAccuracy: number;   // probability keeper guesses the correct side
+  keeperSpeed: number;      // goal-face units per frame
+  keeperHalfW: number;      // keeper half-width in goal-face units
+  keeperHalfH: number;      // keeper half-height in goal-face units
+  wobble: number;           // keeper x-sway amplitude while aiming (0 = none)
   label: string;
 }
 
 // ---------------------------------------------------------------------------
-// Constants
+// Canvas constants
 // ---------------------------------------------------------------------------
-const CANVAS_WIDTH = 600;
-const CANVAS_HEIGHT = 400;
-const GOAL_HEIGHT = 100;
-const GOAL_Y = 30;
-const BALL_RADIUS = 15;
-const KEEPER_HEIGHT = 80;
+const CW = 600;
+const CH = 440;
 const MAX_ATTEMPTS = 5;
 
+// Goal frame positions on canvas (top of canvas)
+const GOAL_LEFT   = 120;
+const GOAL_RIGHT  = 480;
+const GOAL_TOP    = 38;
+const GOAL_BOTTOM = 175;
+const GOAL_CX     = (GOAL_LEFT + GOAL_RIGHT) / 2;  // 300
+const GOAL_CY     = (GOAL_TOP + GOAL_BOTTOM) / 2;  // 106.5
+const GOAL_HW     = (GOAL_RIGHT - GOAL_LEFT) / 2;  // 180
+const GOAL_HH     = (GOAL_BOTTOM - GOAL_TOP) / 2;  // 68.5
+
+// Penalty spot
+const SPOT_X = CW / 2;
+const SPOT_Y = CH - 75;
+
+// Ball rendering
+const BALL_R0 = 18; // radius at spot (start)
+const BALL_R1 = 11; // radius at goal (end)
+
+// Frames the ball takes to reach the goal
+const SHOOT_FRAMES = 30;
+
+// ---------------------------------------------------------------------------
+// Difficulty settings
+// ---------------------------------------------------------------------------
 const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
   easy: {
-    keeperSpeed: 6,
-    keeperGuessAccuracy: 0.25,
-    goalWidth: 320,
-    keeperWidth: 50,
+    keeperAccuracy: 0.28,
+    keeperSpeed: 0.025,
+    keeperHalfW: 0.36,
+    keeperHalfH: 0.65,
+    wobble: 0,
     label: 'easy',
   },
   medium: {
-    keeperSpeed: 10,
-    keeperGuessAccuracy: 0.5,
-    goalWidth: 300,
-    keeperWidth: 60,
+    keeperAccuracy: 0.55,
+    keeperSpeed: 0.042,
+    keeperHalfW: 0.32,
+    keeperHalfH: 0.60,
+    wobble: 0.12,
     label: 'medium',
   },
   hard: {
-    keeperSpeed: 16,
-    keeperGuessAccuracy: 0.75,
-    goalWidth: 270,
-    keeperWidth: 70,
+    keeperAccuracy: 0.78,
+    keeperSpeed: 0.065,
+    keeperHalfW: 0.27,
+    keeperHalfH: 0.55,
+    wobble: 0.26,
     label: 'hard',
   },
 };
 
 // ---------------------------------------------------------------------------
-// Translations
+// Translation strings
 // ---------------------------------------------------------------------------
-const translations: Record<string, Record<string, string>> = {
+const T: Record<string, Record<string, string>> = {
   en: {
     title: 'Penalty Kick',
     score: 'Goals',
-    attempts: 'Attempts',
+    attempts: 'Shots',
     highScore: 'Best',
     goal: 'GOAL!',
     saved: 'SAVED!',
     missed: 'MISSED!',
     gameOver: 'Game Over!',
     playAgain: 'Play Again',
-    tapToStart: 'Click to Start',
-    holdToShoot: 'Hold to power up, release to shoot',
-    aimWithMouse: 'Aim with mouse',
     newHighScore: 'New High Score!',
     selectDifficulty: 'Select Difficulty',
     easy: 'Easy',
     medium: 'Medium',
     hard: 'Hard',
-    easyDesc: 'Big goal, slow keeper',
-    mediumDesc: 'Balanced challenge',
-    hardDesc: 'Small goal, fast keeper',
+    easyDesc: 'Slow keeper — easy save',
+    mediumDesc: 'Keeper reads side 50%',
+    hardDesc: 'Fast & smart keeper',
     power: 'Power',
-    arrowsAim: 'Arrows = Aim',
-    spaceShoot: 'Space = Shoot',
-    perfect: 'Perfect!',
+    dragToAim: 'Drag inside the goal to aim',
+    holdShoot: 'Hold & release to shoot',
+    arrowsAim: 'Arrows/WASD = aim',
+    spaceShoot: 'Space = charge & shoot',
   },
   he: {
     title: 'בעיטת עונשין',
     score: 'שערים',
-    attempts: 'ניסיונות',
+    attempts: 'בעיטות',
     highScore: 'שיא',
     goal: '!גול',
     saved: '!נעצר',
     missed: '!החטאה',
     gameOver: '!המשחק נגמר',
     playAgain: 'שחק שוב',
-    tapToStart: 'לחץ להתחלה',
-    holdToShoot: 'לחץ והחזק לכוח, שחרר לבעוט',
-    aimWithMouse: 'כוון עם העכבר',
     newHighScore: '!שיא חדש',
     selectDifficulty: 'בחר רמת קושי',
     easy: 'קל',
     medium: 'בינוני',
     hard: 'קשה',
-    easyDesc: 'שער רחב, שוער איטי',
-    mediumDesc: 'אתגר מאוזן',
-    hardDesc: 'שער צר, שוער מהיר',
+    easyDesc: 'שוער איטי',
+    mediumDesc: 'שוער מנחש 50%',
+    hardDesc: 'שוער מהיר וחכם',
     power: 'כוח',
-    arrowsAim: 'חצים = כיוון',
-    spaceShoot: 'רווח = בעיטה',
-    perfect: '!מושלם',
+    dragToAim: 'גרור בתוך השער לכיוון',
+    holdShoot: 'החזק ושחרר לבעיטה',
+    arrowsAim: 'חצים/WASD = כיוון',
+    spaceShoot: 'רווח = טעינה ובעיטה',
   },
   zh: {
     title: '点球大战',
     score: '进球',
-    attempts: '尝试',
+    attempts: '射门',
     highScore: '最佳',
     goal: '进球！',
     saved: '被扑！',
     missed: '偏了！',
     gameOver: '游戏结束！',
     playAgain: '再玩一次',
-    tapToStart: '点击开始',
-    holdToShoot: '按住蓄力，松开射门',
-    aimWithMouse: '鼠标瞄准',
     newHighScore: '新纪录！',
     selectDifficulty: '选择难度',
     easy: '简单',
     medium: '中等',
     hard: '困难',
-    easyDesc: '大球门、慢守门员',
-    mediumDesc: '平衡挑战',
-    hardDesc: '小球门、快守门员',
+    easyDesc: '守门员很慢',
+    mediumDesc: '猜对方向50%',
+    hardDesc: '快速聪明的守门员',
     power: '力量',
+    dragToAim: '在球门内拖动以瞄准',
+    holdShoot: '按住松开即射门',
     arrowsAim: '方向键 = 瞄准',
-    spaceShoot: '空格 = 射门',
-    perfect: '完美！',
+    spaceShoot: '空格 = 蓄力射门',
   },
   es: {
     title: 'Tiro Penal',
     score: 'Goles',
-    attempts: 'Intentos',
+    attempts: 'Disparos',
     highScore: 'Mejor',
     goal: '¡GOL!',
     saved: '¡ATAJADO!',
     missed: '¡FALLADO!',
     gameOver: '¡Fin del juego!',
     playAgain: 'Jugar de nuevo',
-    tapToStart: 'Haz clic para empezar',
-    holdToShoot: 'Mantén para cargar, suelta para disparar',
-    aimWithMouse: 'Apunta con el ratón',
     newHighScore: '¡Nuevo récord!',
     selectDifficulty: 'Elegir dificultad',
     easy: 'Fácil',
     medium: 'Medio',
     hard: 'Difícil',
-    easyDesc: 'Portería grande, portero lento',
-    mediumDesc: 'Desafío equilibrado',
-    hardDesc: 'Portería pequeña, portero rápido',
+    easyDesc: 'Portero lento',
+    mediumDesc: 'Adivina el lado 50%',
+    hardDesc: 'Portero rápido e inteligente',
     power: 'Potencia',
-    arrowsAim: 'Flechas = Apuntar',
-    spaceShoot: 'Espacio = Disparar',
-    perfect: '¡Perfecto!',
+    dragToAim: 'Arrastra en el arco para apuntar',
+    holdShoot: 'Mantén y suelta para disparar',
+    arrowsAim: 'Flechas/WASD = apuntar',
+    spaceShoot: 'Espacio = cargar y disparar',
   },
 };
 
 // ---------------------------------------------------------------------------
 // Instructions data (Feynman-style)
 // ---------------------------------------------------------------------------
-const instructionsData: Record<
+const INSTRUCTIONS_DATA: Record<
   string,
   {
     instructions: { icon: string; title: string; description: string }[];
@@ -189,648 +230,690 @@ const instructionsData: Record<
 > = {
   en: {
     instructions: [
-      {
-        icon: '⚽',
-        title: 'Goal',
-        description:
-          'You have 5 penalty kicks. Aim at the goal and try to score as many as you can — like a real penalty shootout!',
-      },
-      {
-        icon: '🎯',
-        title: 'How to Aim',
-        description:
-          'Move your mouse (or drag on mobile, or press arrow keys) to move the crosshair inside the goal. That\'s where the ball will fly.',
-      },
-      {
-        icon: '💪',
-        title: 'Power Up',
-        description:
-          'Hold down the mouse button (or Space) to charge your shot. A bar fills up — the fuller it is, the harder you kick. Release to shoot!',
-      },
-      {
-        icon: '🧤',
-        title: 'The Goalkeeper',
-        description:
-          'The goalkeeper will dive to stop your shot. On Easy he is slow, on Hard he is fast and smart. Try to outsmart him!',
-      },
+      { icon: '⚽', title: 'Penalty Kicks', description: 'Take 5 penalty kicks and try to score as many as possible. The goalkeeper will try to stop you!' },
+      { icon: '🎯', title: 'Aim on the Goal', description: 'Move your cursor (or drag on mobile) directly on the goal face to place the target dot exactly where you want the ball to go.' },
+      { icon: '💪', title: 'Charge Your Shot', description: 'Hold the mouse button (or Space) to fill the power bar. More power means a faster, harder-to-stop shot — but don\'t max it out or you lose accuracy.' },
+      { icon: '🧤', title: 'The Goalkeeper', description: 'The keeper watches your aim and decides to dive at the moment you kick. Aim in one direction and quickly flick to the other to fool him!' },
     ],
     controls: [
-      { icon: '🖱️', description: 'Mouse: move to aim, hold click to charge, release to shoot' },
-      { icon: '📱', description: 'Touch: tap & drag to aim, release to shoot' },
-      { icon: '⌨️', description: 'Arrow keys to aim, hold Space to charge, release to shoot' },
+      { icon: '🖱️', description: 'Mouse: drag inside goal to aim, hold + release to shoot' },
+      { icon: '📱', description: 'Touch: drag on goal to aim, lift finger to shoot' },
+      { icon: '⌨️', description: 'Arrows/WASD to aim, hold Space to charge, release to shoot' },
     ],
-    tip: 'Don\'t always aim at the corners — sometimes the middle catches the keeper off guard!',
+    tip: 'High corners are the hardest to save — but a low shot to the side the keeper doesn\'t dive is just as good!',
   },
   he: {
     instructions: [
-      {
-        icon: '⚽',
-        title: 'מטרה',
-        description:
-          'יש לך 5 בעיטות עונשין. כוון לשער ונסה להבקיע כמה שיותר — בדיוק כמו פנדלים אמיתיים!',
-      },
-      {
-        icon: '🎯',
-        title: 'איך לכוון',
-        description:
-          'הזז את העכבר (או גרור במובייל, או לחץ חצים) כדי להזיז את הכוונת בתוך השער. לשם הכדור יעוף.',
-      },
-      {
-        icon: '💪',
-        title: 'טעינת כוח',
-        description:
-          'החזק את כפתור העכבר (או רווח) כדי לטעון את הבעיטה. פס מתמלא — ככל שהוא מלא יותר, הבעיטה חזקה יותר. שחרר לבעוט!',
-      },
-      {
-        icon: '🧤',
-        title: 'השוער',
-        description:
-          'השוער יקפוץ כדי לעצור את הבעיטה. ברמה קלה הוא איטי, ברמה קשה הוא מהיר וחכם. נסה לרמות אותו!',
-      },
+      { icon: '⚽', title: 'בעיטות עונשין', description: 'בצע 5 בעיטות עונשין ונסה להבקיע כמה שיותר. השוער ינסה לעצור אותך!' },
+      { icon: '🎯', title: 'כוון על השער', description: 'הזז את הסמן (או גרור במובייל) ישירות על פני השער כדי למקם את נקודת המטרה בדיוק איפה שתרצה.' },
+      { icon: '💪', title: 'טעון את הבעיטה', description: 'החזק את כפתור העכבר (או רווח) כדי למלא את מד הכוח. כוח גבוה יותר = בעיטה מהירה יותר — אבל אל תמלא לגמרי או תאבד דיוק.' },
+      { icon: '🧤', title: 'השוער', description: 'השוער עוקב אחר הכיוון שלך ומחליט לאן לקפוץ ברגע הבעיטה. כוון לכיוון אחד ואז החלף לאחר!' },
     ],
     controls: [
-      { icon: '🖱️', description: 'עכבר: הזז לכיוון, החזק קליק לטעינה, שחרר לבעיטה' },
-      { icon: '📱', description: 'מגע: הקש וגרור לכיוון, שחרר לבעיטה' },
-      { icon: '⌨️', description: 'חצים לכיוון, החזק רווח לטעינה, שחרר לבעיטה' },
+      { icon: '🖱️', description: 'עכבר: גרור בשער לכיוון, החזק ושחרר לבעיטה' },
+      { icon: '📱', description: 'מגע: גרור על השער, רים אצבע לבעיטה' },
+      { icon: '⌨️', description: 'חצים/WASD לכיוון, החזק רווח לטעינה, שחרר לבעיטה' },
     ],
-    tip: 'אל תכוון תמיד לפינות — לפעמים בעיטה למרכז תופסת את השוער לא מוכן!',
+    tip: 'פינות גבוהות הכי קשות לעצירה — אבל בעיטה נמוכה לצד שהשוער לא קופץ אליו גם עובדת!',
   },
   zh: {
     instructions: [
-      {
-        icon: '⚽',
-        title: '目标',
-        description:
-          '你有5次点球机会。瞄准球门，尽可能多进球——就像真正的点球大战！',
-      },
-      {
-        icon: '🎯',
-        title: '如何瞄准',
-        description:
-          '移动鼠标（或在手机上拖动，或按方向键）来移动十字准星。球会飞向那个位置。',
-      },
-      {
-        icon: '💪',
-        title: '蓄力',
-        description:
-          '按住鼠标按钮（或空格键）来蓄力。一个条会慢慢填满——越满踢得越有力。松开射门！',
-      },
-      {
-        icon: '🧤',
-        title: '守门员',
-        description:
-          '守门员会扑球。简单模式他很慢，困难模式他又快又聪明。试着骗过他！',
-      },
+      { icon: '⚽', title: '点球', description: '踢5次点球，尽量多进球。守门员会尽力阻止你！' },
+      { icon: '🎯', title: '在球门上瞄准', description: '将鼠标（或手指）直接拖到球门上，把目标点放在你想要球去的位置。' },
+      { icon: '💪', title: '蓄力', description: '按住鼠标（或空格键）来填充力量条。力量越大，球速越快越难被扑——但别充满，否则会失去精度。' },
+      { icon: '🧤', title: '守门员', description: '守门员会观察你的瞄准方向，在你射门的瞬间决定扑向哪边。往一边瞄准，然后突然改变方向来骗过他！' },
     ],
     controls: [
-      { icon: '🖱️', description: '鼠标：移动瞄准，按住蓄力，松开射门' },
-      { icon: '📱', description: '触屏：点击拖动瞄准，松开射门' },
-      { icon: '⌨️', description: '方向键瞄准，按住空格蓄力，松开射门' },
+      { icon: '🖱️', description: '鼠标：在球门内拖动瞄准，按住松开射门' },
+      { icon: '📱', description: '触屏：在球门上拖动，抬起手指射门' },
+      { icon: '⌨️', description: '方向键/WASD瞄准，按住空格蓄力，松开射门' },
     ],
-    tip: '不要总是瞄准角落——有时踢中间反而会让守门员措手不及！',
+    tip: '高角球最难扑！但射向守门员未扑一侧的低球同样有效！',
   },
   es: {
     instructions: [
-      {
-        icon: '⚽',
-        title: 'Objetivo',
-        description:
-          'Tienes 5 penales. Apunta al arco e intenta meter todos los goles — ¡como una tanda real de penales!',
-      },
-      {
-        icon: '🎯',
-        title: 'Cómo apuntar',
-        description:
-          'Mueve el ratón (o arrastra en el móvil, o usa las flechas) para mover la mira dentro del arco. Allí irá el balón.',
-      },
-      {
-        icon: '💪',
-        title: 'Cargar potencia',
-        description:
-          'Mantén pulsado el botón del ratón (o Espacio) para cargar tu disparo. Una barra se llena — cuanto más llena, más fuerte el tiro. ¡Suelta para disparar!',
-      },
-      {
-        icon: '🧤',
-        title: 'El portero',
-        description:
-          'El portero se lanzará para detener tu tiro. En Fácil es lento, en Difícil es rápido e inteligente. ¡Intenta engañarlo!',
-      },
+      { icon: '⚽', title: 'Penales', description: 'Toma 5 penales e intenta marcar la mayor cantidad. ¡El portero intentará detenerte!' },
+      { icon: '🎯', title: 'Apunta en el arco', description: 'Mueve el cursor (o arrastra en móvil) directamente sobre la portería para colocar el punto de destino donde quieres que vaya el balón.' },
+      { icon: '💪', title: 'Carga tu tiro', description: 'Mantén el botón del ratón (o Espacio) para llenar la barra de potencia. Más potencia = disparo más rápido — ¡pero no al máximo o perderás precisión!' },
+      { icon: '🧤', title: 'El portero', description: 'El portero vigila tu apunte y decide a dónde lanzarse en el momento del disparo. ¡Apunta en una dirección y cambia rápido para engañarlo!' },
     ],
     controls: [
-      { icon: '🖱️', description: 'Ratón: mueve para apuntar, mantén clic para cargar, suelta para disparar' },
-      { icon: '📱', description: 'Táctil: toca y arrastra para apuntar, suelta para disparar' },
-      { icon: '⌨️', description: 'Flechas para apuntar, mantén Espacio para cargar, suelta para disparar' },
+      { icon: '🖱️', description: 'Ratón: arrastra en el arco para apuntar, mantén + suelta para disparar' },
+      { icon: '📱', description: 'Táctil: arrastra en el arco, levanta el dedo para disparar' },
+      { icon: '⌨️', description: 'Flechas/WASD para apuntar, mantén Espacio para cargar, suelta para disparar' },
     ],
-    tip: 'No siempre apuntes a las esquinas — ¡a veces el centro sorprende al portero!',
+    tip: '¡Las esquinas altas son las más difíciles de atajar! Pero un disparo bajo al lado que el portero no se lanza es igual de efectivo.',
   },
 };
 
 // ---------------------------------------------------------------------------
-// Component
+// Helper: convert goal-face coords to canvas pixel coords
+// ---------------------------------------------------------------------------
+function goalToCanvas(g: GCoord): { cx: number; cy: number } {
+  return {
+    cx: GOAL_CX + g.x * GOAL_HW,
+    cy: GOAL_CY - g.y * GOAL_HH,  // y=1 is top, so subtract
+  };
+}
+
+function canvasToGoal(cx: number, cy: number): GCoord {
+  return {
+    x: (cx - GOAL_CX) / GOAL_HW,
+    y: -(cy - GOAL_CY) / GOAL_HH,
+  };
+}
+
+function clampGoal(g: GCoord): GCoord {
+  return {
+    x: Math.max(-0.95, Math.min(0.95, g.x)),
+    y: Math.max(-0.95, Math.min(0.95, g.y)),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Main component
 // ---------------------------------------------------------------------------
 export default function PenaltyKickGame({ locale = 'en' }: PenaltyKickGameProps) {
-  const t = translations[locale] || translations.en;
+  const t = T[locale] || T.en;
   const direction = useDirection();
   const isRtl = direction === TextDirection.RTL;
-  const instrData = instructionsData[locale] || instructionsData.en;
+  const instrData = INSTRUCTIONS_DATA[locale] || INSTRUCTIONS_DATA.en;
 
-  // ---- Refs ----------------------------------------------------------------
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number | null>(null);
-  const aimRef = useRef({ x: CANVAS_WIDTH / 2, y: GOAL_Y + GOAL_HEIGHT / 2 });
-  const ballRef = useRef({ x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT - 60, vx: 0, vy: 0 });
-  const keeperRef = useRef({ x: 0, targetX: 0 });
-  const powerRef = useRef(0);
-  const isPoweringRef = useRef(false);
-  const resultHandledRef = useRef(false);
+  // ── Refs ──────────────────────────────────────────────────────────────────
+  const canvasRef      = useRef<HTMLCanvasElement>(null);
+  const animFrameRef   = useRef<number | null>(null);
 
-  // ---- State ---------------------------------------------------------------
-  const [gameState, setGameState] = useState<GameState>('levelSelect');
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [phase, setPhase] = useState<GamePhase>('aiming');
-  const [score, setScore] = useState(0);
-  const [attempts, setAttempts] = useState(0);
-  const [shotResult, setShotResult] = useState<ShotResult>(null);
-  const [showWin, setShowWin] = useState(false);
+  // aiming state (refs so game loop reads latest without re-subscribing)
+  const targetRef      = useRef<GCoord>({ x: 0, y: 0 });  // current aim on goal face
+  const isPoweringRef  = useRef(false);
+  const powerRef       = useRef(0);   // 0..100
+  const resultDoneRef  = useRef(false);
+
+  // shooting state
+  const shootFrameRef  = useRef(0);   // 0..SHOOT_FRAMES during shot
+  const shotTargetRef  = useRef<GCoord>({ x: 0, y: 0 });  // locked target
+  const shotPowerRef   = useRef(0);
+
+  // keeper runtime state
+  const keeperRef = useRef({
+    x: 0,     // current goal-face x (starts at 0 = center)
+    y: 0,     // current goal-face y (starts at 0 = center)
+    diveX: 0, // dive destination x
+    diveY: 0, // dive destination y
+    wobblePhase: 0,
+    isDiving: false,
+  });
+
+  // ── State ─────────────────────────────────────────────────────────────────
+  const [gameState,       setGameState]       = useState<GameState>('levelSelect');
+  const [difficulty,      setDifficulty]      = useState<Difficulty>('medium');
+  const [phase,           setPhase]           = useState<GamePhase>('aiming');
+  const [score,           setScore]           = useState(0);
+  const [attempts,        setAttempts]        = useState(0);
+  const [shotResult,      setShotResult]      = useState<ShotResult>(null);
+  const [showWin,         setShowWin]         = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
   const [highScore, setHighScore] = useState(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('penalty-kick-highscore');
-      return saved ? parseInt(saved, 10) : 0;
+      const s = localStorage.getItem('penalty-kick-hs');
+      return s ? parseInt(s, 10) : 0;
     }
     return 0;
   });
 
-  // ---- Sounds --------------------------------------------------------------
+  // ── Sounds ────────────────────────────────────────────────────────────────
   const { playShoot, playSuccess, playHit, playGameOver, playWin, playClick } =
     useRetroSounds();
 
-  // ---- Derived settings ----------------------------------------------------
+  // ── Derived settings ──────────────────────────────────────────────────────
   const settings = DIFFICULTY_SETTINGS[difficulty];
-  const GOAL_WIDTH = settings.goalWidth;
-  const GOAL_X = (CANVAS_WIDTH - GOAL_WIDTH) / 2;
-  const KEEPER_WIDTH = settings.keeperWidth;
 
-  // ---- Helpers -------------------------------------------------------------
+  // ── Reset a single shot ───────────────────────────────────────────────────
   const resetShot = useCallback(() => {
-    ballRef.current = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT - 60, vx: 0, vy: 0 };
-    powerRef.current = 0;
-    isPoweringRef.current = false;
-    resultHandledRef.current = false;
+    targetRef.current      = { x: 0, y: 0 };
+    isPoweringRef.current  = false;
+    powerRef.current       = 0;
+    resultDoneRef.current  = false;
+    shootFrameRef.current  = 0;
+
+    // Reset keeper to center, random small offset
+    const offX = (Math.random() - 0.5) * 0.1;
+    keeperRef.current = {
+      x: offX,
+      y: 0,
+      diveX: offX,
+      diveY: 0,
+      wobblePhase: Math.random() * Math.PI * 2,
+      isDiving: false,
+    };
+
     setPhase('aiming');
     setShotResult(null);
+  }, []);
 
-    const randomOffset = (Math.random() - 0.5) * 100;
-    keeperRef.current = {
-      x: CANVAS_WIDTH / 2 - KEEPER_WIDTH / 2 + randomOffset,
-      targetX: CANVAS_WIDTH / 2 - KEEPER_WIDTH / 2,
-    };
-    aimRef.current = { x: CANVAS_WIDTH / 2, y: GOAL_Y + GOAL_HEIGHT / 2 };
-  }, [KEEPER_WIDTH]);
-
+  // ── Start game ────────────────────────────────────────────────────────────
   const startGame = useCallback(
     (diff: Difficulty) => {
       setDifficulty(diff);
-      setGameState('playing');
       setScore(0);
       setAttempts(0);
+      setGameState('playing');
       resetShot();
       playClick();
     },
     [resetShot, playClick],
   );
 
-  const shoot = useCallback(() => {
+  // ── Fire the shot ─────────────────────────────────────────────────────────
+  const fireShot = useCallback(() => {
     if (phase !== 'aiming' || !isPoweringRef.current) return;
 
-    const power = Math.min(powerRef.current, 100);
-    const aim = aimRef.current;
-    const ball = ballRef.current;
+    const target = { ...targetRef.current };
+    const power  = Math.max(5, Math.min(100, powerRef.current));
 
-    const dx = aim.x - ball.x;
-    const dy = aim.y - ball.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
+    // Lock the shot
+    shotTargetRef.current = target;
+    shotPowerRef.current  = power;
 
-    const speed = 8 + (power / 100) * 8;
-    ball.vx = (dx / dist) * speed;
-    ball.vy = (dy / dist) * speed;
+    // Keeper AI: decide dive destination
+    const s = DIFFICULTY_SETTINGS[difficulty];
+    const guessCorrect = Math.random() < s.keeperAccuracy;
+    const ballSide = target.x;  // negative = left, positive = right
 
-    // Keeper AI — guess based on difficulty accuracy
-    const guessCorrect = Math.random() < settings.keeperGuessAccuracy;
+    let diveX: number;
+    let diveY: number;
 
     if (guessCorrect) {
-      const aimSide = aim.x < CANVAS_WIDTH / 2 ? -1 : 1;
-      keeperRef.current.targetX =
-        CANVAS_WIDTH / 2 -
-        settings.keeperWidth / 2 +
-        aimSide * (settings.goalWidth / 2 - settings.keeperWidth / 2 + 10);
+      // Keeper dives toward the ball
+      const signX = ballSide >= 0 ? 1 : -1;
+      diveX = signX * (0.45 + Math.random() * 0.3);
+      diveY = (Math.random() - 0.5) * 0.5 + target.y * 0.4;
     } else {
-      const wrongSide = aim.x < CANVAS_WIDTH / 2 ? 1 : -1;
-      keeperRef.current.targetX =
-        CANVAS_WIDTH / 2 -
-        settings.keeperWidth / 2 +
-        wrongSide * (settings.goalWidth / 2 - settings.keeperWidth / 2 + 10);
+      // Keeper dives the WRONG way
+      const signX = ballSide >= 0 ? -1 : 1;
+      diveX = signX * (0.3 + Math.random() * 0.4);
+      diveY = (Math.random() - 0.5) * 0.5;
     }
 
-    setPhase('shooting');
-    isPoweringRef.current = false;
-    playShoot();
-  }, [phase, playShoot, settings]);
+    keeperRef.current.diveX   = Math.max(-1, Math.min(1, diveX));
+    keeperRef.current.diveY   = Math.max(-1, Math.min(1, diveY));
+    keeperRef.current.isDiving = true;
+    shootFrameRef.current      = 0;
+    isPoweringRef.current      = false;
 
-  // ---- Input handling ------------------------------------------------------
+    setPhase('shooting');
+    playShoot();
+  }, [phase, difficulty, playShoot]);
+
+  // ── Input handling ────────────────────────────────────────────────────────
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    if (gameState !== 'playing') return;
+    if (!canvas || gameState !== 'playing') return;
 
-    const goalX = (CANVAS_WIDTH - settings.goalWidth) / 2;
-    const goalW = settings.goalWidth;
-
-    const clampAim = (x: number, y: number) => ({
-      x: Math.max(goalX + 20, Math.min(goalX + goalW - 20, x)),
-      y: Math.max(GOAL_Y + 10, Math.min(GOAL_Y + GOAL_HEIGHT - 10, y)),
-    });
-
-    const canvasCoords = (clientX: number, clientY: number) => {
+    const toGoalCoord = (clientX: number, clientY: number): GCoord => {
       const rect = canvas.getBoundingClientRect();
-      return {
-        x: ((clientX - rect.left) / rect.width) * CANVAS_WIDTH,
-        y: ((clientY - rect.top) / rect.height) * CANVAS_HEIGHT,
-      };
+      const cx = ((clientX - rect.left) / rect.width) * CW;
+      const cy = ((clientY - rect.top) / rect.height) * CH;
+      return clampGoal(canvasToGoal(cx, cy));
     };
 
     // Mouse
-    const handleMouseMove = (e: MouseEvent) => {
+    const onMouseMove = (e: MouseEvent) => {
       if (phase !== 'aiming') return;
-      const { x, y } = canvasCoords(e.clientX, e.clientY);
-      aimRef.current = clampAim(x, y);
+      targetRef.current = toGoalCoord(e.clientX, e.clientY);
     };
-
-    const handleMouseDown = () => {
-      if (phase === 'aiming') {
-        isPoweringRef.current = true;
-        powerRef.current = 0;
-      }
+    const onMouseDown = () => {
+      if (phase === 'aiming') { isPoweringRef.current = true; powerRef.current = 0; }
     };
-
-    const handleMouseUp = () => {
-      if (isPoweringRef.current) shoot();
-    };
+    const onMouseUp = () => { if (isPoweringRef.current) fireShot(); };
 
     // Touch
-    const handleTouchStart = (e: TouchEvent) => {
-      e.preventDefault();
-      if (phase === 'aiming') {
-        const touch = e.touches[0];
-        const { x, y } = canvasCoords(touch.clientX, touch.clientY);
-        aimRef.current = clampAim(x, y);
-        isPoweringRef.current = true;
-        powerRef.current = 0;
-      }
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
+    const onTouchStart = (e: TouchEvent) => {
       e.preventDefault();
       if (phase !== 'aiming') return;
-      const touch = e.touches[0];
-      const { x, y } = canvasCoords(touch.clientX, touch.clientY);
-      aimRef.current = clampAim(x, y);
+      const t0 = e.touches[0];
+      targetRef.current = toGoalCoord(t0.clientX, t0.clientY);
+      isPoweringRef.current = true;
+      powerRef.current = 0;
     };
-
-    const handleTouchEnd = (e: TouchEvent) => {
+    const onTouchMove = (e: TouchEvent) => {
       e.preventDefault();
-      if (isPoweringRef.current) shoot();
+      if (phase !== 'aiming') return;
+      const t0 = e.touches[0];
+      targetRef.current = toGoalCoord(t0.clientX, t0.clientY);
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      e.preventDefault();
+      if (isPoweringRef.current) fireShot();
     };
 
     // Keyboard
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const step = 10;
-      if (phase === 'aiming') {
-        if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
-          aimRef.current = clampAim(aimRef.current.x - step, aimRef.current.y);
-        } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
-          aimRef.current = clampAim(aimRef.current.x + step, aimRef.current.y);
-        } else if (e.code === 'ArrowUp' || e.code === 'KeyW') {
-          aimRef.current = clampAim(aimRef.current.x, aimRef.current.y - step);
-        } else if (e.code === 'ArrowDown' || e.code === 'KeyS') {
-          aimRef.current = clampAim(aimRef.current.x, aimRef.current.y + step);
-        }
-
-        if (e.code === 'Space' || e.code === 'Enter') {
-          e.preventDefault();
-          if (!isPoweringRef.current) {
-            isPoweringRef.current = true;
-            powerRef.current = 0;
-          }
-        }
+    const STEP = 0.06;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (phase !== 'aiming') return;
+      const cur = targetRef.current;
+      if (e.code === 'ArrowLeft'  || e.code === 'KeyA') targetRef.current = clampGoal({ x: cur.x - STEP, y: cur.y });
+      if (e.code === 'ArrowRight' || e.code === 'KeyD') targetRef.current = clampGoal({ x: cur.x + STEP, y: cur.y });
+      if (e.code === 'ArrowUp'    || e.code === 'KeyW') targetRef.current = clampGoal({ x: cur.x, y: cur.y + STEP });
+      if (e.code === 'ArrowDown'  || e.code === 'KeyS') targetRef.current = clampGoal({ x: cur.x, y: cur.y - STEP });
+      if ((e.code === 'Space' || e.code === 'Enter') && !isPoweringRef.current) {
+        e.preventDefault();
+        isPoweringRef.current = true;
+        powerRef.current = 0;
       }
     };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if ((e.code === 'Space' || e.code === 'Enter') && isPoweringRef.current) {
-        shoot();
-      }
+    const onKeyUp = (e: KeyboardEvent) => {
+      if ((e.code === 'Space' || e.code === 'Enter') && isPoweringRef.current) fireShot();
     };
 
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mousedown', handleMouseDown);
-    canvas.addEventListener('mouseup', handleMouseUp);
-    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-    canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+    canvas.addEventListener('mousemove', onMouseMove);
+    canvas.addEventListener('mousedown', onMouseDown);
+    canvas.addEventListener('mouseup',   onMouseUp);
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    canvas.addEventListener('touchend',   onTouchEnd,   { passive: false });
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup',   onKeyUp);
 
     return () => {
-      canvas.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('mousedown', handleMouseDown);
-      canvas.removeEventListener('mouseup', handleMouseUp);
-      canvas.removeEventListener('touchstart', handleTouchStart);
-      canvas.removeEventListener('touchmove', handleTouchMove);
-      canvas.removeEventListener('touchend', handleTouchEnd);
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
+      canvas.removeEventListener('mousemove', onMouseMove);
+      canvas.removeEventListener('mousedown', onMouseDown);
+      canvas.removeEventListener('mouseup',   onMouseUp);
+      canvas.removeEventListener('touchstart', onTouchStart);
+      canvas.removeEventListener('touchmove',  onTouchMove);
+      canvas.removeEventListener('touchend',   onTouchEnd);
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup',   onKeyUp);
     };
-  }, [gameState, phase, shoot, settings]);
+  }, [gameState, phase, fireShot]);
 
-  // ---- Game loop -----------------------------------------------------------
+  // ── Game loop (canvas draw + physics) ─────────────────────────────────────
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || gameState !== 'playing') return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    if (gameState !== 'playing') return;
+    const s = DIFFICULTY_SETTINGS[difficulty];
 
-    const goalX = (CANVAS_WIDTH - settings.goalWidth) / 2;
-    const goalW = settings.goalWidth;
-    const kw = settings.keeperWidth;
-    const keeperSpd = settings.keeperSpeed;
+    const loop = () => {
+      // ── Physics ────────────────────────────────────────────────────────────
 
-    const gameLoop = () => {
       // Power charging
       if (isPoweringRef.current && phase === 'aiming') {
-        powerRef.current = Math.min(powerRef.current + 2, 100);
+        powerRef.current = Math.min(powerRef.current + 1.8, 100);
       }
 
-      // Ball physics during shooting
-      if (phase === 'shooting') {
-        const ball = ballRef.current;
-        ball.x += ball.vx;
-        ball.y += ball.vy;
-        ball.vx *= 0.99;
-        ball.vy *= 0.99;
+      // Keeper wobble while player is aiming
+      if (phase === 'aiming' && s.wobble > 0) {
+        keeperRef.current.wobblePhase += 0.04;
+        keeperRef.current.x = Math.sin(keeperRef.current.wobblePhase) * s.wobble;
+      }
 
-        // Keeper dive
-        const keeper = keeperRef.current;
-        if (keeper.x < keeper.targetX) {
-          keeper.x = Math.min(keeper.x + keeperSpd, keeper.targetX);
-        } else if (keeper.x > keeper.targetX) {
-          keeper.x = Math.max(keeper.x - keeperSpd, keeper.targetX);
+      // Keeper dive during shot
+      if (phase === 'shooting' && keeperRef.current.isDiving) {
+        const k = keeperRef.current;
+        const dx = k.diveX - k.x;
+        const dy = k.diveY - k.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 0.01) {
+          k.x += (dx / dist) * s.keeperSpeed * (1 + shootFrameRef.current / SHOOT_FRAMES);
+          k.y += (dy / dist) * s.keeperSpeed * (1 + shootFrameRef.current / SHOOT_FRAMES);
         }
+      }
 
-        // Check result
-        if (!resultHandledRef.current && ball.y <= GOAL_Y + GOAL_HEIGHT + BALL_RADIUS) {
-          const inGoalX = ball.x > goalX && ball.x < goalX + goalW;
-          const inGoalY = ball.y > GOAL_Y && ball.y < GOAL_Y + GOAL_HEIGHT;
-          const keeperSave =
-            ball.x > keeper.x - BALL_RADIUS &&
-            ball.x < keeper.x + kw + BALL_RADIUS &&
-            ball.y > GOAL_Y &&
-            ball.y < GOAL_Y + KEEPER_HEIGHT;
+      // Ball travel
+      if (phase === 'shooting') {
+        shootFrameRef.current = Math.min(shootFrameRef.current + 1, SHOOT_FRAMES);
+      }
 
-          if (inGoalX && inGoalY && !keeperSave) {
-            resultHandledRef.current = true;
-            setShotResult('goal');
-            setScore((s) => s + 1);
-            playSuccess();
-            setPhase('result');
-            setAttempts((a) => a + 1);
-          } else if (keeperSave) {
-            resultHandledRef.current = true;
+      // Result check — happens exactly at SHOOT_FRAMES
+      if (phase === 'shooting' && shootFrameRef.current >= SHOOT_FRAMES && !resultDoneRef.current) {
+        resultDoneRef.current = true;
+
+        const target = shotTargetRef.current;
+        const k      = keeperRef.current;
+
+        // Check miss (outside goal frame — add small margin)
+        const outX = Math.abs(target.x) > 1.0;
+        const outY = target.y < -1.0 || target.y > 1.0;
+
+        if (outX || outY) {
+          setShotResult('missed');
+          playHit();
+        } else {
+          // Check keeper save: keeper body rect overlap with ball landing point
+          const kOverlapX = Math.abs(target.x - k.x) < (s.keeperHalfW + 0.04);
+          const kOverlapY = Math.abs(target.y - k.y) < (s.keeperHalfH + 0.04);
+
+          if (kOverlapX && kOverlapY) {
             setShotResult('saved');
             playHit();
-            setPhase('result');
-            setAttempts((a) => a + 1);
-          } else if (!inGoalX || ball.y <= GOAL_Y) {
-            resultHandledRef.current = true;
-            setShotResult('missed');
-            playHit();
-            setPhase('result');
-            setAttempts((a) => a + 1);
+          } else {
+            setShotResult('goal');
+            setScore((prev) => prev + 1);
+            playSuccess();
           }
         }
 
-        // Ball went off screen
-        if (
-          !resultHandledRef.current &&
-          (ball.y < -50 || ball.x < -50 || ball.x > CANVAS_WIDTH + 50)
-        ) {
-          resultHandledRef.current = true;
-          setShotResult('missed');
-          playHit();
-          setPhase('result');
-          setAttempts((a) => a + 1);
-        }
+        setPhase('result');
+        setAttempts((prev) => prev + 1);
       }
 
-      // ---------- Draw -------------------------------------------------------
-      // Sky
-      const skyGrad = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-      skyGrad.addColorStop(0, '#1e88e5');
-      skyGrad.addColorStop(1, '#64b5f6');
-      ctx.fillStyle = skyGrad;
-      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      // ── Draw ───────────────────────────────────────────────────────────────
+      // Sky gradient
+      const sky = ctx.createLinearGradient(0, 0, 0, CH);
+      sky.addColorStop(0, '#1565c0');
+      sky.addColorStop(0.55, '#42a5f5');
+      sky.addColorStop(0.56, '#2e7d32');
+      sky.addColorStop(1, '#1b5e20');
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, CW, CH);
 
-      // Grass
-      ctx.fillStyle = '#2e7d32';
-      ctx.fillRect(0, CANVAS_HEIGHT - 100, CANVAS_WIDTH, 100);
-      ctx.fillStyle = '#388e3c';
-      for (let i = 0; i < CANVAS_WIDTH; i += 60) {
-        ctx.fillRect(i, CANVAS_HEIGHT - 100, 30, 100);
+      // Crowd silhouette band
+      const crowdY = CH * 0.38;
+      ctx.fillStyle = 'rgba(0,0,50,0.35)';
+      ctx.fillRect(0, crowdY - 18, CW, 28);
+
+      // Pitch stripes
+      for (let i = 0; i < 7; i++) {
+        ctx.fillStyle = i % 2 === 0 ? '#2e7d32' : '#388e3c';
+        ctx.fillRect(i * (CW / 7), CH * 0.56, CW / 7, CH * 0.44);
       }
+
+      // Penalty arc (partial circle behind ball)
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(SPOT_X, SPOT_Y + 10, 80, Math.PI, 0, false);
+      ctx.stroke();
+      ctx.restore();
 
       // Penalty spot
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = '#fff';
       ctx.beginPath();
-      ctx.arc(CANVAS_WIDTH / 2, CANVAS_HEIGHT - 55, 4, 0, Math.PI * 2);
+      ctx.arc(SPOT_X, SPOT_Y, 4, 0, Math.PI * 2);
       ctx.fill();
+
+      // ── GOAL structure ────────────────────────────────────────────────────
+      // Net fill
+      ctx.fillStyle = 'rgba(255,255,255,0.06)';
+      ctx.fillRect(GOAL_LEFT, GOAL_TOP, GOAL_RIGHT - GOAL_LEFT, GOAL_BOTTOM - GOAL_TOP);
+
+      // Net grid
+      ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+      ctx.lineWidth = 0.8;
+      const NX = 10, NY = 6;
+      for (let i = 0; i <= NX; i++) {
+        const x = GOAL_LEFT + i * (GOAL_RIGHT - GOAL_LEFT) / NX;
+        ctx.beginPath(); ctx.moveTo(x, GOAL_TOP); ctx.lineTo(x, GOAL_BOTTOM); ctx.stroke();
+      }
+      for (let j = 0; j <= NY; j++) {
+        const y = GOAL_TOP + j * (GOAL_BOTTOM - GOAL_TOP) / NY;
+        ctx.beginPath(); ctx.moveTo(GOAL_LEFT, y); ctx.lineTo(GOAL_RIGHT, y); ctx.stroke();
+      }
+
+      // Depth lines (perspective net)
+      ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+      ctx.lineWidth = 0.6;
+      for (let i = 0; i <= NX; i++) {
+        const x = GOAL_LEFT + i * (GOAL_RIGHT - GOAL_LEFT) / NX;
+        ctx.beginPath();
+        ctx.moveTo(x, GOAL_BOTTOM);
+        ctx.lineTo(GOAL_CX + (x - GOAL_CX) * 0.4, GOAL_BOTTOM + 28);
+        ctx.stroke();
+      }
 
       // Goal posts
-      ctx.fillStyle = '#ffffff';
-      ctx.strokeStyle = '#e0e0e0';
-      ctx.lineWidth = 3;
-      ctx.fillRect(goalX - 8, GOAL_Y, 8, GOAL_HEIGHT);
-      ctx.strokeRect(goalX - 8, GOAL_Y, 8, GOAL_HEIGHT);
-      ctx.fillRect(goalX + goalW, GOAL_Y, 8, GOAL_HEIGHT);
-      ctx.strokeRect(goalX + goalW, GOAL_Y, 8, GOAL_HEIGHT);
-      ctx.fillRect(goalX - 8, GOAL_Y - 8, goalW + 16, 8);
-      ctx.strokeRect(goalX - 8, GOAL_Y - 8, goalW + 16, 8);
+      ctx.lineWidth = 7;
+      ctx.strokeStyle = '#eceff1';
+      ctx.lineJoin = 'round';
+      // Left post
+      ctx.beginPath(); ctx.moveTo(GOAL_LEFT, GOAL_BOTTOM + 10); ctx.lineTo(GOAL_LEFT, GOAL_TOP); ctx.stroke();
+      // Right post
+      ctx.beginPath(); ctx.moveTo(GOAL_RIGHT, GOAL_BOTTOM + 10); ctx.lineTo(GOAL_RIGHT, GOAL_TOP); ctx.stroke();
+      // Crossbar
+      ctx.beginPath(); ctx.moveTo(GOAL_LEFT, GOAL_TOP); ctx.lineTo(GOAL_RIGHT, GOAL_TOP); ctx.stroke();
+      // Post highlight
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+      ctx.beginPath(); ctx.moveTo(GOAL_LEFT, GOAL_BOTTOM + 10); ctx.lineTo(GOAL_LEFT, GOAL_TOP); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(GOAL_RIGHT, GOAL_BOTTOM + 10); ctx.lineTo(GOAL_RIGHT, GOAL_TOP); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(GOAL_LEFT, GOAL_TOP); ctx.lineTo(GOAL_RIGHT, GOAL_TOP); ctx.stroke();
 
-      // Net
-      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-      ctx.lineWidth = 1;
-      for (let x = goalX; x <= goalX + goalW; x += 15) {
-        ctx.beginPath();
-        ctx.moveTo(x, GOAL_Y);
-        ctx.lineTo(x, GOAL_Y + GOAL_HEIGHT);
-        ctx.stroke();
-      }
-      for (let y = GOAL_Y; y <= GOAL_Y + GOAL_HEIGHT; y += 15) {
-        ctx.beginPath();
-        ctx.moveTo(goalX, y);
-        ctx.lineTo(goalX + goalW, y);
-        ctx.stroke();
-      }
+      // ── KEEPER ────────────────────────────────────────────────────────────
+      const k = keeperRef.current;
+      const kcx = GOAL_CX + k.x * GOAL_HW;
+      const kcy = GOAL_CY - k.y * GOAL_HH;
+      const kw  = s.keeperHalfW * GOAL_HW * 2;
+      const kh  = s.keeperHalfH * GOAL_HH * 2;
 
-      // Goalkeeper
-      const keeper = keeperRef.current;
-      ctx.fillStyle = '#ff9800';
+      // Keeper shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.18)';
       ctx.beginPath();
-      ctx.roundRect(keeper.x, GOAL_Y + 10, kw, KEEPER_HEIGHT - 20, 10);
+      ctx.ellipse(kcx, kcy + kh * 0.5 + 4, kw * 0.4, 6, 0, 0, Math.PI * 2);
       ctx.fill();
+
+      // Body (jersey)
+      const keeperGrad = ctx.createLinearGradient(kcx - kw / 2, kcy - kh / 2, kcx + kw / 2, kcy + kh / 2);
+      keeperGrad.addColorStop(0, '#ff6f00');
+      keeperGrad.addColorStop(1, '#e65100');
+      ctx.fillStyle = keeperGrad;
+      ctx.beginPath();
+      ctx.roundRect(kcx - kw / 2, kcy - kh / 2, kw, kh * 0.75, 6);
+      ctx.fill();
+
+      // Shorts
+      ctx.fillStyle = '#1565c0';
+      ctx.fillRect(kcx - kw * 0.45, kcy + kh * 0.22, kw * 0.4, kh * 0.18);
+      ctx.fillRect(kcx + kw * 0.05, kcy + kh * 0.22, kw * 0.4, kh * 0.18);
+
       // Head
       ctx.fillStyle = '#ffcc80';
       ctx.beginPath();
-      ctx.arc(keeper.x + kw / 2, GOAL_Y + 5, 12, 0, Math.PI * 2);
-      ctx.fill();
-      // Gloves
-      ctx.fillStyle = '#4caf50';
-      ctx.beginPath();
-      ctx.arc(keeper.x + 5, GOAL_Y + 30, 8, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(keeper.x + kw - 5, GOAL_Y + 30, 8, 0, Math.PI * 2);
+      ctx.arc(kcx, kcy - kh * 0.42, kw * 0.28, 0, Math.PI * 2);
       ctx.fill();
 
-      // Aim reticle
+      // Gloves
+      ctx.fillStyle = '#c8e6c9';
+      if (k.isDiving) {
+        const armDir = Math.sign(k.diveX - k.x) || (k.diveX >= 0 ? 1 : -1);
+        ctx.beginPath();
+        ctx.arc(kcx + armDir * kw * 0.7, kcy - kh * 0.1, kw * 0.22, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.beginPath();
+        ctx.arc(kcx - kw * 0.58, kcy - kh * 0.05, kw * 0.18, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(kcx + kw * 0.58, kcy - kh * 0.05, kw * 0.18, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // ── AIM INDICATOR (aiming phase) ──────────────────────────────────────
       if (phase === 'aiming') {
-        const aim = aimRef.current;
-        ctx.strokeStyle = '#ff5722';
+        const { cx: tx, cy: ty } = goalToCanvas(targetRef.current);
+
+        // Target shadow ring
+        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(tx + 2, ty + 2, 16, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Animated target ring
+        ctx.strokeStyle = '#ff1744';
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(aim.x, aim.y, 20, 0, Math.PI * 2);
+        ctx.arc(tx, ty, 16, 0, Math.PI * 2);
         ctx.stroke();
+
+        // Cross-hair lines
+        ctx.strokeStyle = '#ff1744';
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(aim.x - 25, aim.y);
-        ctx.lineTo(aim.x + 25, aim.y);
-        ctx.moveTo(aim.x, aim.y - 25);
-        ctx.lineTo(aim.x, aim.y + 25);
+        ctx.moveTo(tx - 24, ty); ctx.lineTo(tx - 8, ty);
+        ctx.moveTo(tx + 8,  ty); ctx.lineTo(tx + 24, ty);
+        ctx.moveTo(tx, ty - 24); ctx.lineTo(tx, ty - 8);
+        ctx.moveTo(tx, ty + 8);  ctx.lineTo(tx, ty + 24);
         ctx.stroke();
+
+        // Inner dot
+        ctx.fillStyle = '#ff1744';
+        ctx.beginPath();
+        ctx.arc(tx, ty, 3, 0, Math.PI * 2);
+        ctx.fill();
       }
+
+      // ── BALL ──────────────────────────────────────────────────────────────
+      let ballCx: number, ballCy: number, ballR: number;
+
+      if (phase === 'aiming' || phase === 'result') {
+        ballCx = SPOT_X;
+        ballCy = SPOT_Y;
+        ballR  = BALL_R0;
+      } else {
+        // Interpolate from spot to target point on goal face
+        const t0 = shootFrameRef.current / SHOOT_FRAMES;
+        const ease = t0 < 0.5 ? 2 * t0 * t0 : -1 + (4 - 2 * t0) * t0; // easeInOut
+
+        const { cx: tgtCx, cy: tgtCy } = goalToCanvas(shotTargetRef.current);
+
+        // Curve arc: ball rises and comes back down slightly
+        const arcHeight = 40 * (1 - ease);   // simulated arc
+        ballCx = SPOT_X + (tgtCx - SPOT_X) * ease;
+        ballCy = SPOT_Y + (tgtCy - SPOT_Y) * ease - arcHeight;
+        ballR  = BALL_R0 + (BALL_R1 - BALL_R0) * ease;
+      }
+
+      // Ball shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.beginPath();
+      ctx.ellipse(ballCx, ballCy + ballR + 2, ballR * 0.8, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
 
       // Ball
-      const ball = ballRef.current;
-      ctx.fillStyle = '#ffffff';
+      const ballGrad = ctx.createRadialGradient(
+        ballCx - ballR * 0.3, ballCy - ballR * 0.3, ballR * 0.1,
+        ballCx, ballCy, ballR,
+      );
+      ballGrad.addColorStop(0, '#ffffff');
+      ballGrad.addColorStop(0.4, '#e8e8e8');
+      ballGrad.addColorStop(1, '#9e9e9e');
+      ctx.fillStyle = ballGrad;
       ctx.beginPath();
-      ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#333';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.fillStyle = '#333';
-      ctx.beginPath();
-      ctx.arc(ball.x - 5, ball.y - 3, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(ball.x + 6, ball.y + 2, 4, 0, Math.PI * 2);
+      ctx.arc(ballCx, ballCy, ballR, 0, Math.PI * 2);
       ctx.fill();
 
-      // Power bar
-      if ((isPoweringRef.current || powerRef.current > 0) && phase === 'aiming') {
-        const barW = 150;
-        const barH = 20;
-        const barX = CANVAS_WIDTH / 2 - barW / 2;
-        const barY = CANVAS_HEIGHT - 30;
+      // Ball panels (soccer ball hexagons)
+      ctx.fillStyle = '#212121';
+      const panelR = ballR * 0.32;
+      const panelOffsets = [
+        [0, -0.55],
+        [-0.48, -0.28],
+        [0.48, -0.28],
+        [-0.3, 0.42],
+        [0.3, 0.42],
+      ];
+      for (const [ox, oy] of panelOffsets) {
+        ctx.beginPath();
+        ctx.arc(ballCx + ox * ballR, ballCy + oy * ballR, panelR, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
-        ctx.fillStyle = '#333';
-        ctx.fillRect(barX, barY, barW, barH);
+      // ── POWER BAR ─────────────────────────────────────────────────────────
+      if (phase === 'aiming') {
+        const barW = 160, barH = 18;
+        const barX = CW / 2 - barW / 2;
+        const barY = CH - 30;
 
-        const pw = (powerRef.current / 100) * barW;
-        const grad = ctx.createLinearGradient(barX, 0, barX + barW, 0);
-        grad.addColorStop(0, '#4caf50');
-        grad.addColorStop(0.5, '#ffeb3b');
-        grad.addColorStop(1, '#f44336');
-        ctx.fillStyle = grad;
-        ctx.fillRect(barX, barY, pw, barH);
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        ctx.beginPath();
+        ctx.roundRect(barX - 2, barY - 2, barW + 4, barH + 4, 4);
+        ctx.fill();
 
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(barX, barY, barW, barH);
+        if (isPoweringRef.current) {
+          const pw = (powerRef.current / 100) * barW;
+          const pg = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+          pg.addColorStop(0,   '#66bb6a');
+          pg.addColorStop(0.5, '#ffee58');
+          pg.addColorStop(1,   '#ef5350');
+          ctx.fillStyle = pg;
+          ctx.beginPath();
+          ctx.roundRect(barX, barY, pw, barH, 3);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = 'rgba(255,255,255,0.12)';
+          ctx.beginPath();
+          ctx.roundRect(barX, barY, barW, barH, 3);
+          ctx.fill();
+        }
 
-        // Label
-        ctx.font = 'bold 12px Arial';
+        ctx.font = 'bold 11px Arial';
+        ctx.textAlign = 'center';
         ctx.fillStyle = '#fff';
-        ctx.textAlign = 'center';
-        ctx.fillText(`${t.power}: ${Math.round(powerRef.current)}%`, CANVAS_WIDTH / 2, barY - 5);
+        ctx.fillText(
+          isPoweringRef.current
+            ? `${t.power}: ${Math.round(powerRef.current)}%`
+            : `⬇ ${t.holdShoot}`,
+          CW / 2, barY - 6
+        );
       }
 
-      // Result text
+      // ── RESULT FLASH ──────────────────────────────────────────────────────
       if (phase === 'result' && shotResult) {
-        ctx.font = 'bold 48px Arial';
-        ctx.textAlign = 'center';
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 4;
-
         const label =
-          shotResult === 'goal' ? t.goal : shotResult === 'saved' ? t.saved : t.missed;
+          shotResult === 'goal' ? t.goal :
+          shotResult === 'saved' ? t.saved : t.missed;
         const color =
-          shotResult === 'goal' ? '#4caf50' : shotResult === 'saved' ? '#ff9800' : '#f44336';
+          shotResult === 'goal' ? '#00e676' :
+          shotResult === 'saved' ? '#ff9800' : '#ef5350';
 
+        ctx.font = 'bold 56px Arial';
+        ctx.textAlign = 'center';
+        ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+        ctx.lineWidth = 6;
+        ctx.strokeText(label, CW / 2, CH / 2 + 10);
         ctx.fillStyle = color;
-        ctx.strokeText(label, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
-        ctx.fillText(label, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+        ctx.fillText(label, CW / 2, CH / 2 + 10);
       }
 
-      // HUD — score & attempts on canvas
-      ctx.font = 'bold 16px Arial';
+      // ── HUD ───────────────────────────────────────────────────────────────
+      // Scoreboard strip at top
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.fillRect(0, 0, CW, 32);
+      ctx.font = 'bold 14px Arial';
       ctx.textAlign = 'left';
       ctx.fillStyle = '#fff';
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 3;
-      const hudText = `${t.score}: ${score}/${MAX_ATTEMPTS}   ${t.attempts}: ${attempts}/${MAX_ATTEMPTS}`;
-      ctx.strokeText(hudText, 10, CANVAS_HEIGHT - 108);
-      ctx.fillText(hudText, 10, CANVAS_HEIGHT - 108);
+      const left = isRtl ? CW - 10 : 10;
+      ctx.textAlign = isRtl ? 'right' : 'left';
+      ctx.fillText(`${t.score}: ${score}/${MAX_ATTEMPTS}  |  ${t.attempts}: ${attempts}/${MAX_ATTEMPTS}`, left, 21);
+      // High score on right
+      ctx.textAlign = isRtl ? 'left' : 'right';
+      ctx.fillStyle = '#ffcc80';
+      ctx.fillText(`🏆 ${t.highScore}: ${highScore}`, isRtl ? 10 : CW - 10, 21);
 
-      animationRef.current = requestAnimationFrame(gameLoop);
+      animFrameRef.current = requestAnimationFrame(loop);
     };
 
-    animationRef.current = requestAnimationFrame(gameLoop);
+    animFrameRef.current = requestAnimationFrame(loop);
+    return () => { if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current); };
+  }, [gameState, phase, difficulty, score, attempts, highScore, shotResult, settings, t, isRtl, playSuccess, playHit]);
 
-    return () => {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-    };
-  }, [
-    gameState,
-    phase,
-    score,
-    attempts,
-    shotResult,
-    settings,
-    t,
-    playSuccess,
-    playHit,
-  ]);
-
-  // ---- Auto-advance after result -------------------------------------------
+  // ── Auto-advance after result ──────────────────────────────────────────────
   useEffect(() => {
     if (phase !== 'result' || gameState !== 'playing') return;
 
     const timer = setTimeout(() => {
       if (attempts >= MAX_ATTEMPTS) {
-        // Game over
         setGameState('gameover');
         if (score > highScore) {
           setHighScore(score);
-          localStorage.setItem('penalty-kick-highscore', String(score));
+          localStorage.setItem('penalty-kick-hs', String(score));
         }
-        if (score >= MAX_ATTEMPTS) {
-          playWin();
-          setShowWin(true);
-        } else {
-          playGameOver();
-        }
+        if (score >= MAX_ATTEMPTS) { playWin(); setShowWin(true); }
+        else                       { playGameOver(); }
       } else {
         resetShot();
       }
@@ -839,7 +922,7 @@ export default function PenaltyKickGame({ locale = 'en' }: PenaltyKickGameProps)
     return () => clearTimeout(timer);
   }, [phase, attempts, score, highScore, gameState, resetShot, playWin, playGameOver]);
 
-  // ---- Restart -------------------------------------------------------------
+  // ── Restart ────────────────────────────────────────────────────────────────
   const restartGame = useCallback(() => {
     setShowWin(false);
     setGameState('levelSelect');
@@ -852,43 +935,25 @@ export default function PenaltyKickGame({ locale = 'en' }: PenaltyKickGameProps)
 
   usePlayAgainKey(gameState === 'gameover' && !showWin, restartGame);
 
-  // ---- Difficulty level number (for LevelDisplay) --------------------------
   const levelNum = difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3;
 
-  // ---- Render ---------------------------------------------------------------
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <GameWrapper title={t.title} onInstructionsClick={() => setShowInstructions(true)}>
-      <div className="flex flex-col items-center gap-4" ref={containerRef}>
-        {/* Level display + score bar */}
+      <div className="flex flex-col items-center gap-3">
+
+        {/* Level display (only while playing) */}
         {gameState === 'playing' && (
-          <div className="flex flex-wrap items-center justify-center gap-4 mb-2">
-            <LevelDisplay level={levelNum} />
-            <div className="bg-white/90 rounded-2xl px-6 py-2 shadow-lg text-center">
-              <div className="text-sm text-slate-500 font-medium">{t.score}</div>
-              <div className="text-2xl font-bold text-[#4caf50]">
-                {score}/{MAX_ATTEMPTS}
-              </div>
-            </div>
-            <div className="bg-white/90 rounded-2xl px-6 py-2 shadow-lg text-center">
-              <div className="text-sm text-slate-500 font-medium">{t.attempts}</div>
-              <div className="text-2xl font-bold text-[#1e88e5]">
-                {attempts}/{MAX_ATTEMPTS}
-              </div>
-            </div>
-            <div className="bg-white/90 rounded-2xl px-6 py-2 shadow-lg text-center">
-              <div className="text-sm text-slate-500 font-medium">{t.highScore}</div>
-              <div className="text-2xl font-bold text-[#ff9800]">{highScore}</div>
-            </div>
-          </div>
+          <LevelDisplay level={levelNum} />
         )}
 
         <div className="relative">
-          {/* Canvas is always mounted so refs stay valid */}
+          {/* Canvas — always mounted so refs stay valid */}
           <canvas
             ref={canvasRef}
-            width={CANVAS_WIDTH}
-            height={CANVAS_HEIGHT}
-            className="rounded-xl shadow-2xl border-4 border-[#4caf50]/30 cursor-crosshair"
+            width={CW}
+            height={CH}
+            className="rounded-xl shadow-2xl border-2 border-white/20 cursor-crosshair"
             style={{
               touchAction: 'none',
               maxWidth: '100%',
@@ -896,36 +961,32 @@ export default function PenaltyKickGame({ locale = 'en' }: PenaltyKickGameProps)
             }}
           />
 
-          {/* ---- Level selector ---- */}
+          {/* ── Level selector ── */}
           <AnimatePresence>
             {gameState === 'levelSelect' && (
               <motion.div
                 key="level-select"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 className="flex flex-col items-center justify-center py-10 px-4"
               >
                 <motion.div
-                  animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                  className="text-7xl mb-4"
+                  animate={{ scale: [1, 1.12, 1], rotate: [0, 8, -8, 0] }}
+                  transition={{ duration: 1.6, repeat: Infinity }}
+                  className="text-7xl mb-4 select-none"
                 >
                   ⚽
                 </motion.div>
-                <h2 className="text-3xl font-bold text-slate-800 mb-6 drop-shadow">
-                  {t.title}
-                </h2>
-                <p className="text-lg text-slate-600 mb-6 font-medium">
-                  {t.selectDifficulty}
-                </p>
+                <h2 className="text-3xl font-bold text-slate-800 mb-2">{t.title}</h2>
+                <p className="text-slate-500 mb-6">{t.selectDifficulty}</p>
 
                 <div className="flex flex-wrap justify-center gap-4">
                   {(
                     [
-                      { key: 'easy' as Difficulty, emoji: '🟢', color: 'bg-green-500 hover:bg-green-600' },
+                      { key: 'easy'   as Difficulty, emoji: '🟢', color: 'bg-green-500  hover:bg-green-600'  },
                       { key: 'medium' as Difficulty, emoji: '🟡', color: 'bg-yellow-500 hover:bg-yellow-600' },
-                      { key: 'hard' as Difficulty, emoji: '🔴', color: 'bg-red-500 hover:bg-red-600' },
+                      { key: 'hard'   as Difficulty, emoji: '🔴', color: 'bg-red-500    hover:bg-red-600'    },
                     ] as const
                   ).map((d) => (
                     <motion.button
@@ -937,9 +998,7 @@ export default function PenaltyKickGame({ locale = 'en' }: PenaltyKickGameProps)
                     >
                       <span className="text-2xl">{d.emoji}</span>
                       <span className="text-lg">{t[d.key]}</span>
-                      <span className="text-xs opacity-80">
-                        {t[`${d.key}Desc` as keyof typeof t]}
-                      </span>
+                      <span className="text-xs opacity-80">{t[`${d.key}Desc` as keyof typeof t]}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -953,7 +1012,7 @@ export default function PenaltyKickGame({ locale = 'en' }: PenaltyKickGameProps)
             )}
           </AnimatePresence>
 
-          {/* ---- Game over overlay ---- */}
+          {/* ── Game over overlay ── */}
           <AnimatePresence>
             {gameState === 'gameover' && !showWin && (
               <motion.div
@@ -966,19 +1025,15 @@ export default function PenaltyKickGame({ locale = 'en' }: PenaltyKickGameProps)
                 <div className="bg-white rounded-3xl p-8 text-center shadow-2xl max-w-sm w-full">
                   <div className="text-5xl mb-4">🏆</div>
                   <h2 className="text-2xl font-bold text-slate-800 mb-3">{t.gameOver}</h2>
-                  <div className="text-4xl font-bold text-[#4caf50] mb-2">
-                    {score}/{MAX_ATTEMPTS}
-                  </div>
+                  <div className="text-4xl font-bold text-green-500 mb-2">{score}/{MAX_ATTEMPTS}</div>
                   {score > 0 && score === highScore && (
-                    <div className="text-lg text-[#ff9800] font-bold mb-3">
-                      🌟 {t.newHighScore}
-                    </div>
+                    <div className="text-lg text-orange-500 font-bold mb-3">🌟 {t.newHighScore}</div>
                   )}
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={restartGame}
-                    className="mt-4 px-8 py-3 bg-[#4caf50] hover:bg-[#388e3c] text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
+                    className="mt-4 px-8 py-3 bg-green-500 hover:bg-green-600 text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                   >
                     {t.playAgain}
                   </motion.button>
@@ -988,17 +1043,16 @@ export default function PenaltyKickGame({ locale = 'en' }: PenaltyKickGameProps)
           </AnimatePresence>
         </div>
 
-        {/* Control hints */}
+        {/* Control hints while playing */}
         {gameState === 'playing' && (
-          <div className="flex flex-wrap justify-center gap-3 text-slate-600 text-sm">
-            <span className="px-3 py-1 bg-white/80 rounded-full">🖱️ {t.aimWithMouse}</span>
+          <div className="flex flex-wrap justify-center gap-2 text-slate-600 text-xs">
+            <span className="px-3 py-1 bg-white/80 rounded-full">🖱️ {t.dragToAim}</span>
             <span className="px-3 py-1 bg-white/80 rounded-full">⌨️ {t.arrowsAim}</span>
-            <span className="px-3 py-1 bg-white/80 rounded-full">🎯 {t.holdToShoot}</span>
+            <span className="px-3 py-1 bg-white/80 rounded-full">🎯 {t.holdShoot}</span>
           </div>
         )}
       </div>
 
-      {/* Win modal */}
       <WinModal
         isOpen={showWin}
         onClose={() => setShowWin(false)}
@@ -1006,7 +1060,6 @@ export default function PenaltyKickGame({ locale = 'en' }: PenaltyKickGameProps)
         score={score}
       />
 
-      {/* Instructions modal */}
       <InstructionsModal
         isOpen={showInstructions}
         onClose={() => setShowInstructions(false)}
