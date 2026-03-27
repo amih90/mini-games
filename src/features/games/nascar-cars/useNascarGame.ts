@@ -111,31 +111,31 @@ export const CAREER_LEVELS: Record<string, Omit<LevelConfig, 'unlocked'>[]> = {
 
 export const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
   easy: {
-    maxSpeed: 5.0,
-    acceleration: 3.0,
-    braking: 5.0,
-    steerSpeed: 8.0,
+    maxSpeed: 3.0,
+    acceleration: 1.8,
+    braking: 3.5,
+    steerSpeed: 5.0,
     autoAccelerate: true,
     aiAggressiveness: 0.6,
-    friction: 0.4,
+    friction: 0.5,
   },
   medium: {
-    maxSpeed: 6.5,
-    acceleration: 3.5,
-    braking: 6.0,
-    steerSpeed: 9.0,
+    maxSpeed: 3.8,
+    acceleration: 2.2,
+    braking: 4.0,
+    steerSpeed: 6.0,
     autoAccelerate: false,
     aiAggressiveness: 0.78,
-    friction: 0.35,
+    friction: 0.45,
   },
   hard: {
-    maxSpeed: 8.0,
-    acceleration: 4.0,
-    braking: 7.0,
-    steerSpeed: 10.0,
+    maxSpeed: 4.5,
+    acceleration: 2.5,
+    braking: 5.0,
+    steerSpeed: 7.0,
     autoAccelerate: false,
     aiAggressiveness: 0.95,
-    friction: 0.3,
+    friction: 0.4,
   },
 };
 
@@ -240,10 +240,12 @@ function updateLaps(
 }
 
 // ─── Hook ────────────────────────────────────────────────────
-export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale: string) {
+export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale: string, opponentsOverride?: number) {
   const settings = DIFFICULTY_SETTINGS[difficulty];
   const levels = CAREER_LEVELS[locale] || CAREER_LEVELS.en;
   const levelConfig = levels[Math.min(levelIndex, levels.length - 1)];
+  // Allow user to override the number of opponents from the car-select screen
+  const effectiveOpponents = opponentsOverride ?? levelConfig.opponents;
 
   const raceState = useRef<RaceState>({
     player: { angle: 0, speed: 0, laneOffset: 0, laps: 0, lastCheckpoint: 0, finished: false, tireWear: 0, inPit: false, pitTimer: 0, personality: 'steady', isDrafting: false, draftTarget: -1, overtaking: false, defending: false },
@@ -265,7 +267,7 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
   const rubberBandMultiplier = useRef(1.0);
 
   const initRace = useCallback(() => {
-    const numOpponents = levelConfig.opponents;
+    const numOpponents = effectiveOpponents;
 
     // Initialize AI cars in a staggered grid AROUND the player
     const aiCars: CarState[] = [];
@@ -316,7 +318,7 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
     };
     aiTargetLanes.current = targetLanes;
     aiSpeedFactors.current = speedFactors;
-  }, [levelConfig]);
+  }, [levelConfig, effectiveOpponents]);
 
   const update = useCallback((
     delta: number,
@@ -529,7 +531,7 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
       updateLaps(aiCar, levelConfig.laps, () => {});
     });
 
-    // ── Collisions (bump between cars) ──
+    // ── Collisions (player vs AI + AI vs AI) ──
     const playerPos = getTrackPosition(player.angle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
     state.aiCars.forEach((aiCar) => {
       if (aiCar.finished || aiCar.inPit) return;
@@ -539,23 +541,54 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
       const dist = Math.sqrt(dx * dx + dz * dz);
       if (dist < CAR_HITBOX && dist > 0.01) {
         const overlap = CAR_HITBOX - dist;
+        const nx = dx / dist;
+        const nz = dz / dist;
         const playerAhead = normalizeAngle(player.angle - aiCar.angle) < Math.PI;
         if (playerAhead) {
-          // Player rear-ended by AI — gentle nudge, no hard stop
-          player.speed = Math.min(player.speed + aiCar.speed * 0.01, settings.maxSpeed * 1.02);
-          aiCar.speed *= 0.95;
+          player.speed = Math.min(player.speed + aiCar.speed * 0.02, settings.maxSpeed * 1.02);
+          aiCar.speed *= 0.92;
         } else {
-          // Player hit AI from behind — slight slowdown, not a wall
-          player.speed *= 0.94;
+          player.speed *= 0.90;
           aiCar.speed *= 0.98;
         }
-        // Gentle lateral push — just enough to separate
-        player.laneOffset += (dx / dist) * overlap * 0.15;
-        aiCar.laneOffset -= (dx / dist) * overlap * 0.12;
+        // Strong push to separate — prevents overlap
+        const pushStrength = overlap * 0.6;
+        player.laneOffset += nx * pushStrength;
+        aiCar.laneOffset -= nx * pushStrength;
+        // Also nudge along track angle to prevent stacking
+        player.angle += nz * pushStrength * 0.01;
+        aiCar.angle -= nz * pushStrength * 0.01;
         player.laneOffset = clamp(player.laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
         aiCar.laneOffset = clamp(aiCar.laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
       }
     });
+
+    // ── AI vs AI collisions ──
+    for (let a = 0; a < state.aiCars.length; a++) {
+      if (state.aiCars[a].finished || state.aiCars[a].inPit) continue;
+      const posA = getTrackPosition(state.aiCars[a].angle, TRACK_RADIUS_X, TRACK_RADIUS_Z, state.aiCars[a].laneOffset);
+      for (let b = a + 1; b < state.aiCars.length; b++) {
+        if (state.aiCars[b].finished || state.aiCars[b].inPit) continue;
+        const posB = getTrackPosition(state.aiCars[b].angle, TRACK_RADIUS_X, TRACK_RADIUS_Z, state.aiCars[b].laneOffset);
+        const dx2 = posA.x - posB.x;
+        const dz2 = posA.z - posB.z;
+        const dist2 = Math.sqrt(dx2 * dx2 + dz2 * dz2);
+        if (dist2 < CAR_HITBOX && dist2 > 0.01) {
+          const ov = (CAR_HITBOX - dist2) * 0.5;
+          const nnx = dx2 / dist2;
+          state.aiCars[a].laneOffset += nnx * ov;
+          state.aiCars[b].laneOffset -= nnx * ov;
+          state.aiCars[a].laneOffset = clamp(state.aiCars[a].laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
+          state.aiCars[b].laneOffset = clamp(state.aiCars[b].laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
+          // Slower car yields
+          if (state.aiCars[a].speed < state.aiCars[b].speed) {
+            state.aiCars[a].speed *= 0.95;
+          } else {
+            state.aiCars[b].speed *= 0.95;
+          }
+        }
+      }
+    }
 
     // ── Calculate position ──
     const playerProgress = player.laps * TWO_PI + normalizeAngle(player.angle);

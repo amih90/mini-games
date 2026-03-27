@@ -67,6 +67,7 @@ const translations: Record<string, Record<string, string>> = {
     cameraTv: 'TV View',
     cameraCockpit: 'Cockpit',
     startRace: 'Start Race!',
+    opponents: 'Opponents',
   },
   he: {
     title: 'מכוניות נסקאר 3D',
@@ -114,6 +115,7 @@ const translations: Record<string, Record<string, string>> = {
     cameraTv: 'שידור TV',
     cameraCockpit: 'תא טייס',
     startRace: '!התחילו מירוץ',
+    opponents: 'מתחרים',
   },
   zh: {
     title: '3D纳斯卡赛车',
@@ -161,6 +163,7 @@ const translations: Record<string, Record<string, string>> = {
     cameraTv: '电视视角',
     cameraCockpit: '驾驶舱',
     startRace: '开始比赛！',
+    opponents: '对手',
   },
   es: {
     title: 'NASCAR Cars 3D',
@@ -208,6 +211,7 @@ const translations: Record<string, Record<string, string>> = {
     cameraTv: 'Vista TV',
     cameraCockpit: 'Cabina',
     startRace: '¡A Correr!',
+    opponents: 'Rivales',
   },
 };
 
@@ -277,6 +281,8 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
   const [playerColor, setPlayerColor] = useState(PLAYER_COLORS[0].hex);
   const [playerCarType, setPlayerCarType] = useState<CarType>('stock');
   const [cameraMode, setCameraMode] = useState<CameraMode>('tv');
+  const [numOpponents, setNumOpponents] = useState(4);
+  const [currentSteer, setCurrentSteer] = useState(0);
 
   const { playHit, playSuccess, playGameOver, playWin, playClick, playLevelUp } = useRetroSounds();
 
@@ -286,7 +292,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
     levelConfig,
     initRace,
     update,
-  } = useNascarGame(difficulty, levelIndex, locale);
+  } = useNascarGame(difficulty, levelIndex, locale, numOpponents);
 
   // ── Input state ──
   const keysRef = useRef<Set<string>>(new Set());
@@ -349,6 +355,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
     if (keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) steer -= 1;
     if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) steer += 1;
     steer += steerInput.current;
+    setCurrentSteer(steer);
 
     const accel = keys.has('ArrowUp') || keys.has('w') || keys.has('W') || accelInput.current;
     const brake = keys.has('ArrowDown') || keys.has('s') || keys.has('S') || brakeInput.current;
@@ -594,6 +601,46 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                 </div>
               </div>
 
+              {/* Opponent count picker */}
+              <div>
+                <p className="text-sm font-bold text-slate-500 mb-2 text-center">{t.opponents}: {numOpponents}</p>
+                <div className="flex items-center gap-3 justify-center">
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setNumOpponents(Math.max(1, numOpponents - 1))}
+                    className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 font-bold text-xl flex items-center justify-center hover:bg-slate-300"
+                  >
+                    −
+                  </motion.button>
+                  <div className="flex gap-1">
+                    {Array.from({ length: 10 }).map((_, i) => (
+                      <motion.button
+                        key={i}
+                        whileHover={{ scale: 1.15 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setNumOpponents(i + 1)}
+                        className={`w-8 h-8 rounded-lg font-bold text-xs flex items-center justify-center transition-all ${
+                          numOpponents === i + 1
+                            ? 'bg-gradient-to-br from-orange-400 to-red-500 text-white ring-2 ring-orange-300 scale-110'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {i + 1}
+                      </motion.button>
+                    ))}
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setNumOpponents(Math.min(10, numOpponents + 1))}
+                    className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 font-bold text-xl flex items-center justify-center hover:bg-slate-300"
+                  >
+                    +
+                  </motion.button>
+                </div>
+              </div>
+
               {/* Start race button */}
               <motion.button
                 whileHover={{ scale: 1.08 }}
@@ -689,12 +736,13 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                 playerPosition={playerPosition}
                 playerLap={playerLap}
                 totalLaps={levelConfig.laps}
-                numAiCars={levelConfig.opponents}
+                numAiCars={numOpponents}
                 countdown={countdown}
                 locale={locale}
                 cameraMode={cameraMode}
                 playerColor={playerColor}
                 playerCarType={playerCarType}
+                steerAngle={currentSteer}
               />
             </R3FGameContainer>
 

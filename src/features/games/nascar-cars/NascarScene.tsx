@@ -28,6 +28,7 @@ interface NascarSceneProps {
   cameraMode?: CameraMode;
   playerColor?: string;
   playerCarType?: CarType;
+  steerAngle?: number;  // -1 to 1 for cockpit steering wheel
 }
 
 // ─── Countdown — follows the camera ─────────────────────────
@@ -83,6 +84,7 @@ export function NascarScene({
   cameraMode = 'tv',
   playerColor = '#ffeb3b',
   playerCarType = 'stock',
+  steerAngle = 0,
 }: NascarSceneProps) {
   const { camera } = useThree();
   const playerCarRef = useRef<THREE.Group>(null);
@@ -150,42 +152,44 @@ export function NascarScene({
 
     // ── Camera ──
     if (cameraMode === 'cockpit') {
-      // First-person cockpit — sit inside driver's head, look forward
+      // First-person cockpit — sit at driver eye level, look forward along track
       const cockpitPos = getTrackPosition(player.angle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
-      const lookAheadAngle = player.angle + 0.12;
+      const lookAheadAngle = player.angle + 0.08;
       const lookAheadPos = getTrackPosition(lookAheadAngle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
 
-      const targetCamPos = new THREE.Vector3(cockpitPos.x, 0.65, cockpitPos.z);
-      const targetLookAt = new THREE.Vector3(lookAheadPos.x, 0.45, lookAheadPos.z);
+      const targetCamPos = new THREE.Vector3(cockpitPos.x, 0.7, cockpitPos.z);
+      const targetLookAt = new THREE.Vector3(lookAheadPos.x, 0.5, lookAheadPos.z);
 
-      cameraPos.current.lerp(targetCamPos, 0.25);
-      cameraTarget.current.lerp(targetLookAt, 0.20);
+      // Smooth but responsive
+      cameraPos.current.lerp(targetCamPos, 0.15);
+      cameraTarget.current.lerp(targetLookAt, 0.12);
     } else {
-      // TV helicopter camera — scaled for larger track
-      const camDist = 18;
-      const camHeight = 8;
-      const behindAngle = player.angle - 0.05;
+      // TV chase camera — smooth follow behind
+      const camDist = 14;
+      const camHeight = 6;
+      const behindAngle = player.angle - 0.04;
       const behindPos = getTrackPosition(behindAngle, TRACK_RADIUS_X + camDist, TRACK_RADIUS_Z + camDist, 0);
 
       const targetCamPos = new THREE.Vector3(behindPos.x, camHeight, behindPos.z);
-      const aheadAngle = player.angle + 0.10;
+      const aheadAngle = player.angle + 0.06;
       const aheadPos = getTrackPosition(aheadAngle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
-      const targetLookAt = new THREE.Vector3(aheadPos.x, 1.0, aheadPos.z);
+      const targetLookAt = new THREE.Vector3(aheadPos.x, 0.8, aheadPos.z);
 
-      cameraPos.current.lerp(targetCamPos, 0.08);
-      cameraTarget.current.lerp(targetLookAt, 0.12);
+      // Slower lerp for smoother TV feel
+      cameraPos.current.lerp(targetCamPos, 0.04);
+      cameraTarget.current.lerp(targetLookAt, 0.06);
     }
 
     camera.position.copy(cameraPos.current);
     camera.lookAt(cameraTarget.current);
 
-    // Camera shake at high speed
+    // Camera shake at high speed — very subtle
     const speedPct = state.playerSpeedPct / 100;
-    if (speedPct > 0.65) {
-      const intensity = cameraMode === 'cockpit' ? 0.008 : 0.018;
-      const shakeAmt = (speedPct - 0.65) * intensity;
+    if (speedPct > 0.75) {
+      const intensity = cameraMode === 'cockpit' ? 0.004 : 0.008;
+      const shakeAmt = (speedPct - 0.75) * intensity;
       cameraPos.current.x += (Math.random() - 0.5) * shakeAmt;
-      cameraPos.current.y += (Math.random() - 0.5) * shakeAmt * 0.4;
+      cameraPos.current.y += (Math.random() - 0.5) * shakeAmt * 0.3;
       camera.position.copy(cameraPos.current);
     }
   });
@@ -265,6 +269,69 @@ export function NascarScene({
             drafting={isDrafting}
             carType={playerCarType}
           />
+        )}
+
+        {/* ═══ Cockpit Interior ═══ */}
+        {cameraMode === 'cockpit' && (
+          <group position={[0, 0.1, 0]}>
+            {/* Dashboard — dark panel in front of driver */}
+            <mesh position={[0, 0.25, 0.35]}>
+              <boxGeometry args={[1.0, 0.08, 0.4]} />
+              <meshStandardMaterial color="#1a1a1a" roughness={0.8} />
+            </mesh>
+            {/* Dashboard top cover */}
+            <mesh position={[0, 0.3, 0.3]} rotation={[0.3, 0, 0]}>
+              <boxGeometry args={[1.0, 0.02, 0.3]} />
+              <meshStandardMaterial color="#222" roughness={0.7} />
+            </mesh>
+            {/* Steering column */}
+            <mesh position={[0, 0.2, 0.2]} rotation={[0.5, 0, 0]}>
+              <cylinderGeometry args={[0.02, 0.02, 0.25, 8]} />
+              <meshStandardMaterial color="#333" metalness={0.8} />
+            </mesh>
+            {/* Steering wheel — rotates with steer input */}
+            <group position={[0, 0.28, 0.12]} rotation={[0.5, 0, -steerAngle * 0.8]}>
+              {/* Wheel rim (torus) */}
+              <mesh>
+                <torusGeometry args={[0.14, 0.015, 8, 24]} />
+                <meshStandardMaterial color="#111" roughness={0.4} metalness={0.3} />
+              </mesh>
+              {/* Center hub */}
+              <mesh>
+                <cylinderGeometry args={[0.04, 0.04, 0.02, 12]} />
+                <meshStandardMaterial color="#333" metalness={0.9} roughness={0.1} />
+              </mesh>
+              {/* Spokes */}
+              {[0, Math.PI * 0.67, Math.PI * 1.33].map((a, i) => (
+                <mesh key={`spoke-${i}`} position={[Math.cos(a) * 0.07, Math.sin(a) * 0.07, 0]} rotation={[0, 0, a]}>
+                  <boxGeometry args={[0.14, 0.018, 0.012]} />
+                  <meshStandardMaterial color="#222" metalness={0.5} />
+                </mesh>
+              ))}
+              {/* Top marker (12 o'clock) */}
+              <mesh position={[0, 0.13, 0]}>
+                <boxGeometry args={[0.03, 0.015, 0.018]} />
+                <meshStandardMaterial color="#e53935" emissive="#e53935" emissiveIntensity={0.5} />
+              </mesh>
+            </group>
+            {/* Speed display */}
+            <mesh position={[0.2, 0.26, 0.38]}>
+              <boxGeometry args={[0.12, 0.08, 0.01]} />
+              <meshStandardMaterial color="#111" emissive="#00e676" emissiveIntensity={0.3} />
+            </mesh>
+            {/* RPM display */}
+            <mesh position={[-0.2, 0.26, 0.38]}>
+              <boxGeometry args={[0.12, 0.08, 0.01]} />
+              <meshStandardMaterial color="#111" emissive="#ff9100" emissiveIntensity={0.3} />
+            </mesh>
+            {/* Side panels (door cards) */}
+            {[-1, 1].map((side) => (
+              <mesh key={`door-${side}`} position={[side * 0.48, 0.2, 0.1]}>
+                <boxGeometry args={[0.04, 0.25, 0.6]} />
+                <meshStandardMaterial color="#1a1a1a" roughness={0.9} />
+              </mesh>
+            ))}
+          </group>
         )}
       </group>
 
