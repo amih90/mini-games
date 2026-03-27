@@ -6,6 +6,7 @@ import { Stars, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { InstructionsModal } from '@/features/games/shared/InstructionsModal';
+import { GameWrapper } from '../shared/GameWrapper';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -549,7 +550,8 @@ export default function SolarSystem3DGame({ locale = 'en' }: SolarSystem3DGamePr
   const cfg = DIFFICULTY_SETTINGS[difficulty];
 
   return (
-    <div className="relative w-full h-screen bg-black overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
+    <GameWrapper title={t.title} onInstructionsClick={() => setShowInstructions(true)} fullHeight>
+    <div className="relative w-full h-full bg-black overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* 3D Canvas */}
       {(phase === 'playing' || phase === 'win' || phase === 'gameover') && (
         <Canvas
@@ -679,5 +681,6 @@ export default function SolarSystem3DGame({ locale = 'en' }: SolarSystem3DGamePr
         locale={locale}
       />
     </div>
+    </GameWrapper>
   );
 }

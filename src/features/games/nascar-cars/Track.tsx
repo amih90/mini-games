@@ -152,11 +152,11 @@ export function Track({
   const grandstands = useMemo(() => {
     const stands: { pos: [number, number, number]; rot: number; tiers: number; width: number }[] = [];
     const halfWidth = trackWidth / 2;
-    // Front stretch (big grandstands)
+    // Front stretch (big grandstands) — pushed far out to clear camera
     for (let i = 0; i < 10; i++) {
       const angle = -0.6 + (i / 9) * 1.2;
       stands.push({
-        pos: [Math.cos(angle) * (trackRadiusX + halfWidth + 4), 0, Math.sin(angle) * (trackRadiusZ + halfWidth + 4)],
+        pos: [Math.cos(angle) * (trackRadiusX + halfWidth + 12), 0, Math.sin(angle) * (trackRadiusZ + halfWidth + 12)],
         rot: -angle,
         tiers: 8,
         width: 3.5,
@@ -166,7 +166,7 @@ export function Track({
     for (let i = 0; i < 6; i++) {
       const angle = Math.PI - 0.4 + (i / 5) * 0.8;
       stands.push({
-        pos: [Math.cos(angle) * (trackRadiusX + halfWidth + 3.5), 0, Math.sin(angle) * (trackRadiusZ + halfWidth + 3.5)],
+        pos: [Math.cos(angle) * (trackRadiusX + halfWidth + 11), 0, Math.sin(angle) * (trackRadiusZ + halfWidth + 11)],
         rot: -angle,
         tiers: 4,
         width: 3,
@@ -178,7 +178,7 @@ export function Track({
       for (let i = 0; i < 4; i++) {
         const angle = baseAngle - 0.3 + (i / 3) * 0.6;
         stands.push({
-          pos: [Math.cos(angle) * (trackRadiusX + halfWidth + 3.5), 0, Math.sin(angle) * (trackRadiusZ + halfWidth + 3.5)],
+          pos: [Math.cos(angle) * (trackRadiusX + halfWidth + 11), 0, Math.sin(angle) * (trackRadiusZ + halfWidth + 11)],
           rot: -angle,
           tiers: 5,
           width: 3,
@@ -247,7 +247,7 @@ export function Track({
     <group>
       {/* ── Ground / infield (grass) ── */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]} receiveShadow>
-        <planeGeometry args={[80, 80]} />
+        <planeGeometry args={[160, 160]} />
         <meshStandardMaterial color="#3a8c3f" roughness={0.95} />
       </mesh>
 
@@ -393,10 +393,10 @@ export function Track({
         </group>
       ))}
 
-      {/* ── Sponsor signage ── */}
+      {/* ── Sponsor signage — moved further out ── */}
       {[
-        { pos: [trackRadiusX + trackWidth / 2 + 3.8, 5.5, 0] as [number, number, number], rot: -Math.PI / 2 },
-        { pos: [-(trackRadiusX + trackWidth / 2 + 3.5), 3, 0] as [number, number, number], rot: Math.PI / 2 },
+        { pos: [trackRadiusX + trackWidth / 2 + 10, 5.5, 0] as [number, number, number], rot: -Math.PI / 2 },
+        { pos: [-(trackRadiusX + trackWidth / 2 + 10), 3, 0] as [number, number, number], rot: Math.PI / 2 },
       ].map((sign, i) => (
         <group key={`sign-${i}`} position={sign.pos} rotation={[0, sign.rot, 0]}>
           <mesh><boxGeometry args={[6, 1.2, 0.1]} /><meshStandardMaterial color="#1565c0" /></mesh>
@@ -404,14 +404,14 @@ export function Track({
         </group>
       ))}
 
-      {/* ── Light towers ── */}
+      {/* ── Light towers — pushed further out ── */}
       {[
-        [trackRadiusX + 8, 0, trackRadiusZ + 6],
-        [-(trackRadiusX + 8), 0, trackRadiusZ + 6],
-        [trackRadiusX + 8, 0, -(trackRadiusZ + 6)],
-        [-(trackRadiusX + 8), 0, -(trackRadiusZ + 6)],
-        [0, 0, trackRadiusZ + 8],
-        [0, 0, -(trackRadiusZ + 8)],
+        [trackRadiusX + 14, 0, trackRadiusZ + 10],
+        [-(trackRadiusX + 14), 0, trackRadiusZ + 10],
+        [trackRadiusX + 14, 0, -(trackRadiusZ + 10)],
+        [-(trackRadiusX + 14), 0, -(trackRadiusZ + 10)],
+        [0, 0, trackRadiusZ + 14],
+        [0, 0, -(trackRadiusZ + 14)],
       ].map((pos, i) => (
         <group key={`tower-${i}`} position={pos as [number, number, number]}>
           <mesh position={[0, 5.5, 0]}><cylinderGeometry args={[0.12, 0.18, 11, 8]} /><meshStandardMaterial color="#666" metalness={0.8} roughness={0.3} /></mesh>
@@ -420,8 +420,8 @@ export function Track({
         </group>
       ))}
 
-      {/* ── Timing / scoring tower ── */}
-      <group position={[trackRadiusX - 2, 0, -trackRadiusZ + 2]}>
+      {/* ── Timing / scoring tower — pushed to outer perimeter ── */}
+      <group position={[trackRadiusX + 10, 0, -trackRadiusZ - 6]}>
         <mesh position={[0, 3, 0]}><boxGeometry args={[1, 6, 0.8]} /><meshStandardMaterial color="#263238" roughness={0.5} /></mesh>
         {[0, 1, 2, 3, 4].map((pi) => (
           <mesh key={`panel-${pi}`} position={[0, 1 + pi * 0.9, 0.45]}>
@@ -431,8 +431,8 @@ export function Track({
         ))}
       </group>
 
-      {/* ── Victory lane ── */}
-      <group position={[trackRadiusX - 5, 0, trackRadiusZ - 5]}>
+      {/* ── Victory lane — pushed outside track perimeter ── */}
+      <group position={[trackRadiusX + 10, 0, trackRadiusZ + 6]}>
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}><planeGeometry args={[3, 3]} /><meshStandardMaterial color="#222" roughness={0.6} /></mesh>
         {Array.from({ length: 9 }).map((_, ci) => (
           <mesh key={`vl-${ci}`} rotation={[-Math.PI / 2, 0, 0]} position={[(ci % 3 - 1) * 0.9, 0.015, (Math.floor(ci / 3) - 1) * 0.9]}>
@@ -442,13 +442,12 @@ export function Track({
         ))}
       </group>
 
-      {/* ── Infield garage area ── */}
+      {/* ── Infield buildings — low profile, stay well inside track to not block camera ── */}
       <group position={[0, 0, -2]}>
-        <mesh position={[0, 0.6, 0]}><boxGeometry args={[6, 1.2, 2]} /><meshStandardMaterial color="#546e7a" roughness={0.7} /></mesh>
-        {[-2, -1, 0, 1, 2].map((gx) => (
-          <mesh key={`gdoor-${gx}`} position={[gx * 1.1, 0.4, 1.01]}><planeGeometry args={[0.9, 0.8]} /><meshStandardMaterial color="#37474f" /></mesh>
+        <mesh position={[0, 0.3, 0]}><boxGeometry args={[4, 0.6, 1.5]} /><meshStandardMaterial color="#546e7a" roughness={0.7} /></mesh>
+        {[-1.5, -0.5, 0.5, 1.5].map((gx) => (
+          <mesh key={`gdoor-${gx}`} position={[gx * 0.9, 0.25, 0.76]}><planeGeometry args={[0.7, 0.5]} /><meshStandardMaterial color="#37474f" /></mesh>
         ))}
-        <mesh position={[0, 1.25, 0]}><boxGeometry args={[6.2, 0.1, 2.2]} /><meshStandardMaterial color="#455a64" roughness={0.8} /></mesh>
       </group>
     </group>
   );

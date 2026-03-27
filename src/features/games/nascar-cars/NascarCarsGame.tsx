@@ -10,7 +10,8 @@ import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { useDirection } from '@/hooks/useDirection';
 import { TextDirection } from '@/i18n/routing';
 import { R3FGameContainer } from '../shared/r3f/R3FGameContainer';
-import { NascarScene } from './NascarScene';
+import { NascarScene, CameraMode } from './NascarScene';
+import { CarType, PLAYER_COLORS, CAR_TYPE_LABELS } from './Car';
 import {
   useNascarGame,
   Difficulty,
@@ -59,6 +60,13 @@ const translations: Record<string, Record<string, string>> = {
     pit: 'PIT',
     inPit: 'IN PIT',
     pitStop: 'Press Space to Pit',
+    chooseCar: 'Choose Your Car',
+    pickColor: 'Pick Color',
+    pickType: 'Car Type',
+    camera: 'Camera',
+    cameraTv: 'TV View',
+    cameraCockpit: 'Cockpit',
+    startRace: 'Start Race!',
   },
   he: {
     title: 'מכוניות נסקאר 3D',
@@ -99,6 +107,13 @@ const translations: Record<string, Record<string, string>> = {
     pit: 'פיט',
     inPit: 'בפיט',
     pitStop: 'לחצו רווח לפיט',
+    chooseCar: 'בחרו את המכונית',
+    pickColor: 'בחרו צבע',
+    pickType: 'סוג מכונית',
+    camera: 'מצלמה',
+    cameraTv: 'שידור TV',
+    cameraCockpit: 'תא טייס',
+    startRace: '!התחילו מירוץ',
   },
   zh: {
     title: '3D纳斯卡赛车',
@@ -139,6 +154,13 @@ const translations: Record<string, Record<string, string>> = {
     pit: '进站',
     inPit: '进站中',
     pitStop: '按空格键进站',
+    chooseCar: '选择你的赛车',
+    pickColor: '选择颜色',
+    pickType: '车型',
+    camera: '摄像头',
+    cameraTv: '电视视角',
+    cameraCockpit: '驾驶舱',
+    startRace: '开始比赛！',
   },
   es: {
     title: 'NASCAR Cars 3D',
@@ -179,6 +201,13 @@ const translations: Record<string, Record<string, string>> = {
     pit: 'PIT',
     inPit: 'EN PIT',
     pitStop: 'Espacio para Pit Stop',
+    chooseCar: 'Elige Tu Auto',
+    pickColor: 'Color',
+    pickType: 'Tipo de Auto',
+    camera: 'Cámara',
+    cameraTv: 'Vista TV',
+    cameraCockpit: 'Cabina',
+    startRace: '¡A Correr!',
   },
 };
 
@@ -210,7 +239,7 @@ interface NascarCarsGameProps {
   locale?: string;
 }
 
-type GamePhase = 'menu' | 'career-select' | 'racing' | 'paused' | 'race-complete';
+type GamePhase = 'menu' | 'career-select' | 'car-select' | 'racing' | 'paused' | 'race-complete';
 
 // ─── Career progress persistence ─────────────────────────────
 const CAREER_KEY = 'nascar-career-progress';
@@ -245,6 +274,9 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
   const [speedPct, setSpeedPct] = useState(0);
   const [tireWear, setTireWear] = useState(0);
   const [inPit, setInPit] = useState(false);
+  const [playerColor, setPlayerColor] = useState(PLAYER_COLORS[0].hex);
+  const [playerCarType, setPlayerCarType] = useState<CarType>('stock');
+  const [cameraMode, setCameraMode] = useState<CameraMode>('tv');
 
   const { playHit, playSuccess, playGameOver, playWin, playClick, playLevelUp } = useRetroSounds();
 
@@ -270,6 +302,11 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
         if (phase === 'racing') setPhase('paused');
         else if (phase === 'paused') setPhase('racing');
       }
+      if (e.key === 'c' || e.key === 'C') {
+        if (phase === 'racing' || phase === 'paused') {
+          setCameraMode(prev => prev === 'tv' ? 'cockpit' : 'tv');
+        }
+      }
     };
     const handleKeyUp = (e: KeyboardEvent) => keysRef.current.delete(e.key);
     window.addEventListener('keydown', handleKeyDown);
@@ -281,14 +318,20 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
   }, [phase]);
 
   // ── Start race ──
-  const startRace = useCallback((diff: Difficulty, level: number) => {
-    setDifficulty(diff);
-    setLevelIndex(level);
+  const startRace = useCallback(() => {
     setRaceFinished(false);
     setFinishPosition(1);
     setPlayerLap(0);
     setCountdown(3);
     setPhase('racing');
+    playClick();
+  }, [playClick]);
+
+  // ── Select level (goes to car-select first) ──
+  const selectLevel = useCallback((diff: Difficulty, level: number) => {
+    setDifficulty(diff);
+    setLevelIndex(level);
+    setPhase('car-select');
     playClick();
   }, [playClick]);
 
@@ -432,7 +475,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                       key={i}
                       whileHover={unlocked ? { scale: 1.05 } : {}}
                       whileTap={unlocked ? { scale: 0.95 } : {}}
-                      onClick={() => unlocked && startRace(difficulty, i)}
+                      onClick={() => unlocked && selectLevel(difficulty, i)}
                       disabled={!unlocked}
                       className={`p-4 rounded-xl text-left transition-all ${
                         unlocked
@@ -460,6 +503,112 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setPhase('menu')}
                 className="mt-2 px-6 py-2 bg-slate-200 text-slate-600 rounded-full font-bold"
+              >
+                ← {locale === 'he' ? 'חזרה' : locale === 'zh' ? '返回' : locale === 'es' ? 'Volver' : 'Back'}
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── CAR SELECT ── */}
+        <AnimatePresence mode="wait">
+          {phase === 'car-select' && (
+            <motion.div
+              key="car-select"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="flex flex-col items-center py-6 gap-5 max-w-xl mx-auto"
+            >
+              <h2 className="text-2xl font-bold text-slate-700">{t.chooseCar}</h2>
+
+              {/* Car type selector */}
+              <div>
+                <p className="text-sm font-bold text-slate-500 mb-2 text-center">{t.pickType}</p>
+                <div className="flex gap-3 justify-center">
+                  {(['stock', 'formula', 'muscle'] as CarType[]).map((type) => {
+                    const typeLabels = CAR_TYPE_LABELS[locale] || CAR_TYPE_LABELS.en;
+                    const emojis: Record<CarType, string> = { stock: '🏎️', formula: '🏁', muscle: '💪' };
+                    return (
+                      <motion.button
+                        key={type}
+                        whileHover={{ scale: 1.08 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setPlayerCarType(type)}
+                        className={`px-5 py-3 rounded-xl font-bold text-sm shadow-md transition-all flex flex-col items-center gap-1 min-w-[100px] ${
+                          playerCarType === type
+                            ? 'bg-gradient-to-br from-yellow-400 to-red-500 text-white ring-2 ring-yellow-300 scale-105'
+                            : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-400'
+                        }`}
+                      >
+                        <span className="text-2xl">{emojis[type]}</span>
+                        <span>{typeLabels[type]}</span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Color picker */}
+              <div>
+                <p className="text-sm font-bold text-slate-500 mb-2 text-center">{t.pickColor}</p>
+                <div className="flex gap-2 flex-wrap justify-center">
+                  {PLAYER_COLORS.map(({ hex }) => (
+                    <motion.button
+                      key={hex}
+                      whileHover={{ scale: 1.15 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => setPlayerColor(hex)}
+                      className={`w-10 h-10 rounded-full border-2 transition-all shadow-md ${
+                        playerColor === hex ? 'ring-3 ring-yellow-400 border-white scale-110' : 'border-slate-300'
+                      }`}
+                      style={{ backgroundColor: hex }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Camera mode toggle */}
+              <div>
+                <p className="text-sm font-bold text-slate-500 mb-2 text-center">{t.camera}</p>
+                <div className="flex gap-3 justify-center">
+                  {([
+                    { mode: 'tv' as CameraMode, emoji: '📺', label: t.cameraTv },
+                    { mode: 'cockpit' as CameraMode, emoji: '🪖', label: t.cameraCockpit },
+                  ]).map(({ mode, emoji, label }) => (
+                    <motion.button
+                      key={mode}
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setCameraMode(mode)}
+                      className={`px-5 py-2 rounded-xl font-bold text-sm shadow-md transition-all flex items-center gap-2 ${
+                        cameraMode === mode
+                          ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white ring-2 ring-blue-300'
+                          : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-400'
+                      }`}
+                    >
+                      <span className="text-lg">{emoji}</span>
+                      <span>{label}</span>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Start race button */}
+              <motion.button
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={startRace}
+                className="mt-2 px-10 py-4 bg-gradient-to-r from-green-400 to-green-600 text-white font-bold text-xl rounded-2xl shadow-xl"
+              >
+                🏁 {t.startRace}
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setPhase('career-select')}
+                className="px-6 py-2 bg-slate-200 text-slate-600 rounded-full font-bold text-sm"
               >
                 ← {locale === 'he' ? 'חזרה' : locale === 'zh' ? '返回' : locale === 'es' ? 'Volver' : 'Back'}
               </motion.button>
@@ -516,7 +665,15 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                   </span>
                 )}
               </div>
-              <LevelDisplay level={levelIndex + 1} />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCameraMode(cameraMode === 'tv' ? 'cockpit' : 'tv')}
+                  className="px-3 py-1 bg-slate-700 text-white rounded-lg text-xs font-bold hover:bg-slate-600 transition-colors"
+                >
+                  {cameraMode === 'tv' ? '📺 TV' : '🪖 1P'}
+                </button>
+                <LevelDisplay level={levelIndex + 1} />
+              </div>
             </div>
 
             {/* 3D Canvas */}
@@ -535,6 +692,9 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                 numAiCars={levelConfig.opponents}
                 countdown={countdown}
                 locale={locale}
+                cameraMode={cameraMode}
+                playerColor={playerColor}
+                playerCarType={playerCarType}
               />
             </R3FGameContainer>
 

@@ -5,9 +5,11 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { Text, Sky } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
-import { Car, AI_CAR_COLORS } from './Car';
+import { Car, AI_CAR_COLORS, CarType } from './Car';
 import { Track, getTrackPosition } from './Track';
 import { RaceState, GAME_CONSTANTS } from './useNascarGame';
+
+export type CameraMode = 'tv' | 'cockpit';
 
 const { TRACK_RADIUS_X, TRACK_RADIUS_Z } = GAME_CONSTANTS;
 
@@ -22,6 +24,9 @@ interface NascarSceneProps {
   numAiCars: number;
   countdown: number;
   locale: string;
+  cameraMode?: CameraMode;
+  playerColor?: string;
+  playerCarType?: CarType;
 }
 
 // ─── Countdown — follows the camera ─────────────────────────
@@ -74,6 +79,9 @@ export function NascarScene({
   numAiCars,
   countdown,
   locale,
+  cameraMode = 'tv',
+  playerColor = '#ffeb3b',
+  playerCarType = 'stock',
 }: NascarSceneProps) {
   const { camera } = useThree();
   const playerCarRef = useRef<THREE.Group>(null);
@@ -139,29 +147,42 @@ export function NascarScene({
       }
     });
 
-    // ── Cinematic low-slung NASCAR camera ──
-    const camDist = 5;      // was 7 — tighter, more immersive
-    const camHeight = 1.8;  // was 4 — TV broadcast low-angle feel
-    const behindAngle = player.angle - 0.12;
-    const behindPos = getTrackPosition(behindAngle, TRACK_RADIUS_X + camDist, TRACK_RADIUS_Z + camDist, 0);
+    // ── Camera ──
+    if (cameraMode === 'cockpit') {
+      // First-person cockpit — sit inside driver's head, look forward
+      const cockpitPos = getTrackPosition(player.angle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
+      const lookAheadAngle = player.angle + 0.25;
+      const lookAheadPos = getTrackPosition(lookAheadAngle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
 
-    const targetCamPos = new THREE.Vector3(behindPos.x, camHeight, behindPos.z);
+      const targetCamPos = new THREE.Vector3(cockpitPos.x, 0.65, cockpitPos.z);
+      const targetLookAt = new THREE.Vector3(lookAheadPos.x, 0.45, lookAheadPos.z);
 
-    // Look slightly ahead of player — shows oncoming traffic
-    const aheadAngle = player.angle + 0.14;
-    const aheadPos = getTrackPosition(aheadAngle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
-    const targetLookAt = new THREE.Vector3(aheadPos.x, 0.7, aheadPos.z);
+      cameraPos.current.lerp(targetCamPos, 0.25);
+      cameraTarget.current.lerp(targetLookAt, 0.20);
+    } else {
+      // TV helicopter camera
+      const camDist = 8;
+      const camHeight = 3.5;
+      const behindAngle = player.angle - 0.10;
+      const behindPos = getTrackPosition(behindAngle, TRACK_RADIUS_X + camDist, TRACK_RADIUS_Z + camDist, 0);
 
-    cameraPos.current.lerp(targetCamPos, 0.10);
-    cameraTarget.current.lerp(targetLookAt, 0.15);
+      const targetCamPos = new THREE.Vector3(behindPos.x, camHeight, behindPos.z);
+      const aheadAngle = player.angle + 0.18;
+      const aheadPos = getTrackPosition(aheadAngle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
+      const targetLookAt = new THREE.Vector3(aheadPos.x, 0.5, aheadPos.z);
+
+      cameraPos.current.lerp(targetCamPos, 0.08);
+      cameraTarget.current.lerp(targetLookAt, 0.12);
+    }
 
     camera.position.copy(cameraPos.current);
     camera.lookAt(cameraTarget.current);
 
-    // Camera shake at high speed — mutate via cameraPos ref, not camera directly
+    // Camera shake at high speed
     const speedPct = state.playerSpeedPct / 100;
     if (speedPct > 0.65) {
-      const shakeAmt = (speedPct - 0.65) * 0.018;
+      const intensity = cameraMode === 'cockpit' ? 0.008 : 0.018;
+      const shakeAmt = (speedPct - 0.65) * intensity;
       cameraPos.current.x += (Math.random() - 0.5) * shakeAmt;
       cameraPos.current.y += (Math.random() - 0.5) * shakeAmt * 0.4;
       camera.position.copy(cameraPos.current);
@@ -178,7 +199,7 @@ export function NascarScene({
       {/* Sky — race-day afternoon feel */}
       <Sky sunPosition={[100, 40, 80]} turbidity={3} rayleigh={0.6} mieCoefficient={0.005} mieDirectionalG={0.8} />
       <color attach="background" args={['#87ceeb']} />
-      <fog attach="fog" args={['#c8d6e5', 50, 120]} />
+      <fog attach="fog" args={['#c8d6e5', 80, 180]} />
 
       {/* Main sun */}
       <directionalLight
@@ -200,33 +221,36 @@ export function NascarScene({
       {/* Track (Daytona style with pit lane) */}
       <Track showPitLane />
 
-      {/* Animated checkered flag at start/finish */}
-      <mesh ref={flagRef} position={[TRACK_RADIUS_X + 3.5, 4.5, 0.5]}>
+      {/* Animated checkered flag at start/finish — outside SAFER barrier */}
+      <mesh ref={flagRef} position={[TRACK_RADIUS_X + 6, 4.5, 0.5]}>
         <planeGeometry args={[1.2, 0.8]} />
         <meshStandardMaterial color="white" side={THREE.DoubleSide} />
       </mesh>
-      <mesh position={[TRACK_RADIUS_X + 3.5, 4.5, 0.51]}>
+      <mesh position={[TRACK_RADIUS_X + 6, 4.5, 0.51]}>
         <planeGeometry args={[0.56, 0.36]} />
         <meshStandardMaterial color="#111" />
       </mesh>
       {/* Flag pole */}
-      <mesh position={[TRACK_RADIUS_X + 3.5, 2.5, 0.5]}>
+      <mesh position={[TRACK_RADIUS_X + 6, 2.5, 0.5]}>
         <cylinderGeometry args={[0.04, 0.04, 5, 8]} />
         <meshStandardMaterial color="#888" metalness={0.8} />
       </mesh>
 
-      {/* Player Car */}
+      {/* Player Car — hidden in cockpit mode so it doesn't clip */}
       <group ref={playerCarRef} position={[TRACK_RADIUS_X, 0.25, 0]}>
-        <Car
-          position={[0, 0, 0]}
-          rotation={[0, 0, 0]}
-          color="#ffeb3b"
-          speed={playerSpeed}
-          isPlayer
-          carNumber={1}
-          braking={isBraking}
-          drafting={isDrafting}
-        />
+        {cameraMode !== 'cockpit' && (
+          <Car
+            position={[0, 0, 0]}
+            rotation={[0, 0, 0]}
+            color={playerColor}
+            speed={playerSpeed}
+            isPlayer
+            carNumber={1}
+            braking={isBraking}
+            drafting={isDrafting}
+            carType={playerCarType}
+          />
+        )}
       </group>
 
       {/* AI Cars */}

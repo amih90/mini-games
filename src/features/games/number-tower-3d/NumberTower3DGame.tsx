@@ -6,6 +6,7 @@ import { Text, Stars, Float } from '@react-three/drei';
 import * as THREE from 'three';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { InstructionsModal } from '@/features/games/shared/InstructionsModal';
+import { GameWrapper } from '../shared/GameWrapper';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -533,7 +534,8 @@ export default function NumberTower3DGame({ locale = 'en' }: NumberTower3DGamePr
   }, [phase, highlightedLane, catchBlock]);
 
   return (
-    <div className="relative w-full h-screen bg-black overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
+    <GameWrapper title={t.title} onInstructionsClick={() => setShowInstructions(true)} fullHeight>
+    <div className="relative w-full h-full bg-black overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* 3D Canvas */}
       {(phase === 'playing' || phase === 'win' || phase === 'gameover') && (
         <Canvas
@@ -599,6 +601,20 @@ export default function NumberTower3DGame({ locale = 'en' }: NumberTower3DGamePr
             <div className="inline-block bg-black/60 rounded-xl px-4 py-2 text-white text-sm">
               {t.clickCatch}
             </div>
+          </div>
+
+          {/* Mobile catch button */}
+          <div className="absolute bottom-16 left-0 right-0 flex justify-center gap-4 md:hidden z-20 px-4">
+            <button
+              onPointerDown={(e) => {
+                e.preventDefault();
+                const block = blocksRef.current.find(b => b.lane === highlightedLane);
+                if (block) catchBlock(block.id);
+              }}
+              className="flex-1 max-w-[200px] py-4 rounded-2xl bg-yellow-400 text-black font-bold text-xl shadow-lg active:scale-95 transition-transform select-none"
+            >
+              ✋ {t.clickCatch}
+            </button>
           </div>
         </>
       )}
@@ -677,5 +693,6 @@ export default function NumberTower3DGame({ locale = 'en' }: NumberTower3DGamePr
         locale={locale}
       />
     </div>
+    </GameWrapper>
   );
 }

@@ -62,7 +62,7 @@ const TWO_PI = Math.PI * 2;
 const LANE_WIDTH = 1.2;
 const MAX_LANE_OFFSET = 2.0;
 const CHECKPOINT_COUNT = 4;
-const CAR_HITBOX = 1.6; // Collision distance between cars
+const CAR_HITBOX = 1.0; // Collision distance between cars (narrower = less false collisions)
 
 // Pit stop constants
 const PIT_ENTRY_ANGLE_MIN = -0.5;
@@ -111,31 +111,31 @@ export const CAREER_LEVELS: Record<string, Omit<LevelConfig, 'unlocked'>[]> = {
 
 export const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
   easy: {
-    maxSpeed: 1.6,
-    acceleration: 1.0,
+    maxSpeed: 2.0,
+    acceleration: 1.4,
     braking: 2.0,
-    steerSpeed: 4.0,
+    steerSpeed: 3.5,
     autoAccelerate: true,
-    aiAggressiveness: 0.55,
-    friction: 0.3,
+    aiAggressiveness: 0.6,
+    friction: 0.2,
   },
   medium: {
-    maxSpeed: 2.2,
-    acceleration: 1.3,
+    maxSpeed: 2.6,
+    acceleration: 1.6,
     braking: 2.5,
-    steerSpeed: 4.5,
+    steerSpeed: 4.0,
     autoAccelerate: false,
-    aiAggressiveness: 0.75,
-    friction: 0.25,
+    aiAggressiveness: 0.78,
+    friction: 0.18,
   },
   hard: {
-    maxSpeed: 2.8,
-    acceleration: 1.5,
+    maxSpeed: 3.2,
+    acceleration: 1.8,
     braking: 3.0,
-    steerSpeed: 5.0,
+    steerSpeed: 4.5,
     autoAccelerate: false,
     aiAggressiveness: 0.95,
-    friction: 0.2,
+    friction: 0.15,
   },
 };
 
@@ -380,8 +380,10 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
           player.tireWear = clamp(player.tireWear + TIRE_WEAR_RATE * (player.speed / settings.maxSpeed) * dt, 0, 100);
 
           // Steering — lateral offset (feels like changing lanes)
+          // Negate steerInput: cars travel CCW so from the driver's cockpit view,
+          // pressing "right" should push outward (positive laneOffset → outside lane)
           if (steerInput !== 0) {
-            player.laneOffset += steerInput * settings.steerSpeed * dt;
+            player.laneOffset -= steerInput * settings.steerSpeed * dt;
             player.laneOffset = clamp(player.laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
           }
 
@@ -454,12 +456,13 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
       const aiWearFactor = 1 - (aiCar.tireWear / 100) * (1 - TIRE_WEAR_PENALTY);
       const targetSpeed = settings.maxSpeed * factor * settings.aiAggressiveness * aiWearFactor * sectionMult * rubberBandMultiplier.current;
 
+      // AI acceleration is smoother — faster ramp up, gentler coast-down
       if (aiCar.speed < targetSpeed) {
-        aiCar.speed += settings.acceleration * 0.9 * dt;
+        aiCar.speed += settings.acceleration * 1.1 * dt;
       } else {
-        aiCar.speed -= settings.friction * 0.5 * dt;
+        aiCar.speed -= settings.friction * 0.3 * dt;
       }
-      aiCar.speed = clamp(aiCar.speed, 0, settings.maxSpeed * 1.05);
+      aiCar.speed = clamp(aiCar.speed, 0.1, settings.maxSpeed * 1.05);
 
       // ── Drafting ──
       const allCarsForDraft = [
@@ -527,16 +530,17 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
         const overlap = CAR_HITBOX - dist;
         const playerAhead = normalizeAngle(player.angle - aiCar.angle) < Math.PI;
         if (playerAhead) {
-          // Player rear-ended by AI — player gets minor push, AI slows hard
-          player.speed = Math.min(player.speed + aiCar.speed * 0.02, settings.maxSpeed * 1.04);
-          aiCar.speed *= 0.86;
+          // Player rear-ended by AI — gentle nudge, no hard stop
+          player.speed = Math.min(player.speed + aiCar.speed * 0.01, settings.maxSpeed * 1.02);
+          aiCar.speed *= 0.95;
         } else {
-          // Player hit AI from behind
-          player.speed *= 0.84;
-          aiCar.speed *= 0.97;
+          // Player hit AI from behind — slight slowdown, not a wall
+          player.speed *= 0.94;
+          aiCar.speed *= 0.98;
         }
-        player.laneOffset += (dx / dist) * overlap * 0.28;
-        aiCar.laneOffset -= (dx / dist) * overlap * 0.22;
+        // Gentle lateral push — just enough to separate
+        player.laneOffset += (dx / dist) * overlap * 0.15;
+        aiCar.laneOffset -= (dx / dist) * overlap * 0.12;
         player.laneOffset = clamp(player.laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
         aiCar.laneOffset = clamp(aiCar.laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
       }
