@@ -302,6 +302,26 @@ const CountingBubblesGame = dynamic(
   }
 );
 
+const ShapeSorter3DGame = dynamic(
+  () => import('@/features/games/shape-sorter-3d/ShapeSorter3DGame'),
+  { loading: () => <GameLoadingSkeleton />, ssr: false }
+);
+
+const SolarSystem3DGame = dynamic(
+  () => import('@/features/games/solar-system-3d/SolarSystem3DGame'),
+  { loading: () => <GameLoadingSkeleton />, ssr: false }
+);
+
+const NumberTower3DGame = dynamic(
+  () => import('@/features/games/number-tower-3d/NumberTower3DGame'),
+  { loading: () => <GameLoadingSkeleton />, ssr: false }
+);
+
+const AnimalDiceGame = dynamic(
+  () => import('@/features/games/animal-dice/AnimalDiceGame'),
+  { loading: () => <GameLoadingSkeleton />, ssr: false }
+);
+
 function GameLoadingSkeleton() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-peach-glow-light via-white to-sky-bubble-light flex items-center justify-center">
@@ -400,6 +420,14 @@ export function GameLoader({ slug }: GameLoaderProps) {
       return <ShadowMatchGame />;
     case 'counting-bubbles':
       return <CountingBubblesGame />;
+    case 'shape-sorter-3d':
+      return <ShapeSorter3DGame locale={locale} />;
+    case 'solar-system-3d':
+      return <SolarSystem3DGame locale={locale} />;
+    case 'number-tower-3d':
+      return <NumberTower3DGame locale={locale} />;
+    case 'animal-dice':
+      return <AnimalDiceGame locale={locale} />;
     default:
       return null;
   }

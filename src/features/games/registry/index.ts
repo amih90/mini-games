@@ -24,6 +24,10 @@ import { shadowMatchConfig } from '../shadow-match/game.config';
 import { countingBubblesConfig } from '../counting-bubbles/game.config';
 import { armyRunnerConfig } from '../army-runner/game.config';
 import { potionCraftConfig } from '../potion-craft/game.config';
+import { shapeSorter3DConfig } from '../shape-sorter-3d/game.config';
+import { solarSystem3DConfig } from '../solar-system-3d/game.config';
+import { numberTower3DConfig } from '../number-tower-3d/game.config';
+import { animalDiceConfig } from '../animal-dice/game.config';
 
 // Re-export types
 export type { GameConfig, GameCategory } from './types';
@@ -262,6 +266,10 @@ export const gameRegistry: Record<string, GameConfig> = {
   'counting-bubbles': countingBubblesConfig,
   'army-runner': armyRunnerConfig,
   'potion-craft': potionCraftConfig,
+  'shape-sorter-3d': shapeSorter3DConfig,
+  'solar-system-3d': solarSystem3DConfig,
+  'number-tower-3d': numberTower3DConfig,
+  'animal-dice': animalDiceConfig,
 };
 
 /**

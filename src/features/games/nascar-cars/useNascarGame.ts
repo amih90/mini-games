@@ -56,20 +56,20 @@ export interface RaceState {
 }
 
 // ─── Constants ───────────────────────────────────────────────
-const TRACK_RADIUS_X = 14;
-const TRACK_RADIUS_Z = 8;
+const TRACK_RADIUS_X = 42;
+const TRACK_RADIUS_Z = 24;
 const TWO_PI = Math.PI * 2;
-const LANE_WIDTH = 1.2;
-const MAX_LANE_OFFSET = 2.0;
+const LANE_WIDTH = 3.0;
+const MAX_LANE_OFFSET = 5.0;
 const CHECKPOINT_COUNT = 4;
-const CAR_HITBOX = 1.0; // Collision distance between cars (narrower = less false collisions)
+const CAR_HITBOX = 1.8; // Collision distance between cars
 
 // Pit stop constants
 const PIT_ENTRY_ANGLE_MIN = -0.5;
 const PIT_ENTRY_ANGLE_MAX = 0.1;
 const PIT_STOP_DURATION = 3.0;   // Seconds for tire change
-const TIRE_WEAR_RATE = 2.5;      // Wear per second at full speed
-const TIRE_WEAR_PENALTY = 0.3;   // Max speed multiplier at 100% wear (30% of max)
+const TIRE_WEAR_RATE = 1.2;      // Wear per second at full speed (lower = longer before pit needed)
+const TIRE_WEAR_PENALTY = 0.5;   // Max speed multiplier at 100% wear (50% of max — less punishing)
 
 export const GAME_CONSTANTS = {
   TRACK_RADIUS_X,
@@ -111,31 +111,31 @@ export const CAREER_LEVELS: Record<string, Omit<LevelConfig, 'unlocked'>[]> = {
 
 export const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
   easy: {
-    maxSpeed: 2.0,
-    acceleration: 1.4,
-    braking: 2.0,
-    steerSpeed: 3.5,
+    maxSpeed: 5.0,
+    acceleration: 3.0,
+    braking: 5.0,
+    steerSpeed: 8.0,
     autoAccelerate: true,
     aiAggressiveness: 0.6,
-    friction: 0.2,
+    friction: 0.4,
   },
   medium: {
-    maxSpeed: 2.6,
-    acceleration: 1.6,
-    braking: 2.5,
-    steerSpeed: 4.0,
+    maxSpeed: 6.5,
+    acceleration: 3.5,
+    braking: 6.0,
+    steerSpeed: 9.0,
     autoAccelerate: false,
     aiAggressiveness: 0.78,
-    friction: 0.18,
+    friction: 0.35,
   },
   hard: {
-    maxSpeed: 3.2,
-    acceleration: 1.8,
-    braking: 3.0,
-    steerSpeed: 4.5,
+    maxSpeed: 8.0,
+    acceleration: 4.0,
+    braking: 7.0,
+    steerSpeed: 10.0,
     autoAccelerate: false,
     aiAggressiveness: 0.95,
-    friction: 0.15,
+    friction: 0.3,
   },
 };
 
@@ -149,9 +149,9 @@ function normalizeAngle(angle: number): number {
 }
 
 // ─── Drafting / slipstream constants ─────────────────────────
-const DRAFT_RANGE = 2.8;
+const DRAFT_RANGE = 6.0;
 const DRAFT_MAX_BOOST = 0.08;
-const DRAFT_LANE_TOLERANCE = 0.85;
+const DRAFT_LANE_TOLERANCE = 2.0;
 
 interface DraftResult { boost: number; isDrafting: boolean; draftTarget: number; }
 
@@ -226,8 +226,10 @@ function updateLaps(
   const normalized = normalizeAngle(car.angle);
   const checkpoint = Math.floor((normalized / TWO_PI) * CHECKPOINT_COUNT);
 
-  // Detect lap completion (crossed from last checkpoint region back to first)
-  if (checkpoint === 0 && car.lastCheckpoint === CHECKPOINT_COUNT - 1) {
+  // Detect lap completion (crossed from last checkpoint region back to first).
+  // Guard: only count if the car has actually visited checkpoint 1+ first
+  // (prevents false lap when starting at negative angles near 0).
+  if (checkpoint === 0 && car.lastCheckpoint === CHECKPOINT_COUNT - 1 && car.angle > 0.5) {
     car.laps++;
     onLap(car.laps);
     if (car.laps >= targetLaps) {
@@ -274,14 +276,14 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
       // Grid: alternate left/right lanes, stagger by row
       const row = Math.floor(i / 2);
       const side = i % 2 === 0 ? -1 : 1;
-      const startAngle = -((row + 1) * 0.06); // Slightly behind in rows
+      const startAngle = -((row + 1) * 0.03); // Slightly behind in rows
       const lane = side * LANE_WIDTH * 0.6;
       aiCars.push({
         angle: startAngle,
         speed: 0,
         laneOffset: lane,
         laps: 0,
-        lastCheckpoint: 0,
+        lastCheckpoint: 0,  // Force checkpoint 0 — prevents false lap trigger
         finished: false,
         tireWear: 0,
         inPit: false,
@@ -357,7 +359,11 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
       } else {
         // Check pit entry: player near pit entry zone + requested
         const normalizedAngle = normalizeAngle(player.angle);
-        const inPitZone = normalizedAngle > normalizeAngle(PIT_ENTRY_ANGLE_MIN) && normalizedAngle < normalizeAngle(PIT_ENTRY_ANGLE_MAX);
+        const pitMin = normalizeAngle(PIT_ENTRY_ANGLE_MIN);
+        const pitMax = normalizeAngle(PIT_ENTRY_ANGLE_MAX);
+        const inPitZone = pitMin > pitMax
+          ? (normalizedAngle > pitMin || normalizedAngle < pitMax)
+          : (normalizedAngle > pitMin && normalizedAngle < pitMax);
         if (pitRequested && inPitZone && !player.inPit) {
           player.inPit = true;
           player.pitTimer = PIT_STOP_DURATION;
@@ -441,7 +447,12 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
       // AI decides to pit when tire wear is high (70-90% threshold, varies per AI)
       const pitThreshold = 70 + (i % 3) * 10;
       const aiNormAngle = normalizeAngle(aiCar.angle);
-      const aiInPitZone = aiNormAngle > normalizeAngle(PIT_ENTRY_ANGLE_MIN) && aiNormAngle < normalizeAngle(PIT_ENTRY_ANGLE_MAX);
+      // Pit zone wraps around angle 0 — check both sides
+      const pitMinNorm = normalizeAngle(PIT_ENTRY_ANGLE_MIN);
+      const pitMaxNorm = normalizeAngle(PIT_ENTRY_ANGLE_MAX);
+      const aiInPitZone = pitMinNorm > pitMaxNorm
+        ? (aiNormAngle > pitMinNorm || aiNormAngle < pitMaxNorm)  // wraps around 0
+        : (aiNormAngle > pitMinNorm && aiNormAngle < pitMaxNorm);
       if (aiCar.tireWear > pitThreshold && aiInPitZone && aiCar.laps >= 1 && aiCar.laps < levelConfig.laps - 1) {
         aiCar.inPit = true;
         aiCar.pitTimer = PIT_STOP_DURATION * (0.9 + Math.random() * 0.2);

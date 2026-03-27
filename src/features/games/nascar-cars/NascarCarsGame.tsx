@@ -678,7 +678,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
 
             {/* 3D Canvas */}
             <R3FGameContainer
-              camera={{ position: [0, 10, 25], fov: 55 }}
+              camera={{ position: [0, 20, 70], fov: 60 }}
               className="rounded-xl overflow-hidden shadow-2xl"
             >
               <NascarScene

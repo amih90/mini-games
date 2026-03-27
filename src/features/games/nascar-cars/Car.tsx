@@ -2,7 +2,7 @@
 
 import { Suspense, useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { RoundedBox, Text } from '@react-three/drei';
+import { RoundedBox, Text, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 
 // ─── Car types with distinct silhouettes ─────────────────────
@@ -42,8 +42,25 @@ interface CarProps {
 }
 
 /**
+ * Clearcoat car paint — metallic base with glossy clear layer.
+ * Uses MeshPhysicalMaterial for realistic environmental reflections.
+ */
+function CarPaint({ color }: { color: string }) {
+  return (
+    <meshPhysicalMaterial
+      color={color}
+      metalness={0.7}
+      roughness={0.15}
+      clearcoat={1.0}
+      clearcoatRoughness={0.08}
+      envMapIntensity={1.2}
+    />
+  );
+}
+
+/**
  * Race car — supports stock, formula, and muscle body styles.
- * Exhaust particles, brake glow, draft shimmer all shared.
+ * Clearcoat paint, exhaust sparkles, brake glow, draft shimmer.
  */
 export function Car({
   position,
@@ -136,11 +153,11 @@ export function Car({
         <group>
           {/* Main body — low and wide NASCAR stock car */}
           <RoundedBox args={[1.3, 0.32, 1.8]} radius={0.08} smoothness={4} castShadow position={[0, 0.08, 0]}>
-            <meshStandardMaterial color={color} roughness={0.25} metalness={0.3} />
+            <CarPaint color={color} />
           </RoundedBox>
           {/* Cabin / roof */}
           <RoundedBox args={[0.9, 0.28, 0.75]} radius={0.08} smoothness={4} castShadow position={[0, 0.32, -0.05]}>
-            <meshStandardMaterial color={color} roughness={0.2} metalness={0.2} />
+            <CarPaint color={color} />
           </RoundedBox>
           {/* Roof stripe */}
           <mesh position={[0, 0.47, -0.05]} rotation={[-Math.PI / 2, 0, 0]}>
@@ -174,7 +191,7 @@ export function Car({
           {/* Rear spoiler */}
           <mesh position={[0, 0.48, -0.82]} castShadow>
             <boxGeometry args={[1.2, 0.04, 0.28]} />
-            <meshStandardMaterial color={color} roughness={0.3} metalness={0.2} />
+            <CarPaint color={color} />
           </mesh>
           {[-0.58, 0.58].map((sx) => (
             <mesh key={`ep-${sx}`} position={[sx, 0.42, -0.82]}>
@@ -202,21 +219,21 @@ export function Car({
           {/* Central monocoque — narrow nose-cone shape */}
           <mesh position={[0, 0.06, 0]} castShadow>
             <boxGeometry args={[0.55, 0.22, 2.1]} />
-            <meshStandardMaterial color={color} roughness={0.15} metalness={0.5} />
+            <CarPaint color={color} />
           </mesh>
           {/* Nose cone — tapered front */}
           <mesh position={[0, 0.06, 1.15]} castShadow>
             <boxGeometry args={[0.35, 0.16, 0.4]} />
-            <meshStandardMaterial color={color} roughness={0.15} metalness={0.5} />
+            <CarPaint color={color} />
           </mesh>
           <mesh position={[0, 0.04, 1.4]}>
             <boxGeometry args={[0.2, 0.1, 0.25]} />
-            <meshStandardMaterial color={color} roughness={0.15} metalness={0.5} />
+            <CarPaint color={color} />
           </mesh>
           {/* Front wing — wide, low */}
           <mesh position={[0, -0.04, 1.25]}>
             <boxGeometry args={[1.4, 0.02, 0.25]} />
-            <meshStandardMaterial color={color} roughness={0.2} metalness={0.4} />
+            <CarPaint color={color} />
           </mesh>
           {/* Front wing endplates */}
           {[-0.68, 0.68].map((sx) => (
@@ -233,24 +250,24 @@ export function Car({
           {/* Driver helmet */}
           <mesh position={[0, 0.24, -0.15]}>
             <sphereGeometry args={[0.1, 12, 12]} />
-            <meshStandardMaterial color={color} roughness={0.3} metalness={0.2} />
+            <CarPaint color={color} />
           </mesh>
           {/* Side pods (air intakes) */}
           {[-1, 1].map((side) => (
             <mesh key={`pod-${side}`} position={[side * 0.42, 0.04, -0.15]} castShadow>
               <boxGeometry args={[0.3, 0.18, 0.9]} />
-              <meshStandardMaterial color={color} roughness={0.2} metalness={0.4} />
+              <CarPaint color={color} />
             </mesh>
           ))}
           {/* Engine cover — raised hump behind driver */}
           <mesh position={[0, 0.14, -0.65]}>
             <boxGeometry args={[0.35, 0.18, 0.6]} />
-            <meshStandardMaterial color={color} roughness={0.2} metalness={0.4} />
+            <CarPaint color={color} />
           </mesh>
           {/* Rear wing — high, large */}
           <mesh position={[0, 0.42, -0.95]}>
             <boxGeometry args={[1.0, 0.03, 0.2]} />
-            <meshStandardMaterial color={color} roughness={0.2} metalness={0.5} />
+            <CarPaint color={color} />
           </mesh>
           {/* Rear wing endplates */}
           {[-0.48, 0.48].map((sx) => (
@@ -269,7 +286,7 @@ export function Car({
           {/* DRS flap */}
           <mesh position={[0, 0.46, -0.85]}>
             <boxGeometry args={[0.9, 0.015, 0.1]} />
-            <meshStandardMaterial color={color} roughness={0.15} metalness={0.5} />
+            <CarPaint color={color} />
           </mesh>
           {/* Rear diffuser */}
           <mesh position={[0, -0.06, -1.0]}>
@@ -289,11 +306,11 @@ export function Car({
         <group>
           {/* Main body — long, aggressive */}
           <RoundedBox args={[1.35, 0.35, 2.0]} radius={0.06} smoothness={4} castShadow position={[0, 0.08, 0]}>
-            <meshStandardMaterial color={color} roughness={0.2} metalness={0.35} />
+            <CarPaint color={color} />
           </RoundedBox>
           {/* Cabin — fastback slope */}
           <RoundedBox args={[0.95, 0.26, 0.65]} radius={0.06} smoothness={4} castShadow position={[0, 0.3, -0.1]}>
-            <meshStandardMaterial color={color} roughness={0.2} metalness={0.3} />
+            <CarPaint color={color} />
           </RoundedBox>
           {/* Windshield */}
           <mesh position={[0, 0.28, 0.28]} rotation={[0.35, 0, 0]}>
@@ -308,7 +325,7 @@ export function Car({
           {/* Hood power bulge */}
           <mesh position={[0, 0.27, 0.15]} castShadow>
             <boxGeometry args={[0.6, 0.04, 0.8]} />
-            <meshStandardMaterial color={color} roughness={0.2} metalness={0.3} />
+            <CarPaint color={color} />
           </mesh>
           {/* Racing stripes (twin center) */}
           {[-0.12, 0.12].map((sx) => (
@@ -339,7 +356,7 @@ export function Car({
           {[-1, 1].map((side) => (
             <mesh key={`flare-${side}`} position={[side * 0.65, 0.0, -0.5]}>
               <boxGeometry args={[0.12, 0.22, 0.5]} />
-              <meshStandardMaterial color={color} roughness={0.25} metalness={0.3} />
+              <CarPaint color={color} />
             </mesh>
           ))}
           {/* Rear window */}
@@ -425,6 +442,32 @@ export function Car({
       )}
 
       {/* Exhaust smoke particles — added imperatively in useEffect above */}
+
+      {/* Sparkle exhaust plume — visible at speed */}
+      {speed > 0.3 && (
+        <Sparkles
+          count={40}
+          scale={[0.8, 0.4, 1.5]}
+          size={3}
+          speed={0.8}
+          color="#999999"
+          opacity={0.35}
+          position={[0, 0.05, carType === 'formula' ? -1.15 : -0.95]}
+        />
+      )}
+
+      {/* Brake sparks — visible when braking hard */}
+      {braking && speed > 0.5 && (
+        <Sparkles
+          count={20}
+          scale={[1.2, 0.2, 0.4]}
+          size={2}
+          speed={3}
+          color="#ff6600"
+          opacity={0.8}
+          position={[0, -0.15, carType === 'formula' ? -0.7 : -0.55]}
+        />
+      )}
 
       {/* Wheels */}
       {[

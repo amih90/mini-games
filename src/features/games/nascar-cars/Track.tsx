@@ -47,9 +47,9 @@ const CROWD_COLORS = [
  * - Light towers, timing tower, victory lane
  */
 export function Track({
-  trackWidth = 4,
-  trackRadiusX = 14,
-  trackRadiusZ = 8,
+  trackWidth = 10,
+  trackRadiusX = 42,
+  trackRadiusZ = 24,
   showPitLane = true,
 }: TrackProps) {
 
@@ -96,7 +96,7 @@ export function Track({
   // ─── Lane markers (dashed center lines) ────────────────────
   const laneMarkers = useMemo(() => {
     const markers: { pos: [number, number, number]; rot: number }[] = [];
-    const segments = 60;
+    const segments = 120;
     for (let i = 0; i < segments; i += 2) {
       const angle = (i / segments) * Math.PI * 2;
       const cos = Math.cos(angle);
@@ -113,7 +113,7 @@ export function Track({
   // ─── SAFER barriers (concrete walls) ──────────────────────
   const saferBarriers = useMemo(() => {
     const barriers: { pos: [number, number, number]; rot: number; length: number }[] = [];
-    const segments = 48;
+    const segments = 96;
     const halfWidth = trackWidth / 2;
     for (let i = 0; i < segments; i++) {
       const angle = (i / segments) * Math.PI * 2;
@@ -153,35 +153,35 @@ export function Track({
     const stands: { pos: [number, number, number]; rot: number; tiers: number; width: number }[] = [];
     const halfWidth = trackWidth / 2;
     // Front stretch (big grandstands) — pushed far out to clear camera
-    for (let i = 0; i < 10; i++) {
-      const angle = -0.6 + (i / 9) * 1.2;
+    for (let i = 0; i < 14; i++) {
+      const angle = -0.5 + (i / 13) * 1.0;
       stands.push({
-        pos: [Math.cos(angle) * (trackRadiusX + halfWidth + 12), 0, Math.sin(angle) * (trackRadiusZ + halfWidth + 12)],
+        pos: [Math.cos(angle) * (trackRadiusX + halfWidth + 25), 0, Math.sin(angle) * (trackRadiusZ + halfWidth + 25)],
         rot: -angle,
-        tiers: 8,
-        width: 3.5,
+        tiers: 10,
+        width: 5,
       });
     }
     // Back stretch (smaller)
-    for (let i = 0; i < 6; i++) {
-      const angle = Math.PI - 0.4 + (i / 5) * 0.8;
+    for (let i = 0; i < 8; i++) {
+      const angle = Math.PI - 0.35 + (i / 7) * 0.7;
       stands.push({
-        pos: [Math.cos(angle) * (trackRadiusX + halfWidth + 11), 0, Math.sin(angle) * (trackRadiusZ + halfWidth + 11)],
+        pos: [Math.cos(angle) * (trackRadiusX + halfWidth + 22), 0, Math.sin(angle) * (trackRadiusZ + halfWidth + 22)],
         rot: -angle,
-        tiers: 4,
-        width: 3,
+        tiers: 5,
+        width: 4,
       });
     }
     // Turn grandstands
     for (let turn = 0; turn < 2; turn++) {
       const baseAngle = turn === 0 ? Math.PI / 2 : -Math.PI / 2;
-      for (let i = 0; i < 4; i++) {
-        const angle = baseAngle - 0.3 + (i / 3) * 0.6;
+      for (let i = 0; i < 6; i++) {
+        const angle = baseAngle - 0.25 + (i / 5) * 0.5;
         stands.push({
-          pos: [Math.cos(angle) * (trackRadiusX + halfWidth + 11), 0, Math.sin(angle) * (trackRadiusZ + halfWidth + 11)],
+          pos: [Math.cos(angle) * (trackRadiusX + halfWidth + 22), 0, Math.sin(angle) * (trackRadiusZ + halfWidth + 22)],
           rot: -angle,
-          tiers: 5,
-          width: 3,
+          tiers: 6,
+          width: 4.5,
         });
       }
     }
@@ -192,7 +192,7 @@ export function Track({
   const apronGeometry = useMemo(() => {
     const segments = 128;
     const halfWidth = trackWidth / 2;
-    const apronWidth = 1.0;
+    const apronWidth = 2.5;
     const positions: number[] = [];
     const indices: number[] = [];
     for (let i = 0; i <= segments; i++) {
@@ -247,23 +247,23 @@ export function Track({
     <group>
       {/* ── Ground / infield (grass) ── */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]} receiveShadow>
-        <planeGeometry args={[160, 160]} />
+        <planeGeometry args={[400, 400]} />
         <meshStandardMaterial color="#3a8c3f" roughness={0.95} />
       </mesh>
 
       {/* ── Lake Lloyd (infield water) ── */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-2, -0.02, -1]} scale={[1, 0.7, 1]} receiveShadow>
-        <circleGeometry args={[5, 32]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-5, -0.02, -3]} scale={[1, 0.7, 1]} receiveShadow>
+        <circleGeometry args={[12, 32]} />
         <meshStandardMaterial color="#2196f3" roughness={0.1} metalness={0.3} transparent opacity={0.8} />
       </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-2, -0.03, -1]} scale={[1, 0.73, 1]}>
-        <circleGeometry args={[5.5, 32]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-5, -0.03, -3]} scale={[1, 0.73, 1]}>
+        <circleGeometry args={[13, 32]} />
         <meshStandardMaterial color="#8d6e63" roughness={0.9} />
       </mesh>
 
       {/* ── Lighter infield grass patch ── */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[3, -0.04, 2]} scale={[1, 0.67, 1]}>
-        <circleGeometry args={[3, 16]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[8, -0.04, 6]} scale={[1, 0.67, 1]}>
+        <circleGeometry args={[8, 16]} />
         <meshStandardMaterial color="#4caf50" roughness={0.9} />
       </mesh>
 
@@ -280,7 +280,7 @@ export function Track({
       {/* ── Lane markers ── */}
       {laneMarkers.map((m, i) => (
         <mesh key={`lm-${i}`} position={m.pos} rotation={[-Math.PI / 2, 0, m.rot]}>
-          <planeGeometry args={[0.6, 0.12]} />
+          <planeGeometry args={[1.5, 0.2]} />
           <meshStandardMaterial color="white" />
         </mesh>
       ))}
@@ -302,25 +302,25 @@ export function Track({
       {/* ── SAFER barriers ── */}
       {saferBarriers.map((b, i) => (
         <mesh key={`safer-${i}`} position={b.pos} rotation={[0, b.rot, 0]}>
-          <boxGeometry args={[b.length, 0.6, 0.2]} />
+          <boxGeometry args={[b.length, 1.0, 0.35]} />
           <meshStandardMaterial color={i % 4 === 0 ? '#ff7043' : '#e0e0e0'} roughness={0.6} metalness={0.1} />
         </mesh>
       ))}
 
       {/* ── Catch fencing ── */}
       {saferBarriers.filter((_, i) => i % 3 === 0).map((b, i) => (
-        <mesh key={`fence-${i}`} position={[b.pos[0], b.pos[1] + 0.8, b.pos[2]]} rotation={[0, b.rot, 0]}>
-          <planeGeometry args={[b.length, 1.2]} />
+        <mesh key={`fence-${i}`} position={[b.pos[0], b.pos[1] + 1.2, b.pos[2]]} rotation={[0, b.rot, 0]}>
+          <planeGeometry args={[b.length, 2.0]} />
           <meshStandardMaterial color="#888" transparent opacity={0.25} side={THREE.DoubleSide} wireframe />
         </mesh>
       ))}
 
       {/* ── Inner wall ── */}
-      {Array.from({ length: 48 }).map((_, i) => {
-        const angle = (i / 48) * Math.PI * 2;
+      {Array.from({ length: 64 }).map((_, i) => {
+        const angle = (i / 64) * Math.PI * 2;
         return (
-          <mesh key={`iwall-${i}`} position={[Math.cos(angle) * (trackRadiusX - trackWidth / 2 - 0.3), 0.2, Math.sin(angle) * (trackRadiusZ - trackWidth / 2 - 0.3)]} rotation={[0, -angle + Math.PI / 2, 0]}>
-            <boxGeometry args={[2, 0.4, 0.12]} />
+          <mesh key={`iwall-${i}`} position={[Math.cos(angle) * (trackRadiusX - trackWidth / 2 - 0.5), 0.3, Math.sin(angle) * (trackRadiusZ - trackWidth / 2 - 0.5)]} rotation={[0, -angle + Math.PI / 2, 0]}>
+            <boxGeometry args={[4.5, 0.6, 0.15]} />
             <meshStandardMaterial color="#bdbdbd" roughness={0.7} />
           </mesh>
         );
@@ -395,33 +395,33 @@ export function Track({
 
       {/* ── Sponsor signage — moved further out ── */}
       {[
-        { pos: [trackRadiusX + trackWidth / 2 + 10, 5.5, 0] as [number, number, number], rot: -Math.PI / 2 },
-        { pos: [-(trackRadiusX + trackWidth / 2 + 10), 3, 0] as [number, number, number], rot: Math.PI / 2 },
+        { pos: [trackRadiusX + trackWidth / 2 + 20, 8, 0] as [number, number, number], rot: -Math.PI / 2 },
+        { pos: [-(trackRadiusX + trackWidth / 2 + 20), 5, 0] as [number, number, number], rot: Math.PI / 2 },
       ].map((sign, i) => (
         <group key={`sign-${i}`} position={sign.pos} rotation={[0, sign.rot, 0]}>
-          <mesh><boxGeometry args={[6, 1.2, 0.1]} /><meshStandardMaterial color="#1565c0" /></mesh>
-          <mesh position={[0, 0, 0.06]}><boxGeometry args={[5.5, 0.8, 0.01]} /><meshStandardMaterial color="#fff" emissive="#e3f2fd" emissiveIntensity={0.3} /></mesh>
+          <mesh><boxGeometry args={[10, 2, 0.15]} /><meshStandardMaterial color="#1565c0" /></mesh>
+          <mesh position={[0, 0, 0.08]}><boxGeometry args={[9, 1.2, 0.01]} /><meshStandardMaterial color="#fff" emissive="#e3f2fd" emissiveIntensity={0.3} /></mesh>
         </group>
       ))}
 
       {/* ── Light towers — pushed further out ── */}
       {[
-        [trackRadiusX + 14, 0, trackRadiusZ + 10],
-        [-(trackRadiusX + 14), 0, trackRadiusZ + 10],
-        [trackRadiusX + 14, 0, -(trackRadiusZ + 10)],
-        [-(trackRadiusX + 14), 0, -(trackRadiusZ + 10)],
-        [0, 0, trackRadiusZ + 14],
-        [0, 0, -(trackRadiusZ + 14)],
+        [trackRadiusX + 30, 0, trackRadiusZ + 20],
+        [-(trackRadiusX + 30), 0, trackRadiusZ + 20],
+        [trackRadiusX + 30, 0, -(trackRadiusZ + 20)],
+        [-(trackRadiusX + 30), 0, -(trackRadiusZ + 20)],
+        [0, 0, trackRadiusZ + 30],
+        [0, 0, -(trackRadiusZ + 30)],
       ].map((pos, i) => (
         <group key={`tower-${i}`} position={pos as [number, number, number]}>
-          <mesh position={[0, 5.5, 0]}><cylinderGeometry args={[0.12, 0.18, 11, 8]} /><meshStandardMaterial color="#666" metalness={0.8} roughness={0.3} /></mesh>
-          <pointLight position={[0, 11.5, 0]} intensity={80} color="#fff5e6" distance={35} />
-          <mesh position={[0, 11.2, 0]}><boxGeometry args={[1.6, 0.4, 0.4]} /><meshStandardMaterial color="#eee" emissive="#fff9c4" emissiveIntensity={1.0} /></mesh>
+          <mesh position={[0, 8, 0]}><cylinderGeometry args={[0.2, 0.3, 16, 8]} /><meshStandardMaterial color="#666" metalness={0.8} roughness={0.3} /></mesh>
+          <pointLight position={[0, 16.5, 0]} intensity={150} color="#fff5e6" distance={80} />
+          <mesh position={[0, 16.2, 0]}><boxGeometry args={[2.5, 0.6, 0.6]} /><meshStandardMaterial color="#eee" emissive="#fff9c4" emissiveIntensity={1.0} /></mesh>
         </group>
       ))}
 
       {/* ── Timing / scoring tower — pushed to outer perimeter ── */}
-      <group position={[trackRadiusX + 10, 0, -trackRadiusZ - 6]}>
+      <group position={[trackRadiusX + 22, 0, -trackRadiusZ - 12]}>
         <mesh position={[0, 3, 0]}><boxGeometry args={[1, 6, 0.8]} /><meshStandardMaterial color="#263238" roughness={0.5} /></mesh>
         {[0, 1, 2, 3, 4].map((pi) => (
           <mesh key={`panel-${pi}`} position={[0, 1 + pi * 0.9, 0.45]}>
@@ -432,7 +432,7 @@ export function Track({
       </group>
 
       {/* ── Victory lane — pushed outside track perimeter ── */}
-      <group position={[trackRadiusX + 10, 0, trackRadiusZ + 6]}>
+      <group position={[trackRadiusX + 22, 0, trackRadiusZ + 12]}>
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}><planeGeometry args={[3, 3]} /><meshStandardMaterial color="#222" roughness={0.6} /></mesh>
         {Array.from({ length: 9 }).map((_, ci) => (
           <mesh key={`vl-${ci}`} rotation={[-Math.PI / 2, 0, 0]} position={[(ci % 3 - 1) * 0.9, 0.015, (Math.floor(ci / 3) - 1) * 0.9]}>
@@ -443,10 +443,10 @@ export function Track({
       </group>
 
       {/* ── Infield buildings — low profile, stay well inside track to not block camera ── */}
-      <group position={[0, 0, -2]}>
-        <mesh position={[0, 0.3, 0]}><boxGeometry args={[4, 0.6, 1.5]} /><meshStandardMaterial color="#546e7a" roughness={0.7} /></mesh>
-        {[-1.5, -0.5, 0.5, 1.5].map((gx) => (
-          <mesh key={`gdoor-${gx}`} position={[gx * 0.9, 0.25, 0.76]}><planeGeometry args={[0.7, 0.5]} /><meshStandardMaterial color="#37474f" /></mesh>
+      <group position={[0, 0, -5]}>
+        <mesh position={[0, 0.5, 0]}><boxGeometry args={[8, 1.0, 3]} /><meshStandardMaterial color="#546e7a" roughness={0.7} /></mesh>
+        {[-3, -1.5, 0, 1.5, 3].map((gx) => (
+          <mesh key={`gdoor-${gx}`} position={[gx * 0.8, 0.4, 1.51]}><planeGeometry args={[1.2, 0.8]} /><meshStandardMaterial color="#37474f" /></mesh>
         ))}
       </group>
     </group>
@@ -461,8 +461,8 @@ export function Track({
  */
 export function getTrackPosition(
   angle: number,
-  radiusX: number = 14,
-  radiusZ: number = 8,
+  radiusX: number = 42,
+  radiusZ: number = 24,
   laneOffset: number = 0,
 ): { x: number; z: number; rotation: number } {
   const cos = Math.cos(angle);
@@ -489,7 +489,7 @@ export function getTrackPosition(
 /**
  * Calculate approximate track length for an oval.
  */
-export function getTrackLength(radiusX: number = 14, radiusZ: number = 8): number {
+export function getTrackLength(radiusX: number = 42, radiusZ: number = 24): number {
   const a = radiusX;
   const b = radiusZ;
   return Math.PI * (3 * (a + b) - Math.sqrt((3 * a + b) * (a + 3 * b)));
@@ -498,9 +498,9 @@ export function getTrackLength(radiusX: number = 14, radiusZ: number = 8): numbe
 /** Get position along the pit lane. t = 0..1 */
 export function getPitLanePosition(
   t: number,
-  radiusX: number = 14,
-  radiusZ: number = 8,
-  trackWidth: number = 4,
+  radiusX: number = 42,
+  radiusZ: number = 24,
+  trackWidth: number = 10,
 ): { x: number; z: number; rotation: number } {
   const pitStartAngle = -0.5;
   const pitEndAngle = 0.5;

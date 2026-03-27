@@ -2,8 +2,9 @@
 
 import { useRef, useEffect, useMemo, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Text, Sky } from '@react-three/drei';
-import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
+import { Text, Sky, Environment, ContactShadows } from '@react-three/drei';
+import { EffectComposer, Bloom, Vignette, ChromaticAberration, SSAO } from '@react-three/postprocessing';
+import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 import { Car, AI_CAR_COLORS, CarType } from './Car';
 import { Track, getTrackPosition } from './Track';
@@ -87,7 +88,7 @@ export function NascarScene({
   const playerCarRef = useRef<THREE.Group>(null);
   const aiCarRefs = useRef<(THREE.Group | null)[]>([]);
   const cameraTarget = useRef(new THREE.Vector3());
-  const cameraPos = useRef(new THREE.Vector3(0, 4, 20));
+  const cameraPos = useRef(new THREE.Vector3(0, 10, 60));
   const flagRef = useRef<THREE.Mesh | null>(null);
 
   // Braking / drafting / speed as state — safe to read in JSX
@@ -151,7 +152,7 @@ export function NascarScene({
     if (cameraMode === 'cockpit') {
       // First-person cockpit — sit inside driver's head, look forward
       const cockpitPos = getTrackPosition(player.angle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
-      const lookAheadAngle = player.angle + 0.25;
+      const lookAheadAngle = player.angle + 0.12;
       const lookAheadPos = getTrackPosition(lookAheadAngle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
 
       const targetCamPos = new THREE.Vector3(cockpitPos.x, 0.65, cockpitPos.z);
@@ -160,16 +161,16 @@ export function NascarScene({
       cameraPos.current.lerp(targetCamPos, 0.25);
       cameraTarget.current.lerp(targetLookAt, 0.20);
     } else {
-      // TV helicopter camera
-      const camDist = 8;
-      const camHeight = 3.5;
-      const behindAngle = player.angle - 0.10;
+      // TV helicopter camera — scaled for larger track
+      const camDist = 18;
+      const camHeight = 8;
+      const behindAngle = player.angle - 0.05;
       const behindPos = getTrackPosition(behindAngle, TRACK_RADIUS_X + camDist, TRACK_RADIUS_Z + camDist, 0);
 
       const targetCamPos = new THREE.Vector3(behindPos.x, camHeight, behindPos.z);
-      const aheadAngle = player.angle + 0.18;
+      const aheadAngle = player.angle + 0.10;
       const aheadPos = getTrackPosition(aheadAngle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
-      const targetLookAt = new THREE.Vector3(aheadPos.x, 0.5, aheadPos.z);
+      const targetLookAt = new THREE.Vector3(aheadPos.x, 1.0, aheadPos.z);
 
       cameraPos.current.lerp(targetCamPos, 0.08);
       cameraTarget.current.lerp(targetLookAt, 0.12);
@@ -196,43 +197,57 @@ export function NascarScene({
 
   return (
     <>
+      {/* Environment map for reflections on cars */}
+      <Environment preset="dawn" />
+
       {/* Sky — race-day afternoon feel */}
       <Sky sunPosition={[100, 40, 80]} turbidity={3} rayleigh={0.6} mieCoefficient={0.005} mieDirectionalG={0.8} />
       <color attach="background" args={['#87ceeb']} />
-      <fog attach="fog" args={['#c8d6e5', 80, 180]} />
+      <fog attach="fog" args={['#c8d6e5', 120, 400]} />
 
-      {/* Main sun */}
+      {/* Main sun — higher-res shadow map */}
       <directionalLight
         position={[20, 30, 10]}
         intensity={1.8}
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-far={80}
-        shadow-camera-left={-30}
-        shadow-camera-right={30}
-        shadow-camera-top={30}
-        shadow-camera-bottom={-30}
+        shadow-mapSize-width={4096}
+        shadow-mapSize-height={4096}
+        shadow-camera-far={200}
+        shadow-camera-left={-80}
+        shadow-camera-right={80}
+        shadow-camera-top={80}
+        shadow-camera-bottom={-80}
+        shadow-bias={-0.0003}
       />
-      <directionalLight position={[-15, 15, -10]} intensity={0.4} />
-      <hemisphereLight args={['#87ceeb', '#3a8c3f', 0.5]} />
-      <ambientLight intensity={0.25} />
+      {/* Warm fill from opposite side */}
+      <directionalLight position={[-15, 15, -10]} intensity={0.5} color="#ffe0b2" />
+      <hemisphereLight args={['#87ceeb', '#3a8c3f', 0.6]} />
+      <ambientLight intensity={0.2} />
+
+      {/* Contact shadows ground cars to the track */}
+      <ContactShadows
+        position={[0, 0.005, 0]}
+        scale={250}
+        blur={2}
+        opacity={0.45}
+        far={100}
+      />
 
       {/* Track (Daytona style with pit lane) */}
       <Track showPitLane />
 
       {/* Animated checkered flag at start/finish — outside SAFER barrier */}
-      <mesh ref={flagRef} position={[TRACK_RADIUS_X + 6, 4.5, 0.5]}>
-        <planeGeometry args={[1.2, 0.8]} />
+      <mesh ref={flagRef} position={[TRACK_RADIUS_X + 8, 6.5, 1.5]}>
+        <planeGeometry args={[2.4, 1.6]} />
         <meshStandardMaterial color="white" side={THREE.DoubleSide} />
       </mesh>
-      <mesh position={[TRACK_RADIUS_X + 6, 4.5, 0.51]}>
-        <planeGeometry args={[0.56, 0.36]} />
+      <mesh position={[TRACK_RADIUS_X + 8, 6.5, 1.52]}>
+        <planeGeometry args={[1.1, 0.7]} />
         <meshStandardMaterial color="#111" />
       </mesh>
       {/* Flag pole */}
-      <mesh position={[TRACK_RADIUS_X + 6, 2.5, 0.5]}>
-        <cylinderGeometry args={[0.04, 0.04, 5, 8]} />
+      <mesh position={[TRACK_RADIUS_X + 8, 3.5, 1.5]}>
+        <cylinderGeometry args={[0.06, 0.06, 7, 8]} />
         <meshStandardMaterial color="#888" metalness={0.8} />
       </mesh>
 
@@ -258,7 +273,7 @@ export function NascarScene({
         <group
           key={i}
           ref={(el: THREE.Group | null) => { aiCarRefs.current[i] = el; }}
-          position={[TRACK_RADIUS_X - (i + 1) * 1.5, 0.25, 0]}
+          position={[TRACK_RADIUS_X - (i + 1) * 3.0, 0.25, 0]}
         >
           <Car
             position={[0, 0, 0]}
@@ -279,10 +294,20 @@ export function NascarScene({
         />
       )}
 
-      {/* Post-processing — bloom + vignette for cinematic feel */}
+      {/* Post-processing — cinematic racing effects */}
       <EffectComposer>
-        <Bloom luminanceThreshold={0.35} luminanceSmoothing={0.7} intensity={0.9} />
-        <Vignette eskil={false} offset={0.35} darkness={0.55} />
+        <SSAO
+          blendFunction={BlendFunction.MULTIPLY}
+          samples={16}
+          radius={5}
+          intensity={20}
+        />
+        <Bloom luminanceThreshold={0.6} luminanceSmoothing={0.9} intensity={1.0} />
+        <ChromaticAberration
+          blendFunction={BlendFunction.NORMAL}
+          offset={[0.0008, 0.0008]}
+        />
+        <Vignette eskil={false} offset={0.3} darkness={0.5} />
       </EffectComposer>
     </>
   );
