@@ -243,7 +243,7 @@ interface NascarCarsGameProps {
   locale?: string;
 }
 
-type GamePhase = 'menu' | 'career-select' | 'car-select' | 'racing' | 'paused' | 'race-complete';
+type GamePhase = 'menu' | 'career-select' | 'car-select' | 'intro' | 'racing' | 'paused' | 'race-complete';
 
 // ─── Career progress persistence ─────────────────────────────
 const CAREER_KEY = 'nascar-career-progress';
@@ -328,8 +328,8 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
     setRaceFinished(false);
     setFinishPosition(1);
     setPlayerLap(0);
-    setCountdown(3);
-    setPhase('racing');
+    setCountdown(5); // Longer countdown for cinematic intro
+    setPhase('intro');
     playClick();
   }, [playClick]);
 
@@ -342,7 +342,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
   }, [playClick]);
 
   useEffect(() => {
-    if (phase === 'racing') {
+    if (phase === 'racing' || phase === 'intro') {
       initRace();
     }
   }, [phase, difficulty, levelIndex, initRace]);
@@ -668,6 +668,89 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
           )}
         </AnimatePresence>
 
+        {/* ── PRE-RACE CINEMATIC INTRO ── */}
+        {phase === 'intro' && (
+          <div className="relative">
+            <R3FGameContainer
+              camera={{ position: [0, 25, 110], fov: 60 }}
+              className="rounded-xl overflow-hidden shadow-2xl"
+            >
+              <NascarScene
+                raceStateRef={raceStateRef}
+                paused={true}
+                gameActive={false}
+                introActive={true}
+                onIntroComplete={() => {
+                  setCountdown(3);
+                  setPhase('racing');
+                }}
+                onFrame={() => {}}
+                playerPosition={1}
+                playerLap={0}
+                totalLaps={levelConfig.laps}
+                numAiCars={numOpponents}
+                countdown={5}
+                locale={locale}
+                cameraMode="tv"
+                playerColor={playerColor}
+                playerCarType={playerCarType}
+                steerAngle={0}
+              />
+            </R3FGameContainer>
+            {/* Cinematic overlay — dark bars + text */}
+            <div className="absolute inset-0 pointer-events-none flex flex-col justify-between">
+              {/* Top letterbox bar */}
+              <div className="h-16 bg-black/70" />
+              {/* Center text */}
+              <div className="flex-1 flex items-center justify-center">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 1, delay: 1 }}
+                  className="text-center"
+                >
+                  <motion.p
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="text-white text-sm font-bold tracking-widest uppercase opacity-60"
+                  >
+                    {careerLevels[levelIndex]?.name ?? 'Race'}
+                  </motion.p>
+                  <motion.h1
+                    initial={{ opacity: 0, scale: 2 }}
+                    animate={{ opacity: [0, 1, 1, 0], scale: [2, 1, 1, 0.8] }}
+                    transition={{ duration: 6, times: [0, 0.15, 0.7, 1] }}
+                    className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-red-500 to-orange-500 drop-shadow-lg"
+                  >
+                    🏁 RACE DAY 🏁
+                  </motion.h1>
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: [0, 0, 1] }}
+                    transition={{ duration: 4, times: [0, 0.5, 1] }}
+                    className="text-white text-lg mt-2 font-bold"
+                  >
+                    {numOpponents} {locale === 'he' ? 'מתחרים' : locale === 'zh' ? '对手' : locale === 'es' ? 'rivales' : 'opponents'} • {levelConfig.laps} {t.lap}s
+                  </motion.p>
+                </motion.div>
+              </div>
+              {/* Bottom letterbox bar + skip button */}
+              <div className="h-16 bg-black/70 flex items-center justify-end px-6">
+                <motion.button
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.7 }}
+                  transition={{ delay: 2 }}
+                  onClick={() => { setCountdown(3); setPhase('racing'); }}
+                  className="text-white/60 text-sm font-bold hover:text-white transition-colors pointer-events-auto"
+                >
+                  {locale === 'he' ? 'דלגו ←' : locale === 'zh' ? '跳过 →' : locale === 'es' ? 'Saltar →' : 'Skip →'}
+                </motion.button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ── RACING ── */}
         {(phase === 'racing' || phase === 'paused') && (
           <div className="relative">
@@ -730,7 +813,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
 
             {/* 3D Canvas */}
             <R3FGameContainer
-              camera={{ position: [0, 20, 70], fov: 60 }}
+              camera={{ position: [0, 25, 110], fov: 60 }}
               className="rounded-xl overflow-hidden shadow-2xl"
             >
               <NascarScene

@@ -21,6 +21,7 @@ interface NascarSceneProps {
   raceStateRef: React.MutableRefObject<RaceState>;
   paused: boolean;
   gameActive: boolean;
+  introActive?: boolean; // Hollywood pre-race cinematic
   onFrame: (delta: number) => void;
   playerPosition: number;
   playerLap: number;
@@ -31,7 +32,8 @@ interface NascarSceneProps {
   cameraMode?: CameraMode;
   playerColor?: string;
   playerCarType?: CarType;
-  steerAngle?: number;  // -1 to 1 for cockpit steering wheel
+  steerAngle?: number;
+  onIntroComplete?: () => void;
 }
 
 // ─── Countdown — follows the camera ─────────────────────────
@@ -88,13 +90,16 @@ export function NascarScene({
   playerColor = '#ffeb3b',
   playerCarType = 'stock',
   steerAngle = 0,
+  introActive = false,
+  onIntroComplete,
 }: NascarSceneProps) {
   const { camera } = useThree();
   const playerCarRef = useRef<THREE.Group>(null);
   const aiCarRefs = useRef<(THREE.Group | null)[]>([]);
   const cameraTarget = useRef(new THREE.Vector3());
-  const cameraPos = useRef(new THREE.Vector3(0, 10, 60));
+  const cameraPos = useRef(new THREE.Vector3(0, 15, 100));
   const flagRef = useRef<THREE.Mesh | null>(null);
+  const introTimeRef = useRef(0);
 
   // Braking / drafting / speed as state — safe to read in JSX
   const [playerSpeed, setPlayerSpeed] = useState(0);
@@ -121,7 +126,72 @@ export function NascarScene({
       flagRef.current.rotation.y = Math.sin(Date.now() * 0.005) * 0.35;
     }
 
-    if (paused || !gameActive) return;
+    if (paused || !gameActive) {
+      // ── Cinematic intro camera sequence ──
+      if (introActive) {
+        introTimeRef.current += delta;
+        const t = introTimeRef.current;
+        const introDuration = 8.0; // 8 seconds of cinematic
+
+        if (t < 2.0) {
+          // Shot 1: Wide aerial sweep of the entire track (0-2s)
+          const sweepAngle = t * 0.3;
+          const r = TRACK_RADIUS_X + 40;
+          cameraPos.current.set(
+            Math.cos(sweepAngle) * r,
+            30 + Math.sin(t * 0.5) * 5,
+            Math.sin(sweepAngle) * (TRACK_RADIUS_Z + 40),
+          );
+          cameraTarget.current.set(0, 0, 0);
+        } else if (t < 4.0) {
+          // Shot 2: Zoom to player car — low angle hero shot (2-4s)
+          const playerPos = getTrackPosition(0, TRACK_RADIUS_X, TRACK_RADIUS_Z, 0);
+          const zoomT = (t - 2.0) / 2.0;
+          cameraPos.current.set(
+            playerPos.x + 8 - zoomT * 5,
+            1.5 + (1 - zoomT) * 3,
+            playerPos.z + 4 - zoomT * 2,
+          );
+          cameraTarget.current.set(playerPos.x, 0.5, playerPos.z);
+        } else if (t < 6.0) {
+          // Shot 3: Pan across AI cars — rival introduction (4-6s)
+          const panT = (t - 4.0) / 2.0;
+          const carIdx = Math.floor(panT * Math.min(numAiCars, 4));
+          const carAngle = -((carIdx + 1) * 0.02);
+          const carPos = getTrackPosition(carAngle, TRACK_RADIUS_X, TRACK_RADIUS_Z, (carIdx % 2 === 0 ? -1 : 1) * GAME_CONSTANTS.LANE_WIDTH * 0.6);
+          cameraPos.current.lerp(
+            new THREE.Vector3(carPos.x + 5, 2, carPos.z + 3),
+            0.06,
+          );
+          cameraTarget.current.lerp(
+            new THREE.Vector3(carPos.x, 0.5, carPos.z),
+            0.08,
+          );
+        } else if (t < introDuration) {
+          // Shot 4: Pull back to starting grid — READY position (6-8s)
+          const pullT = (t - 6.0) / 2.0;
+          const startPos = getTrackPosition(0, TRACK_RADIUS_X, TRACK_RADIUS_Z, 0);
+          cameraPos.current.lerp(
+            new THREE.Vector3(startPos.x + 15 + pullT * 5, 5 + pullT * 3, startPos.z + 10),
+            0.05,
+          );
+          cameraTarget.current.lerp(
+            new THREE.Vector3(startPos.x, 1, startPos.z),
+            0.06,
+          );
+        }
+
+        camera.position.copy(cameraPos.current);
+        camera.lookAt(cameraTarget.current);
+
+        // Trigger transition to racing after intro completes
+        if (t >= introDuration && onIntroComplete) {
+          introTimeRef.current = 0;
+          onIntroComplete();
+        }
+      }
+      return;
+    }
 
     onFrame(delta);
 
@@ -173,9 +243,9 @@ export function NascarScene({
       cameraPos.current.lerp(targetCamPos, 0.15);
       cameraTarget.current.lerp(targetLookAt, 0.12);
     } else {
-      // TV chase camera — smooth follow behind
-      const camDist = 14;
-      const camHeight = 6;
+      // TV chase camera — smooth follow behind, scaled for large track
+      const camDist = 20;
+      const camHeight = 8;
       const behindAngle = player.angle - 0.04;
       const behindPos = getTrackPosition(behindAngle, TRACK_RADIUS_X + camDist, TRACK_RADIUS_Z + camDist, 0);
 
@@ -216,34 +286,34 @@ export function NascarScene({
       {/* Sky — race-day afternoon feel */}
       <Sky sunPosition={[100, 40, 80]} turbidity={3} rayleigh={0.6} mieCoefficient={0.005} mieDirectionalG={0.8} />
       <color attach="background" args={['#87ceeb']} />
-      <fog attach="fog" args={['#c8d6e5', 120, 400]} />
+      <fog attach="fog" args={['#c8d6e5', 150, 500]} />
 
-      {/* Main sun — higher-res shadow map */}
+      {/* Main sun — softer intensity for realistic look */}
       <directionalLight
-        position={[20, 30, 10]}
-        intensity={1.8}
+        position={[30, 45, 15]}
+        intensity={1.0}
         castShadow
         shadow-mapSize-width={4096}
         shadow-mapSize-height={4096}
-        shadow-camera-far={200}
-        shadow-camera-left={-80}
-        shadow-camera-right={80}
-        shadow-camera-top={80}
-        shadow-camera-bottom={-80}
+        shadow-camera-far={300}
+        shadow-camera-left={-120}
+        shadow-camera-right={120}
+        shadow-camera-top={120}
+        shadow-camera-bottom={-120}
         shadow-bias={-0.0003}
       />
       {/* Warm fill from opposite side */}
-      <directionalLight position={[-15, 15, -10]} intensity={0.5} color="#ffe0b2" />
-      <hemisphereLight args={['#87ceeb', '#3a8c3f', 0.6]} />
-      <ambientLight intensity={0.2} />
+      <directionalLight position={[-20, 20, -15]} intensity={0.25} color="#ffe0b2" />
+      <hemisphereLight args={['#87ceeb', '#3a8c3f', 0.35]} />
+      <ambientLight intensity={0.12} />
 
       {/* Contact shadows ground cars to the track */}
       <ContactShadows
         position={[0, 0.005, 0]}
-        scale={250}
-        blur={2}
-        opacity={0.45}
-        far={100}
+        scale={350}
+        blur={2.5}
+        opacity={0.35}
+        far={150}
       />
 
       {/* Track (Daytona style with pit lane) */}
@@ -259,17 +329,17 @@ export function NascarScene({
       <DebrisSystem events={collisionEvents} />
 
       {/* Animated checkered flag at start/finish — outside SAFER barrier */}
-      <mesh ref={flagRef} position={[TRACK_RADIUS_X + 8, 6.5, 1.5]}>
-        <planeGeometry args={[2.4, 1.6]} />
+      <mesh ref={flagRef} position={[TRACK_RADIUS_X + 12, 8, 2]}>
+        <planeGeometry args={[3, 2]} />
         <meshStandardMaterial color="white" side={THREE.DoubleSide} />
       </mesh>
-      <mesh position={[TRACK_RADIUS_X + 8, 6.5, 1.52]}>
-        <planeGeometry args={[1.1, 0.7]} />
+      <mesh position={[TRACK_RADIUS_X + 12, 8, 2.05]}>
+        <planeGeometry args={[1.4, 0.9]} />
         <meshStandardMaterial color="#111" />
       </mesh>
       {/* Flag pole */}
-      <mesh position={[TRACK_RADIUS_X + 8, 3.5, 1.5]}>
-        <cylinderGeometry args={[0.06, 0.06, 7, 8]} />
+      <mesh position={[TRACK_RADIUS_X + 12, 4, 2]}>
+        <cylinderGeometry args={[0.08, 0.08, 9, 8]} />
         <meshStandardMaterial color="#888" metalness={0.8} />
       </mesh>
 
@@ -359,7 +429,7 @@ export function NascarScene({
         <group
           key={i}
           ref={(el: THREE.Group | null) => { aiCarRefs.current[i] = el; }}
-          position={[TRACK_RADIUS_X - (i + 1) * 3.0, 0.25, 0]}
+          position={[TRACK_RADIUS_X - (i + 1) * 4.0, 0.25, 0]}
         >
           <Car
             position={[0, 0, 0]}
@@ -384,16 +454,16 @@ export function NascarScene({
       <EffectComposer>
         <SSAO
           blendFunction={BlendFunction.MULTIPLY}
-          samples={16}
-          radius={5}
-          intensity={20}
+          samples={12}
+          radius={4}
+          intensity={8}
         />
-        <Bloom luminanceThreshold={0.6} luminanceSmoothing={0.9} intensity={1.0} />
+        <Bloom luminanceThreshold={0.85} luminanceSmoothing={0.9} intensity={0.4} />
         <ChromaticAberration
           blendFunction={BlendFunction.NORMAL}
-          offset={[0.0008, 0.0008]}
+          offset={[0.0003, 0.0003]}
         />
-        <Vignette eskil={false} offset={0.3} darkness={0.5} />
+        <Vignette eskil={false} offset={0.25} darkness={0.35} />
       </EffectComposer>
     </>
   );

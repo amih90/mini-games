@@ -47,9 +47,9 @@ const CROWD_COLORS = [
  * - Light towers, timing tower, victory lane
  */
 export function Track({
-  trackWidth = 10,
-  trackRadiusX = 42,
-  trackRadiusZ = 24,
+  trackWidth = 14,
+  trackRadiusX = 80,
+  trackRadiusZ = 50,
   showPitLane = true,
 }: TrackProps) {
 
@@ -247,7 +247,7 @@ export function Track({
     <group>
       {/* ── Ground / infield (grass) ── */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]} receiveShadow>
-        <planeGeometry args={[400, 400]} />
+        <planeGeometry args={[600, 600]} />
         <meshStandardMaterial color="#3a8c3f" roughness={0.95} />
       </mesh>
 
@@ -482,8 +482,8 @@ export function Track({
  */
 export function getTrackPosition(
   angle: number,
-  radiusX: number = 42,
-  radiusZ: number = 24,
+  radiusX: number = 80,
+  radiusZ: number = 50,
   laneOffset: number = 0,
 ): { x: number; z: number; rotation: number } {
   const cos = Math.cos(angle);
@@ -510,7 +510,7 @@ export function getTrackPosition(
 /**
  * Calculate approximate track length for an oval.
  */
-export function getTrackLength(radiusX: number = 42, radiusZ: number = 24): number {
+export function getTrackLength(radiusX: number = 80, radiusZ: number = 50): number {
   const a = radiusX;
   const b = radiusZ;
   return Math.PI * (3 * (a + b) - Math.sqrt((3 * a + b) * (a + 3 * b)));
@@ -519,9 +519,9 @@ export function getTrackLength(radiusX: number = 42, radiusZ: number = 24): numb
 /** Get position along the pit lane. t = 0..1 */
 export function getPitLanePosition(
   t: number,
-  radiusX: number = 42,
-  radiusZ: number = 24,
-  trackWidth: number = 10,
+  radiusX: number = 80,
+  radiusZ: number = 50,
+  trackWidth: number = 14,
 ): { x: number; z: number; rotation: number } {
   const pitStartAngle = -0.5;
   const pitEndAngle = 0.5;

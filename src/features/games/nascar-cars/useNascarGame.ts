@@ -57,13 +57,13 @@ export interface RaceState {
 }
 
 // ─── Constants ───────────────────────────────────────────────
-const TRACK_RADIUS_X = 42;
-const TRACK_RADIUS_Z = 24;
+const TRACK_RADIUS_X = 80;
+const TRACK_RADIUS_Z = 50;
 const TWO_PI = Math.PI * 2;
-const LANE_WIDTH = 3.0;
-const MAX_LANE_OFFSET = 5.0;
+const LANE_WIDTH = 4.0;
+const MAX_LANE_OFFSET = 6.0;
 const CHECKPOINT_COUNT = 4;
-const CAR_HITBOX = 1.8; // Collision distance between cars
+const CAR_HITBOX = 2.2; // Collision distance between cars
 
 // Pit stop constants
 const PIT_ENTRY_ANGLE_MIN = -0.5;
@@ -112,31 +112,31 @@ export const CAREER_LEVELS: Record<string, Omit<LevelConfig, 'unlocked'>[]> = {
 
 export const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
   easy: {
-    maxSpeed: 3.0,
-    acceleration: 1.8,
-    braking: 3.5,
-    steerSpeed: 5.0,
+    maxSpeed: 2.4,
+    acceleration: 1.2,
+    braking: 2.5,
+    steerSpeed: 4.0,
     autoAccelerate: true,
     aiAggressiveness: 0.6,
-    friction: 0.5,
+    friction: 0.4,
   },
   medium: {
-    maxSpeed: 3.8,
-    acceleration: 2.2,
-    braking: 4.0,
-    steerSpeed: 6.0,
+    maxSpeed: 3.0,
+    acceleration: 1.5,
+    braking: 3.0,
+    steerSpeed: 5.0,
     autoAccelerate: false,
     aiAggressiveness: 0.78,
-    friction: 0.45,
+    friction: 0.35,
   },
   hard: {
-    maxSpeed: 4.5,
-    acceleration: 2.5,
-    braking: 5.0,
-    steerSpeed: 7.0,
+    maxSpeed: 3.6,
+    acceleration: 1.8,
+    braking: 3.5,
+    steerSpeed: 6.0,
     autoAccelerate: false,
     aiAggressiveness: 0.95,
-    friction: 0.4,
+    friction: 0.3,
   },
 };
 
@@ -150,9 +150,9 @@ function normalizeAngle(angle: number): number {
 }
 
 // ─── Drafting / slipstream constants ─────────────────────────
-const DRAFT_RANGE = 6.0;
+const DRAFT_RANGE = 8.0;
 const DRAFT_MAX_BOOST = 0.08;
-const DRAFT_LANE_TOLERANCE = 2.0;
+const DRAFT_LANE_TOLERANCE = 3.0;
 
 interface DraftResult { boost: number; isDrafting: boolean; draftTarget: number; }
 

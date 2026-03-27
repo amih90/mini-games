@@ -80,8 +80,7 @@ function CarModel({
     const cloned = scene.clone(true);
     // Scale Kenney models to ~1.8 units long
     cloned.scale.setScalar(0.9);
-    // Rotate 180° so car faces +Z (forward direction on track)
-    cloned.rotation.y = Math.PI;
+    // No rotation — model default facing aligns with track tangent
     return cloned;
   }, [scene]);
 
