@@ -20,8 +20,14 @@ const t: Record<string, Record<string, string>> = {
     filterGeography: '🏔️ Geography',
     filterHistory: '🏺 History',
     filterScience: '🔭 Science',
+    filterMonument: '🏛️ Monuments',
+    filterOcean: '🌊 Oceans',
+    filterWildlife: '🦁 Wildlife',
     close: 'Explore more!',
     tapHotspot: 'Tap any glowing marker to learn about Earth!',
+    moonName: 'The Moon',
+    moonFact: "The Moon is slowly drifting away at 3.8 cm per year! Its gravity causes tides and stabilizes Earth's tilt. Without the Moon, Earth would wobble so much that seasons would be chaotic.",
+    moonClose: 'Wonderful!',
   },
   he: {
     title: 'חוקר כדור הארץ',
@@ -31,8 +37,14 @@ const t: Record<string, Record<string, string>> = {
     filterGeography: '🏔️ גאוגרפיה',
     filterHistory: '🏺 היסטוריה',
     filterScience: '🔭 מדע',
+    filterMonument: '🏛️ אנדרטאות',
+    filterOcean: '🌊 אוקיינוסים',
+    filterWildlife: '🦁 חיות בר',
     close: 'גלה עוד!',
     tapHotspot: '!הקש על כל סמן זוהר כדי ללמוד על כדור הארץ',
+    moonName: 'הירח',
+    moonFact: 'הירח מתרחק לאט בקצב של 3.8 ס"מ בשנה! כוח המשיכה שלו גורם לגאות ושפל ומייצב את הטיית כדור הארץ.',
+    moonClose: 'נפלא!',
   },
   zh: {
     title: '地球探索者',
@@ -42,8 +54,14 @@ const t: Record<string, Record<string, string>> = {
     filterGeography: '🏔️ 地理',
     filterHistory: '🏺 历史',
     filterScience: '🔭 科学',
+    filterMonument: '🏛️ 纪念碑',
+    filterOcean: '🌊 海洋',
+    filterWildlife: '🦁 野生动物',
     close: '继续探索！',
     tapHotspot: '点击任何发光标记了解地球！',
+    moonName: '月球',
+    moonFact: '月球每年缓慢漂离3.8厘米！它的引力引起潮汐，并稳定地球的倾斜。没有月球，地球会摇摆不定，季节会变得混乱。',
+    moonClose: '太棒了！',
   },
   es: {
     title: 'Explorador de la Tierra',
@@ -53,10 +71,42 @@ const t: Record<string, Record<string, string>> = {
     filterGeography: '🏔️ Geografía',
     filterHistory: '🏺 Historia',
     filterScience: '🔭 Ciencia',
+    filterMonument: '🏛️ Monumentos',
+    filterOcean: '🌊 Océanos',
+    filterWildlife: '🦁 Fauna',
     close: '¡Explorar más!',
     tapHotspot: '¡Toca cualquier marcador brillante para aprender sobre la Tierra!',
+    moonName: 'La Luna',
+    moonFact: '¡La Luna se aleja lentamente 3.8 cm al año! Su gravedad causa las mareas y estabiliza la inclinación de la Tierra. Sin la Luna, la Tierra oscilaría tanto que las estaciones serían caóticas.',
+    moonClose: '¡Maravilloso!',
   },
 };
+
+// ─── Moon orbiting Earth ─────────────────────────────────────────────────────
+
+function MoonInExplorer({ onMoonClick }: { onMoonClick: () => void }) {
+  const meshRef = useRef<THREE.Mesh>(null!);
+  const angle = useRef(0);
+  const textures = usePlanetTextures();
+
+  useFrame((_, delta) => {
+    angle.current += 0.25 * delta;
+    if (meshRef.current) {
+      meshRef.current.position.set(
+        Math.cos(angle.current) * 2.8,
+        Math.sin(angle.current * 0.15) * 0.3,
+        Math.sin(angle.current) * 2.8,
+      );
+    }
+  });
+
+  return (
+    <mesh ref={meshRef} onClick={(e) => { e.stopPropagation(); onMoonClick(); }}>
+      <sphereGeometry args={[0.4, 16, 16]} />
+      <meshStandardMaterial map={textures.moon} roughness={0.9} />
+    </mesh>
+  );
+}
 
 // ─── Earth 3D with day/night layers ──────────────────────────────────────────
 
@@ -68,7 +118,7 @@ function EarthGlobe() {
   const textures = usePlanetTextures();
 
   useFrame((_, delta) => {
-    if (meshRef.current) meshRef.current.rotation.y += delta * 0.03;
+    // Earth mesh does not self-rotate — OrbitControls autoRotate provides the feel
     if (cloudRef.current) cloudRef.current.rotation.y -= delta * 0.015;
   });
 
@@ -116,9 +166,10 @@ interface EarthSceneProps {
   activeCategory: HotspotCategory | 'all';
   locale: string;
   onHotspotClick: (hotspot: EarthHotspot) => void;
+  onMoonClick: () => void;
 }
 
-function EarthScene({ activeCategory, locale, onHotspotClick }: EarthSceneProps) {
+function EarthScene({ activeCategory, locale, onHotspotClick, onMoonClick }: EarthSceneProps) {
   const filtered = activeCategory === 'all'
     ? EARTH_HOTSPOTS
     : EARTH_HOTSPOTS.filter(h => h.category === activeCategory);
@@ -126,6 +177,7 @@ function EarthScene({ activeCategory, locale, onHotspotClick }: EarthSceneProps)
   return (
     <>
       <EarthGlobe />
+      <MoonInExplorer onMoonClick={onMoonClick} />
       {filtered.map(hotspot => (
         <EarthHotspotMarker
           key={hotspot.id}
@@ -155,6 +207,7 @@ export default function EarthExplorerScene({ locale = 'en', onBack }: EarthExplo
   const isRtl = locale === 'he';
   const [activeCategory, setActiveCategory] = useState<HotspotCategory | 'all'>('all');
   const [selectedHotspot, setSelectedHotspot] = useState<EarthHotspot | null>(null);
+  const [showMoonPopup, setShowMoonPopup] = useState(false);
 
   const handleHotspotClick = useCallback((hotspot: EarthHotspot) => {
     setSelectedHotspot(hotspot);
@@ -166,6 +219,9 @@ export default function EarthExplorerScene({ locale = 'en', onBack }: EarthExplo
     { key: 'geography', label: tr.filterGeography },
     { key: 'history', label: tr.filterHistory },
     { key: 'science', label: tr.filterScience },
+    { key: 'monument', label: tr.filterMonument },
+    { key: 'ocean', label: tr.filterOcean },
+    { key: 'wildlife', label: tr.filterWildlife },
   ];
 
   return (
@@ -177,13 +233,14 @@ export default function EarthExplorerScene({ locale = 'en', onBack }: EarthExplo
             activeCategory={activeCategory}
             locale={locale}
             onHotspotClick={handleHotspotClick}
+            onMoonClick={() => setShowMoonPopup(true)}
           />
         </Suspense>
         <OrbitControls
           enablePan={false}
           minDistance={2.2}
           maxDistance={7}
-          autoRotate={!selectedHotspot}
+          autoRotate={!selectedHotspot && !showMoonPopup}
           autoRotateSpeed={0.4}
         />
       </Canvas>
@@ -218,6 +275,23 @@ export default function EarthExplorerScene({ locale = 'en', onBack }: EarthExplo
         <div className="absolute bottom-4 left-0 right-0 flex justify-center pointer-events-none z-10">
           <div className="bg-black/60 text-white text-xs rounded-xl px-4 py-2 max-w-xs text-center">
             {tr.tapHotspot}
+          </div>
+        </div>
+      )}
+
+      {/* Moon popup */}
+      {showMoonPopup && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-30 p-4">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl border-2 border-slate-400">
+            <div className="text-5xl mb-3">🌕</div>
+            <h3 className="text-xl font-bold text-slate-200 mb-3">{tr.moonName}</h3>
+            <p className="text-white text-base leading-relaxed mb-5">{tr.moonFact}</p>
+            <button
+              onClick={() => setShowMoonPopup(false)}
+              className="min-h-[48px] px-6 rounded-2xl font-bold text-white bg-gradient-to-r from-slate-600 to-slate-500 hover:scale-105 transition-transform"
+            >
+              {tr.moonClose}
+            </button>
           </div>
         </div>
       )}

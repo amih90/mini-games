@@ -1,26 +1,23 @@
 'use client';
 
-import { Suspense, useRef, useState, useCallback, useEffect } from 'react';
+import { Suspense, useRef, useState, useCallback } from 'react';
 import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { InstructionsModal } from '@/features/games/shared/InstructionsModal';
 import { GameWrapper } from '../shared/GameWrapper';
 import { usePlanetTextures } from './hooks/usePlanetTextures';
 import { SunWithCorona } from './components/SunWithCorona';
-import { PlanetWithTexture } from './components/PlanetWithTexture';
 import { SaturnRings } from './components/SaturnRings';
-import { EarthWithMoon } from './components/EarthWithMoon';
 import { StarObject } from './components/StarObject';
 import { NAMED_STARS, NamedStar } from './data/namedStars';
 import EarthExplorerScene from './EarthExplorerScene';
 
-// \u2500\u2500\u2500 Types \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─── Types ─────────────────────────────────────────────────────────────────────────────────
 
-type Difficulty = 'easy' | 'medium' | 'hard';
-type Phase = 'difficulty' | 'instructions' | 'playing' | 'gameover' | 'win';
 type GameMode = 'solar-system' | 'earth-explorer';
 
 interface PlanetData {
@@ -30,139 +27,222 @@ interface PlanetData {
   speed: number;
   textureKey: 'mercury' | 'venus' | 'earthDay' | 'mars' | 'jupiter' | 'saturn' | 'uranus' | 'neptune';
   emoji: string;
-  facts: Record<string, string>;
+  moons: number;
+  facts: Record<string, string[]>;
 }
 
-interface DifficultyConfig {
-  activePlanets: number;
-  orbitSpeedMultiplier: number;
-  timeLimit: number;
-  glowDuration: number;
-}
-
-// \u2500\u2500\u2500 Planet Data \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─── Planet definitions ──────────────────────────────────────────────
 
 const ALL_PLANETS: PlanetData[] = [
   {
     name: 'Mercury', radius: 0.3, orbitRadius: 3.0, speed: 0.04,
-    textureKey: 'mercury', emoji: '\u263F',
+    textureKey: 'mercury', emoji: '☿', moons: 0,
     facts: {
-      en: 'Mercury is the closest planet to the Sun \u2014 and it has no moons!',
-      he: '\u05de\u05e8\u05e7\u05d5\u05e8\u05d9 \u05d4\u05d5\u05d0 \u05d4\u05db\u05d5\u05db\u05d1 \u05d4\u05e7\u05e8\u05d5\u05d1 \u05d1\u05d9\u05d5\u05ea\u05e8 \u05dc\u05e9\u05de\u05e9 \u2014 \u05d5\u05d0\u05d9\u05df \u05dc\u05d5 \u05d9\u05e8\u05d7\u05d9\u05dd!',
-      zh: '\u6c34\u661f\u662f\u79bb\u592a\u9633\u6700\u8fd1\u7684\u884c\u661f\u2014\u2014\u800c\u4e14\u5b83\u6ca1\u6709\u536b\u661f\uff01',
-      es: '\u00a1Mercurio es el planeta m\u00e1s cercano al Sol y no tiene lunas!',
+      en: [
+        'Mercury is the closest planet to the Sun — and it has no moons!',
+        "A day on Mercury lasts 59 Earth days, but a year is only 88 days — it's the fastest planet!",
+      ],
+      he: [
+        'מרקורי הוא הכוכב הקרוב ביותר לשמש — ואין לו ירחים!',
+        'יום על מרקורי נמשך 59 ימי כדור הארץ, אבל שנה היא רק 88 ימים!',
+      ],
+      zh: [
+        '水星是离太阳最近的行星——而且它没有卫星！',
+        '水星上的一天持续59个地球日，但一年只有88天——它是运动最快的行星！',
+      ],
+      es: [
+        '¡Mercurio es el planeta más cercano al Sol y no tiene lunas!',
+        '¡Un día en Mercurio dura 59 días de la Tierra, pero un año solo 88 días — es el planeta más rápido!',
+      ],
     },
   },
   {
     name: 'Venus', radius: 0.5, orbitRadius: 4.8, speed: 0.025,
-    textureKey: 'venus', emoji: '\u2640',
+    textureKey: 'venus', emoji: '♀', moons: 0,
     facts: {
-      en: "Venus is the hottest planet \u2014 hotter than Mercury, even though it's farther from the Sun!",
-      he: '\u05e0\u05d5\u05d2\u05d4 \u05d4\u05d5\u05d0 \u05d4\u05db\u05d5\u05db\u05d1 \u05d4\u05d7\u05dd \u05d1\u05d9\u05d5\u05ea\u05e8!',
-      zh: '\u91d1\u661f\u662f\u6700\u70ed\u7684\u884c\u661f\uff01',
-      es: '\u00a1Venus es el planeta m\u00e1s caliente!',
+      en: [
+        "Venus is the hottest planet — hotter than Mercury, even though it's farther from the Sun!",
+        'Venus rotates backwards compared to most planets — the Sun rises in the west there!',
+      ],
+      he: [
+        'נוגה הוא הכוכב החם ביותר — חם יותר ממרקורי, אפילו שהוא רחוק יותר מהשמש!',
+        'נוגה מסתובב בכיוון ההפוך ממרבית הכוכבים — השמש זורחת שם במערב!',
+      ],
+      zh: [
+        '金星是最热的行星——尽管比水星离太阳更远，但比水星还热！',
+        '金星的自转方向与大多数行星相反——在那里太阳从西边升起！',
+      ],
+      es: [
+        '¡Venus es el planeta más caliente — más caliente que Mercurio, aunque está más lejos del Sol!',
+        '¡Venus gira al revés comparado con la mayoría de los planetas — el Sol sale por el oeste allí!',
+      ],
     },
   },
   {
     name: 'Earth', radius: 0.55, orbitRadius: 6.5, speed: 0.02,
-    textureKey: 'earthDay', emoji: '\ud83c\udf0d',
+    textureKey: 'earthDay', emoji: '🌍', moons: 1,
     facts: {
-      en: "Earth is the only planet we know of that has life \u2014 and it's 71% covered in water!",
-      he: '\u05db\u05d3\u05d5\u05e8 \u05d4\u05d0\u05e8\u05e5 \u05d4\u05d5\u05d0 \u05d4\u05db\u05d5\u05db\u05d1 \u05d4\u05d9\u05d7\u05d9\u05d3\u05d9 \u05e9\u05d9\u05e9 \u05d1\u05d5 \u05d7\u05d9\u05d9\u05dd!',
-      zh: '\u5730\u7403\u662f\u6211\u4eec\u5df2\u77e5\u552f\u4e00\u6709\u751f\u547d\u7684\u884c\u661f\uff01',
-      es: '\u00a1La Tierra es el \u00fanico planeta con vida!',
+      en: [
+        "Earth is the only planet we know of that has life — and it's 71% covered in water!",
+        "Earth's magnetic field protects us from deadly solar radiation — without it, life would be impossible!",
+      ],
+      he: [
+        'כדור הארץ הוא הכוכב היחידי שאנו מכירים שיש בו חיים — ו-71% ממנו מכוסה במים!',
+        'השדה המגנטי של כדור הארץ מגן עלינו מקרינה סולארית קטלנית!',
+      ],
+      zh: [
+        '地球是我们已知唯一有生命的行星—71%的面积被水覆盖！',
+        '地球的磁场保护我们免受致命的太阳辐射——没有它，生命将不可能存在！',
+      ],
+      es: [
+        '¡La Tierra es el único planeta con vida que conocemos — y está cubierta en un 71% por agua!',
+        '¡El campo magnético de la Tierra nos protege de la mortal radiación solar!',
+      ],
     },
   },
   {
     name: 'Mars', radius: 0.42, orbitRadius: 8.5, speed: 0.015,
-    textureKey: 'mars', emoji: '\u2642',
+    textureKey: 'mars', emoji: '♂', moons: 2,
     facts: {
-      en: 'Mars is called the Red Planet because its soil contains iron oxide \u2014 rust!',
-      he: '\u05de\u05d0\u05d3\u05d9\u05dd \u05e0\u05e7\u05e8\u05d0 \u05d4\u05db\u05d5\u05db\u05d1 \u05d4\u05d0\u05d3\u05d5\u05dd!',
-      zh: '\u706b\u661f\u88ab\u79f0\u4e3a\u7ea2\u8272\u661f\u7403\uff01',
-      es: '\u00a1Marte se llama el Planeta Rojo!',
+      en: [
+        'Mars is called the Red Planet because its soil contains iron oxide — rust!',
+        'Mars has the tallest volcano in the solar system — Olympus Mons is 3× the height of Everest!',
+      ],
+      he: [
+        'מאדים נקרא הכוכב האדום כי קרקעו מכילה תחמוצת ברזל — חלודה!',
+        'למאדים יש את הר הגעש הגבוה ביותר בשיטת השמש — אולימפוס מונס גבוה פי 3 מאוורסט!',
+      ],
+      zh: [
+        '火星被称为红色星球，因为其土壤含有氧化铁——铁锈！',
+        '火星拥有太阳系中最高的火山——奥林帕斯山是珠穆朗玛峰高度的3倍！',
+      ],
+      es: [
+        '¡Marte se llama el Planeta Rojo porque su suelo contiene óxido de hierro — ¡óxido!',
+        '¡Marte tiene el volcán más alto del sistema solar — el Olympus Mons es 3 veces la altura del Everest!',
+      ],
     },
   },
   {
     name: 'Jupiter', radius: 1.1, orbitRadius: 12.0, speed: 0.008,
-    textureKey: 'jupiter', emoji: '\u2643',
+    textureKey: 'jupiter', emoji: '♃', moons: 95,
     facts: {
-      en: "Jupiter is so big that 1,300 Earths could fit inside it \u2014 it's the largest planet!",
-      he: '\u05e6\u05d3\u05e7 \u05db\u05dc \u05db\u05da \u05d2\u05d3\u05d5\u05dc \u2014 \u05d4\u05d5\u05d0 \u05d4\u05db\u05d5\u05db\u05d1 \u05d4\u05d2\u05d3\u05d5\u05dc \u05d1\u05d9\u05d5\u05ea\u05e8!',
-      zh: '\u6728\u661f\u662f\u6700\u5927\u7684\u884c\u661f\uff01',
-      es: '\u00a1J\u00fapiter es el planeta m\u00e1s grande!',
+      en: [
+        "Jupiter is so big that 1,300 Earths could fit inside it — it's the largest planet!",
+        "Jupiter's Great Red Spot is a storm that has been raging for over 350 years — and it's bigger than Earth!",
+      ],
+      he: [
+        'צדק כל כך גדול שניתן לדחוס לתוכו 1,300 כדורי ארץ — הוא הכוכב הגדול ביותר!',
+        'הנקודה האדומה הגדולה של צדק היא סופה שמתחוללת מזה 350 שנה — וגדולה מכדור הארץ!',
+      ],
+      zh: [
+        '木星大到可以容纳1300个地球——它是最大的行星！',
+        '木星的大红斑是一场持续超过350年的风暴——而且比地球还大！',
+      ],
+      es: [
+        '¡Júpiter es tan grande que cabrían 1,300 Tierras dentro — es el planeta más grande!',
+        '¡La Gran Mancha Roja de Júpiter es una tormenta que lleva más de 350 años rugiendo — y es más grande que la Tierra!',
+      ],
     },
   },
   {
     name: 'Saturn', radius: 0.95, orbitRadius: 16.0, speed: 0.006,
-    textureKey: 'saturn', emoji: '\u2644',
+    textureKey: 'saturn', emoji: '♄', moons: 146,
     facts: {
-      en: "Saturn has beautiful rings made of ice and rock \u2014 they're as wide as 282 Earths!",
-      he: '\u05dc\u05e9\u05d1\u05ea\u05d0\u05d9 \u05d9\u05e9 \u05d8\u05d1\u05e2\u05d5\u05ea \u05d9\u05e4\u05d4\u05e4\u05d9\u05d5\u05ea!',
-      zh: '\u571f\u661f\u6709\u7f8e\u4e3d\u7684\u73af\uff01',
-      es: '\u00a1Saturno tiene hermosos anillos!',
+      en: [
+        "Saturn has beautiful rings made of ice and rock — they're as wide as 282 Earths!",
+        'Saturn is the least dense planet — it would float in water if you had a big enough bathtub!',
+      ],
+      he: [
+        'לשבתאי יש טבעות יפהפיות מקרח וסלע — רחבות כ-282 כדורי ארץ!',
+        'שבתאי הוא הכוכב דל הצפיפות ביותר — הוא היה צף על מים אם היה לך אמבטיה גדולה מספיק!',
+      ],
+      zh: [
+        '土星有由冰和岩石组成的美丽光环——宽度相当于282个地球！',
+        '土星是密度最小的行星——如果有足够大的浴缸，它会漂浮在水面上！',
+      ],
+      es: [
+        '¡Saturno tiene hermosos anillos de hielo y roca — son tan anchos como 282 Tierras!',
+        '¡Saturno es el planeta menos denso — flotaría en el agua si tuvieras una bañera suficientemente grande!',
+      ],
     },
   },
   {
     name: 'Uranus', radius: 0.7, orbitRadius: 20.0, speed: 0.004,
-    textureKey: 'uranus', emoji: '\u26e2',
+    textureKey: 'uranus', emoji: '⛢', moons: 28,
     facts: {
-      en: "Uranus spins on its side like a rolling ball \u2014 it's tilted 98 degrees!",
-      he: '\u05d0\u05d5\u05e8\u05e0\u05d5\u05e1 \u05de\u05e1\u05ea\u05d5\u05d1\u05d1 \u05e2\u05dc \u05e6\u05d9\u05d3\u05d5!',
-      zh: '\u5929\u738b\u661f\u50cf\u6eda\u7403\u4e00\u6837\u4fa7\u7740\u65cb\u8f6c\uff01',
-      es: '\u00a1Urano gira de lado!',
+      en: [
+        "Uranus spins on its side like a rolling ball — it's tilted 98 degrees!",
+        'Uranus is so far that a single trip there would take about 10 years from Earth!',
+      ],
+      he: [
+        'אורנוס מסתובב על צידו כמו כדור מתגלגל — הוא מוטה ב-98 מעלות!',
+        'אורנוס כל כך רחוק שטיול יחידי אליו יקח כ-10 שנים מכדור הארץ!',
+      ],
+      zh: ['天王星像滚球一样侧着旋转——倾斜了98度！', '天王星距离如此之远，从地球到那里的单程旅行需要约10年！'],
+      es: [
+        '¡Urano gira de lado como una pelota rodante — está inclinado 98 grados!',
+        '¡Urano está tan lejos que un viaje desde la Tierra tardaría unos 10 años!',
+      ],
     },
   },
   {
     name: 'Neptune', radius: 0.68, orbitRadius: 24.0, speed: 0.003,
-    textureKey: 'neptune', emoji: '\u2646',
+    textureKey: 'neptune', emoji: '♆', moons: 16,
     facts: {
-      en: 'Neptune has winds faster than any other planet \u2014 up to 2,100 km/h!',
-      he: '\u05dc\u05e0\u05e4\u05d8\u05d5\u05df \u05d9\u05e9 \u05e8\u05d5\u05d7\u05d5\u05ea \u05de\u05d4\u05d9\u05e8\u05d5\u05ea \u05d9\u05d5\u05ea\u05e8!',
-      zh: '\u6d77\u738b\u661f\u6709\u6700\u5feb\u7684\u98ce\uff01',
-      es: '\u00a1Neptuno tiene vientos muy r\u00e1pidos!',
+      en: [
+        'Neptune has winds faster than any other planet — up to 2,100 km/h!',
+        'Neptune takes 165 Earth years to orbit the Sun — it only completed one full orbit since its discovery in 1846!',
+      ],
+      he: [
+        'לנפטון יש רוחות מהירות יותר מכל כוכב אחר — עד 2,100 קמ"ש!',
+        'נפטון לוקח 165 שנות כדור הארץ להקיף את השמש. הוא השלים רק מסלול אחד מלא מאז גילויו ב-1846!',
+      ],
+      zh: [
+        '海王星有任何行星中最快的风速——高达每小时2100公里！',
+        '海王星绕太阳一周需要165个地球年。自1846年被发现以来，它只完成了一个完整的轨道！',
+      ],
+      es: [
+        '¡Neptuno tiene vientos más rápidos que cualquier otro planeta — hasta 2,100 km/h!',
+        '¡Neptuno tarda 165 años terrestres en orbitar el Sol. Solo completó una órbita desde su descubrimiento en 1846!',
+      ],
     },
   },
 ];
 
-const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultyConfig> = {
-  easy:   { activePlanets: 4,  orbitSpeedMultiplier: 0.5, timeLimit: 90, glowDuration: 3000 },
-  medium: { activePlanets: 6,  orbitSpeedMultiplier: 1.0, timeLimit: 60, glowDuration: 2000 },
-  hard:   { activePlanets: 8,  orbitSpeedMultiplier: 1.8, timeLimit: 45, glowDuration: 1200 },
-};
+// ─── Translations ─────────────────────────────────────────────────────────────────────────────
 
 const translations: Record<string, Record<string, string>> = {
   en: {
-    title: 'Solar System Explorer', chooseDifficulty: 'Choose Difficulty',
-    easy: 'Easy', medium: 'Medium', hard: 'Hard',
-    gameOver: 'Game Over!', youWin: 'Mission Complete!', playAgain: 'Play Again',
-    score: 'Score', time: 'Time', collected: 'Collected',
-    clickPlanet: 'Click glowing planets to collect facts!',
-    exploreEarth: 'Explore Earth', starInfoClose: 'Amazing!',
+    title: 'Solar System Explorer', subtitle: 'Click any planet or star to explore!',
+    startExploring: 'Begin Exploring 🔭', exploreEarth: 'Explore Earth 🌍',
+    instructions: 'How to Explore', closePanel: 'Continue Exploring',
+    orbitDistance: 'Orbit', knownMoons: 'Moons', starType: 'Type',
+    distance: 'Distance', temperature: 'Temperature', constellation: 'Constellation',
+    starInfoClose: 'Amazing!', au: 'AU',
   },
   he: {
-    title: '\u05d7\u05d5\u05e7\u05e8 \u05de\u05e2\u05e8\u05db\u05ea \u05d4\u05e9\u05de\u05e9', chooseDifficulty: '\u05d1\u05d7\u05e8 \u05e8\u05de\u05ea \u05e7\u05d5\u05e9\u05d9',
-    easy: '\u05e7\u05dc', medium: '\u05d1\u05d9\u05e0\u05d5\u05e0\u05d9', hard: '\u05e7\u05e9\u05d4',
-    gameOver: '\u05d4\u05de\u05e9\u05d7\u05e7 \u05e0\u05d2\u05de\u05e8!', youWin: '\u05de\u05e9\u05d9\u05de\u05d4 \u05d4\u05d5\u05e9\u05dc\u05de\u05d4!', playAgain: '\u05e9\u05d7\u05e7 \u05e9\u05d5\u05d1',
-    score: '\u05e0\u05d9\u05e7\u05d5\u05d3', time: '\u05d6\u05de\u05df', collected: '\u05e0\u05d0\u05e1\u05e3',
-    clickPlanet: '\u05dc\u05d7\u05e5 \u05e2\u05dc \u05db\u05d5\u05db\u05d1\u05d9 \u05dc\u05db\u05ea \u05d6\u05d5\u05d4\u05e8\u05d9\u05dd!',
-    exploreEarth: '\u05d7\u05e7\u05d5\u05e8 \u05db\u05d3\u05d5\u05e8 \u05d4\u05d0\u05e8\u05e5', starInfoClose: '\u05de\u05d3\u05d4\u05d9\u05dd!',
+    title: 'חוקר מערכת השמש', subtitle: 'לחץ על כוכב לכת או כוכב כדי לחקור!',
+    startExploring: 'התחל לחקור 🔭', exploreEarth: 'חקור כדור הארץ 🌍',
+    instructions: 'איך לחקור', closePanel: 'המשך לחקור',
+    orbitDistance: 'מסלול', knownMoons: 'ירחים', starType: 'סוג',
+    distance: 'מרחק', temperature: 'טמפרטורה', constellation: 'קבוצת כוכבים',
+    starInfoClose: 'מדהים!', au: 'AU',
   },
   zh: {
-    title: '\u592a\u9633\u7cfb\u63a2\u7d22\u8005', chooseDifficulty: '\u9009\u62e9\u96be\u5ea6',
-    easy: '\u5bb9\u6613', medium: '\u4e2d\u7b49', hard: '\u56f0\u96be',
-    gameOver: '\u6e38\u620f\u7ed3\u675f\uff01', youWin: '\u4efb\u52a1\u5b8c\u6210\uff01', playAgain: '\u518d\u73a9\u4e00\u6b21',
-    score: '\u5f97\u5206', time: '\u65f6\u95f4', collected: '\u5df2\u6536\u96c6',
-    clickPlanet: '\u70b9\u51fb\u53d1\u5149\u7684\u884c\u661f\u6536\u96c6\u4e8b\u5b9e\uff01',
-    exploreEarth: '\u63a2\u7d22\u5730\u7403', starInfoClose: '\u592a\u68d2\u4e86\uff01',
+    title: '太阳系探索者', subtitle: '点击任何行星或恒星来探索！',
+    startExploring: '开始探索 🔭', exploreEarth: '探索地球 🌍',
+    instructions: '如何探索', closePanel: '继续探索',
+    orbitDistance: '轨道', knownMoons: '卫星', starType: '类型',
+    distance: '距离', temperature: '温度', constellation: '星座',
+    starInfoClose: '太棒了！', au: 'AU',
   },
   es: {
-    title: 'Explorador del Sistema Solar', chooseDifficulty: 'Elige dificultad',
-    easy: 'F\u00e1cil', medium: 'Medio', hard: 'Dif\u00edcil',
-    gameOver: '\u00a1Fin del juego!', youWin: '\u00a1Misi\u00f3n cumplida!', playAgain: 'Jugar de nuevo',
-    score: 'Puntuaci\u00f3n', time: 'Tiempo', collected: 'Recopilados',
-    clickPlanet: '\u00a1Haz clic en los planetas brillantes!',
-    exploreEarth: 'Explorar la Tierra', starInfoClose: '\u00a1Incre\u00edble!',
+    title: 'Explorador del Sistema Solar', subtitle: '¡Haz clic en cualquier planeta o estrella!',
+    startExploring: 'Empezar a Explorar 🔭', exploreEarth: 'Explorar la Tierra 🌍',
+    instructions: 'Cómo Explorar', closePanel: 'Seguir Explorando',
+    orbitDistance: 'Órbita', knownMoons: 'Lunas', starType: 'Tipo',
+    distance: 'Distancia', temperature: 'Temperatura', constellation: 'Constelación',
+    starInfoClose: '¡Increíble!', au: 'UA',
   },
 };
 
@@ -173,63 +253,63 @@ const instructionsData: Record<string, {
 }> = {
   en: {
     instructions: [
-      { icon: '\ud83c\udf1e', title: 'The Solar System', description: 'All 8 planets orbit around the Sun. Each planet has a different size and orbit speed!' },
-      { icon: '\u2728', title: 'Watch for the glow', description: 'When a planet lights up, it has a fact card ready for you to collect!' },
-      { icon: '\ud83d\uddb1\ufe0f', title: 'Click to collect', description: 'Click the glowing planet to collect its fact card. Collect all planets to win!' },
+      { icon: '🪐', title: 'Roam Freely', description: 'Drag to rotate the solar system. Scroll to zoom in and out. No time limit — explore at your own pace!' },
+      { icon: '🌟', title: 'Click Planets', description: 'Click any planet to focus the camera on it and read amazing facts. The camera will smoothly glide to it!' },
+      { icon: '⭐', title: 'Click Stars', description: "The bright stars in the background are real named stars! Click them to learn their distance, temperature, and story." },
     ],
     controls: [
-      { icon: '\ud83d\uddb1\ufe0f', description: 'Drag to rotate camera, scroll to zoom' },
-      { icon: '\u2728', description: 'Click glowing planets to collect facts' },
-      { icon: '\u2b50', description: 'Click distant stars to learn about them' },
-      { icon: '\u26f3', description: 'Number keys 1-8 to target planets' },
+      { icon: '🖱️', description: 'Drag to rotate camera, scroll to zoom' },
+      { icon: '🪐', description: 'Click any planet to focus and learn' },
+      { icon: '⭐', description: 'Click distant stars to learn about them' },
+      { icon: '🌍', description: 'Tap "Explore Earth" for the Earth scene' },
     ],
-    tip: "Use the free-roam camera to zoom in on planets \u2014 you'll see their real NASA-derived textures up close!",
+    tip: 'Try clicking Saturn and zooming in — you can see its rings up close!',
   },
   he: {
     instructions: [
-      { icon: '\ud83c\udf1e', title: '\u05de\u05e2\u05e8\u05db\u05ea \u05d4\u05e9\u05de\u05e9', description: '\u05db\u05dc 8 \u05db\u05d5\u05db\u05d1\u05d9 \u05d4\u05dc\u05db\u05ea \u05de\u05e7\u05d9\u05e4\u05d9\u05dd \u05d0\u05ea \u05d4\u05e9\u05de\u05e9!' },
-      { icon: '\u2728', title: '\u05d7\u05e4\u05e9\u05d5 \u05d0\u05ea \u05d4\u05d6\u05d5\u05d4\u05e8', description: '\u05db\u05e9\u05db\u05d5\u05db\u05d1 \u05e0\u05d3\u05dc\u05e7, \u05d4\u05d5\u05d0 \u05de\u05d5\u05db\u05df \u05dc\u05d0\u05d9\u05e1\u05d5\u05e3!' },
-      { icon: '\ud83d\uddb1\ufe0f', title: '\u05dc\u05d7\u05e5 \u05dc\u05d0\u05d9\u05e1\u05d5\u05e3', description: '\u05dc\u05d7\u05e5 \u05e2\u05dc \u05db\u05d5\u05db\u05d1 \u05d4\u05d6\u05d5\u05d4\u05e8 \u05dc\u05d0\u05d9\u05e1\u05d5\u05e3!' },
+      { icon: '🪐', title: 'תנוע בחופשיות', description: 'גרור לסיבוב מערכת השמש. גלגל לזום פנימה והחוצה. ללא הגבלת זמן — חקור בקצב שלך!' },
+      { icon: '🌟', title: 'לחץ על כוכבי לכת', description: 'לחץ על כל כוכב לכת כדי למקד את המצלמה עליו ולקרוא עובדות מדהימות!' },
+      { icon: '⭐', title: 'לחץ על כוכבים', description: 'הכוכבים הבהירים ברקע הם כוכבים אמיתיים! לחץ עליהם ללמוד עליהם.' },
     ],
     controls: [
-      { icon: '\ud83d\uddb1\ufe0f', description: '\u05d2\u05e8\u05d5\u05e8 \u05dc\u05e1\u05d9\u05d1\u05d5\u05d1 \u05de\u05e6\u05dc\u05de\u05d4, \u05d2\u05dc\u05d2\u05dc \u05dc\u05d6\u05d5\u05dd' },
-      { icon: '\u2728', description: '\u05dc\u05d7\u05e5 \u05e2\u05dc \u05db\u05d5\u05db\u05d1\u05d9 \u05dc\u05db\u05ea \u05d6\u05d5\u05d4\u05e8\u05d9\u05dd' },
-      { icon: '\u26f3', description: '\u05de\u05e7\u05e9\u05d9\u05dd 1-8 \u05dc\u05d1\u05d7\u05d9\u05e8\u05ea \u05db\u05d5\u05db\u05d1\u05d9\u05dd' },
-      { icon: '\ud83d\udc46', description: '\u05d4\u05e7\u05e9 \u05d1\u05de\u05db\u05e9\u05d9\u05e8 \u05e0\u05d9\u05d9\u05d3' },
+      { icon: '🖱️', description: 'גרור לסיבוב מצלמה, גלגל לזום' },
+      { icon: '🪐', description: 'לחץ על כוכב לכת למיקוד ולמידה' },
+      { icon: '⭐', description: 'לחץ על כוכבים רחוקים ללמוד עליהם' },
+      { icon: '🌍', description: 'הקש "חקור כדור הארץ" לזום' },
     ],
-    tip: '\u05d4\u05e9\u05ea\u05de\u05e9 \u05d1\u05de\u05e6\u05dc\u05de\u05d4 \u05d4\u05d7\u05d5\u05e4\u05e9\u05d9\u05ea \u05db\u05d3\u05d9 \u05dc\u05d4\u05ea\u05e7\u05e8\u05d1 \u05dc\u05db\u05d5\u05db\u05d1\u05d9\u05dd!',
+    tip: 'נסה ללחוץ על שבתאי ולהתקרב — תוכל לראות את טבעותיו מקרוב!',
   },
   zh: {
     instructions: [
-      { icon: '\ud83c\udf1e', title: '\u592a\u9633\u7cfb', description: '\u6240\u67088\u9897\u884c\u661f\u90fd\u56f4\u7ed5\u592a\u9633\u8fd0\u884c\uff01' },
-      { icon: '\u2728', title: '\u6ce8\u610f\u53d1\u5149', description: '\u5f53\u884c\u661f\u53d1\u5149\u65f6\uff0c\u5b83\u6709\u4e00\u5f20\u4e8b\u5b9e\u5361\u7b49\u4f60\u6536\u96c6\uff01' },
-      { icon: '\ud83d\uddb1\ufe0f', title: '\u70b9\u51fb\u6536\u96c6', description: '\u70b9\u51fb\u53d1\u5149\u7684\u884c\u661f\u6536\u96c6\u5b83\u7684\u4e8b\u5b9e\u5361\u3002' },
+      { icon: '🪐', title: '自由漫游', description: '拖动旋转太阳系。滚动缩放。没有时间限制——按自己的节奏探索！' },
+      { icon: '🌟', title: '点击行星', description: '点击任何行星将相机聚焦在它上面并阅读惊人的事实！' },
+      { icon: '⭐', title: '点击恒星', description: '背景中明亮的恒星都是真实的具名恒星！点击了解距离、温度和故事。' },
     ],
     controls: [
-      { icon: '\ud83d\uddb1\ufe0f', description: '\u62d6\u52a8\u65cb\u8f6c\u76f8\u673a\uff0c\u6eda\u52a8\u7f29\u653e' },
-      { icon: '\u2728', description: '\u70b9\u51fb\u53d1\u5149\u884c\u661f' },
-      { icon: '\u26f3', description: '\u6570\u5b57\u952e1-8\u9009\u62e9\u884c\u661f' },
-      { icon: '\ud83d\udc46', description: '\u5728\u79fb\u52a8\u8bbe\u5907\u4e0a\u89e6\u6478' },
+      { icon: '🖱️', description: '拖动旋转相机，滚动缩放' },
+      { icon: '🪐', description: '点击任何行星聚焦并学习' },
+      { icon: '⭐', description: '点击遥远的恒星学习' },
+      { icon: '🌍', description: '点击"探索地球"进入地球场景' },
     ],
-    tip: '\u4f7f\u7528\u81ea\u7531\u8f6c\u52a8\u76f8\u673a\u8fdb\u884c\u653e\u5927\uff01',
+    tip: '尝试点击土星并放大——你可以近距离看到它的光环！',
   },
   es: {
     instructions: [
-      { icon: '\ud83c\udf1e', title: 'El Sistema Solar', description: '\u00a1Los 8 planetas orbitan alrededor del Sol!' },
-      { icon: '\u2728', title: 'Observa el brillo', description: '\u00a1Cuando un planeta brilla, tiene una tarjeta lista!' },
-      { icon: '\ud83d\uddb1\ufe0f', title: 'Haz clic para recopilar', description: '\u00a1Haz clic en el planeta brillante!' },
+      { icon: '🪐', title: 'Explora Libremente', description: '¡Arrastra para rotar el sistema solar. Desplaza para ampliar. Sin límite de tiempo — explora a tu ritmo!' },
+      { icon: '🌟', title: 'Clic en Planetas', description: '¡Haz clic en cualquier planeta para enfocar la cámara y leer datos asombrosos!' },
+      { icon: '⭐', title: 'Clic en Estrellas', description: '¡Las estrellas del fondo son reales! Haz clic para aprender distancia, temperatura e historia.' },
     ],
     controls: [
-      { icon: '\ud83d\uddb1\ufe0f', description: 'Arrastra para rotar, rueda para zoom' },
-      { icon: '\u2728', description: 'Clic en planetas brillantes' },
-      { icon: '\u26f3', description: 'Teclas 1-8 para planetas' },
-      { icon: '\ud83d\udc46', description: 'Toca en m\u00f3vil' },
+      { icon: '🖱️', description: 'Arrastra para rotar, rueda para zoom' },
+      { icon: '🪐', description: 'Clic en planetas para enfocar' },
+      { icon: '⭐', description: 'Clic en estrellas distantes' },
+      { icon: '🌍', description: 'Toca "Explorar la Tierra" para la escena de la Tierra' },
     ],
-    tip: '\u00a1Usa la c\u00e1mara libre para acercarte a los planetas!',
+    tip: '¡Intenta hacer clic en Saturno y acercarte — puedes ver sus anillos de cerca!',
   },
 };
 
-// \u2500\u2500\u2500 Milky Way Skybox \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─── Milky Way Skybox ─────────────────────────────────────────────────────────────────────────────
 
 function MilkyWaySkybox({ texture }: { texture: THREE.Texture }) {
   return (
@@ -240,55 +320,108 @@ function MilkyWaySkybox({ texture }: { texture: THREE.Texture }) {
   );
 }
 
-// \u2500\u2500\u2500 Orbit Ring \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─── Orbit Ring ─────────────────────────────────────────────────────────────────────────────────────
 
 function OrbitRing({ radius }: { radius: number }) {
   const points: THREE.Vector3[] = [];
   for (let i = 0; i <= 64; i++) {
-    const angle = (i / 64) * Math.PI * 2;
-    points.push(new THREE.Vector3(Math.cos(angle) * radius, 0, Math.sin(angle) * radius));
+    const a = (i / 64) * Math.PI * 2;
+    points.push(new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius));
   }
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return <primitive object={new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.12 }))} />;
+  return (
+    <primitive object={new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.10 }))} />
+  );
 }
 
-// \u2500\u2500\u2500 Saturn Planet (with rings) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─── Generic planet with world-pos click ──────────────────────────────────────────────────────────────
+
+interface WorldPosPlanetProps {
+  planet: PlanetData;
+  texture: THREE.Texture;
+  isSelected: boolean;
+  onPlanetClick: (planet: PlanetData, worldPos: THREE.Vector3) => void;
+}
+
+function WorldPosPlanet({ planet, texture, isSelected, onPlanetClick }: WorldPosPlanetProps) {
+  const meshRef = useRef<THREE.Mesh>(null!);
+  const glowRef = useRef<THREE.Mesh>(null!);
+  const angle = useRef(Math.random() * Math.PI * 2);
+
+  useFrame((state, delta) => {
+    angle.current += planet.speed * delta;
+    const x = Math.cos(angle.current) * planet.orbitRadius;
+    const z = Math.sin(angle.current) * planet.orbitRadius;
+    if (meshRef.current) { meshRef.current.position.set(x, 0, z); meshRef.current.rotation.y += delta * 0.4; }
+    if (glowRef.current) {
+      glowRef.current.position.set(x, 0, z);
+      if (isSelected) {
+        (glowRef.current.material as THREE.MeshBasicMaterial).opacity = 0.15 + Math.sin(state.clock.elapsedTime * 3) * 0.08;
+      }
+    }
+  });
+
+  const handleClick = useCallback((e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation();
+    const wp = new THREE.Vector3();
+    if (meshRef.current) meshRef.current.getWorldPosition(wp);
+    onPlanetClick(planet, wp);
+  }, [planet, onPlanetClick]);
+
+  return (
+    <>
+      <mesh ref={meshRef} onClick={handleClick}>
+        <sphereGeometry args={[planet.radius, 32, 32]} />
+        <meshStandardMaterial
+          map={texture}
+          emissive={isSelected ? '#6699ff' : '#000000'}
+          emissiveIntensity={isSelected ? 0.25 : 0}
+          roughness={0.8} metalness={0.05}
+        />
+      </mesh>
+      {isSelected && (
+        <mesh ref={glowRef}>
+          <sphereGeometry args={[planet.radius * 2.2, 16, 16]} />
+          <meshBasicMaterial color="#aaccff" transparent opacity={0.15} side={THREE.BackSide} />
+        </mesh>
+      )}
+    </>
+  );
+}
+
+// ─── Saturn with rings + world-pos click ─────────────────────────────────────────────────────
 
 interface SaturnPlanetProps {
   planet: PlanetData;
-  isGlowing: boolean;
-  isCollected: boolean;
-  speedMultiplier: number;
+  isSelected: boolean;
   saturnTexture: THREE.Texture;
   ringTexture: THREE.Texture;
-  onClick: () => void;
+  onPlanetClick: (planet: PlanetData, worldPos: THREE.Vector3) => void;
 }
 
-function SaturnPlanet({ planet, isGlowing, isCollected, speedMultiplier, saturnTexture, ringTexture, onClick }: SaturnPlanetProps) {
+function SaturnPlanet({ planet, isSelected, saturnTexture, ringTexture, onPlanetClick }: SaturnPlanetProps) {
   const groupRef = useRef<THREE.Group>(null!);
   const meshRef = useRef<THREE.Mesh>(null!);
   const glowRef = useRef<THREE.Mesh>(null!);
   const angle = useRef(Math.random() * Math.PI * 2);
 
   useFrame((state, delta) => {
-    angle.current += planet.speed * speedMultiplier * delta;
+    angle.current += planet.speed * delta;
     const x = Math.cos(angle.current) * planet.orbitRadius;
     const z = Math.sin(angle.current) * planet.orbitRadius;
     if (groupRef.current) groupRef.current.position.set(x, 0, z);
     if (meshRef.current) meshRef.current.rotation.y += delta * 0.4;
-    if (glowRef.current && isGlowing) {
-      const mat = glowRef.current.material as THREE.MeshBasicMaterial;
-      mat.opacity = 0.25 + Math.sin(state.clock.elapsedTime * 6) * 0.15;
+    if (glowRef.current && isSelected) {
+      (glowRef.current.material as THREE.MeshBasicMaterial).opacity = 0.15 + Math.sin(state.clock.elapsedTime * 3) * 0.08;
     }
   });
 
   const handleClick = useCallback((e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
-    if (!isCollected) onClick();
-  }, [isCollected, onClick]);
-
-  if (isCollected) return null;
+    const wp = new THREE.Vector3();
+    if (groupRef.current) groupRef.current.getWorldPosition(wp);
+    onPlanetClick(planet, wp);
+  }, [planet, onPlanetClick]);
 
   return (
     <group ref={groupRef}>
@@ -296,103 +429,159 @@ function SaturnPlanet({ planet, isGlowing, isCollected, speedMultiplier, saturnT
         <sphereGeometry args={[planet.radius, 32, 32]} />
         <meshStandardMaterial
           map={saturnTexture}
-          emissive={isGlowing ? '#ffffff' : '#000000'}
-          emissiveIntensity={isGlowing ? 0.3 : 0}
+          emissive={isSelected ? '#6699ff' : '#000000'}
+          emissiveIntensity={isSelected ? 0.25 : 0}
           roughness={0.8}
         />
       </mesh>
       <SaturnRings ringTexture={ringTexture} />
-      {isGlowing && (
+      {isSelected && (
         <mesh ref={glowRef}>
-          <sphereGeometry args={[planet.radius * 1.8, 16, 16]} />
-          <meshBasicMaterial color="#ffffff" transparent opacity={0.25} side={THREE.BackSide} />
+          <sphereGeometry args={[planet.radius * 2.2, 16, 16]} />
+          <meshBasicMaterial color="#aaccff" transparent opacity={0.15} side={THREE.BackSide} />
         </mesh>
       )}
     </group>
   );
 }
 
-// \u2500\u2500\u2500 Game Scene \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─── Earth with Moon ────────────────────────────────────────────────────────────────────────────
 
-interface GameSceneProps {
-  activePlanets: PlanetData[];
-  glowingPlanet: string | null;
-  collectedPlanets: string[];
-  speedMultiplier: number;
-  onPlanetClick: (planet: PlanetData) => void;
-  onStarClick: (star: NamedStar) => void;
-  locale: string;
+interface EarthPlanetProps {
+  planet: PlanetData;
+  earthTexture: THREE.Texture;
+  moonTexture: THREE.Texture;
+  isSelected: boolean;
+  onPlanetClick: (planet: PlanetData, worldPos: THREE.Vector3) => void;
 }
 
-function GameScene({ activePlanets, glowingPlanet, collectedPlanets, speedMultiplier, onPlanetClick, onStarClick, locale }: GameSceneProps) {
+function EarthPlanet({ planet, earthTexture, moonTexture, isSelected, onPlanetClick }: EarthPlanetProps) {
+  const groupRef = useRef<THREE.Group>(null!);
+  const earthRef = useRef<THREE.Mesh>(null!);
+  const moonRef = useRef<THREE.Mesh>(null!);
+  const glowRef = useRef<THREE.Mesh>(null!);
+  const earthAngle = useRef(Math.random() * Math.PI * 2);
+  const moonAngle = useRef(0);
+
+  useFrame((state, delta) => {
+    earthAngle.current += planet.speed * delta;
+    moonAngle.current += 0.8 * delta;
+    const ex = Math.cos(earthAngle.current) * planet.orbitRadius;
+    const ez = Math.sin(earthAngle.current) * planet.orbitRadius;
+    if (groupRef.current) groupRef.current.position.set(ex, 0, ez);
+    if (earthRef.current) earthRef.current.rotation.y += delta * 0.3;
+    if (moonRef.current) {
+      moonRef.current.position.set(
+        Math.cos(moonAngle.current) * 1.4, 0,
+        Math.sin(moonAngle.current) * 1.4,
+      );
+    }
+    if (glowRef.current && isSelected) {
+      (glowRef.current.material as THREE.MeshBasicMaterial).opacity = 0.15 + Math.sin(state.clock.elapsedTime * 3) * 0.08;
+    }
+  });
+
+  const handleClick = useCallback((e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation();
+    const wp = new THREE.Vector3();
+    if (groupRef.current) groupRef.current.getWorldPosition(wp);
+    onPlanetClick(planet, wp);
+  }, [planet, onPlanetClick]);
+
+  return (
+    <group ref={groupRef}>
+      <mesh ref={earthRef} onClick={handleClick}>
+        <sphereGeometry args={[planet.radius, 32, 32]} />
+        <meshStandardMaterial
+          map={earthTexture}
+          emissive={isSelected ? '#6699ff' : '#000000'}
+          emissiveIntensity={isSelected ? 0.25 : 0}
+          roughness={0.7} metalness={0.05}
+        />
+      </mesh>
+      <mesh ref={moonRef}>
+        <sphereGeometry args={[0.15, 16, 16]} />
+        <meshStandardMaterial map={moonTexture} roughness={0.9} />
+      </mesh>
+      {isSelected && (
+        <mesh ref={glowRef}>
+          <sphereGeometry args={[planet.radius * 2.2, 16, 16]} />
+          <meshBasicMaterial color="#aaccff" transparent opacity={0.15} side={THREE.BackSide} />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
+// ─── Camera Rig ──────────────────────────────────────────────────────────────────────────────────────
+
+interface CameraRigProps {
+  focusPoint: THREE.Vector3 | null;
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
+}
+
+function CameraRig({ focusPoint, controlsRef }: CameraRigProps) {
+  useFrame((_, delta) => {
+    if (!focusPoint || !controlsRef.current) return;
+    const controls = controlsRef.current;
+    (controls.target as THREE.Vector3).lerp(focusPoint, Math.min(delta * 2.5, 1));
+    controls.update();
+  });
+  return null;
+}
+
+// ─── Explorer Scene ───────────────────────────────────────────────────────────────────────────────────
+
+interface ExplorerSceneProps {
+  planets: PlanetData[];
+  selectedPlanetName: string | null;
+  selectedStarId: string | null;
+  onPlanetClick: (planet: PlanetData, worldPos: THREE.Vector3) => void;
+  onStarClick: (star: NamedStar) => void;
+  locale: string;
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
+  focusPoint: THREE.Vector3 | null;
+}
+
+function ExplorerScene({
+  planets, selectedPlanetName, selectedStarId,
+  onPlanetClick, onStarClick, locale, controlsRef, focusPoint,
+}: ExplorerSceneProps) {
   const textures = usePlanetTextures();
-  const earthPlanet = activePlanets.find(p => p.name === 'Earth');
-  const earthIsCollected = collectedPlanets.includes('Earth');
 
   return (
     <>
       <ambientLight intensity={0.04} />
       <MilkyWaySkybox texture={textures.milkyWay} />
       <SunWithCorona texture={textures.sun} />
-      {activePlanets.map(planet => (
-        <OrbitRing key={'orbit-' + planet.name} radius={planet.orbitRadius} />
-      ))}
-      {activePlanets.map(planet => {
+      {planets.map(planet => <OrbitRing key={'o-' + planet.name} radius={planet.orbitRadius} />)}
+      {planets.map(planet => {
         if (planet.name === 'Saturn') {
           return (
-            <SaturnPlanet
-              key={planet.name}
-              planet={planet}
-              isGlowing={glowingPlanet === planet.name}
-              isCollected={collectedPlanets.includes(planet.name)}
-              speedMultiplier={speedMultiplier}
-              saturnTexture={textures.saturn}
-              ringTexture={textures.saturnRing}
-              onClick={() => onPlanetClick(planet)}
-            />
+            <SaturnPlanet key={planet.name} planet={planet}
+              isSelected={selectedPlanetName === planet.name}
+              saturnTexture={textures.saturn} ringTexture={textures.saturnRing}
+              onPlanetClick={onPlanetClick} />
           );
         }
         if (planet.name === 'Earth') {
           return (
-            <EarthWithMoon
-              key={planet.name}
-              radius={planet.radius}
-              orbitRadius={planet.orbitRadius}
-              speed={planet.speed}
-              speedMultiplier={speedMultiplier}
-              earthTexture={textures.earthDay}
-              moonTexture={textures.moon}
-              isGlowing={glowingPlanet === planet.name}
-              isCollected={earthIsCollected}
-              onClick={() => onPlanetClick(planet)}
-            />
+            <EarthPlanet key={planet.name} planet={planet}
+              earthTexture={textures.earthDay} moonTexture={textures.moon}
+              isSelected={selectedPlanetName === planet.name}
+              onPlanetClick={onPlanetClick} />
           );
         }
         return (
-          <PlanetWithTexture
-            key={planet.name}
-            name={planet.name}
-            emoji={planet.emoji}
-            radius={planet.radius}
-            orbitRadius={planet.orbitRadius}
-            speed={planet.speed}
-            speedMultiplier={speedMultiplier}
-            texture={textures[planet.textureKey]}
-            isGlowing={glowingPlanet === planet.name}
-            isCollected={collectedPlanets.includes(planet.name)}
-            onClick={() => onPlanetClick(planet)}
-          />
+          <WorldPosPlanet key={planet.name} planet={planet} texture={textures[planet.textureKey]}
+            isSelected={selectedPlanetName === planet.name} onPlanetClick={onPlanetClick} />
         );
       })}
       {NAMED_STARS.map(star => (
-        <StarObject
-          key={star.id}
-          star={star}
-          skyRadius={200}
-          locale={locale}
-          onStarClick={onStarClick}
-        />
+        <StarObject key={star.id} star={star} skyRadius={200} locale={locale}
+          isSelected={selectedStarId === star.id} onStarClick={onStarClick} />
       ))}
+      <CameraRig focusPoint={focusPoint} controlsRef={controlsRef} />
       <EffectComposer>
         <Bloom luminanceThreshold={0.3} intensity={1.2} radius={0.6} />
         <Vignette darkness={0.4} offset={0.3} />
@@ -401,7 +590,7 @@ function GameScene({ activePlanets, glowingPlanet, collectedPlanets, speedMultip
   );
 }
 
-// \u2500\u2500\u2500 Main Component \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─── Main Component ───────────────────────────────────────────────────────────────────────────────────
 
 interface SolarSystem3DGameProps {
   locale?: string;
@@ -412,298 +601,207 @@ export default function SolarSystem3DGame({ locale = 'en' }: SolarSystem3DGamePr
   const isRtl = locale === 'he';
   const instrData = instructionsData[locale] || instructionsData.en;
 
-  const { playClick, playSuccess, playBeep, playHit, playGameOver, playWin } = useRetroSounds();
+  const { playClick, playSuccess, playBeep } = useRetroSounds();
 
   const [gameMode, setGameMode] = useState<GameMode>('solar-system');
-  const [phase, setPhase] = useState<Phase>('difficulty');
-  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
-  const [score, setScore] = useState(0);
-  const [lives, setLives] = useState(3);
-  const [timeLeft, setTimeLeft] = useState(90);
+  const [exploring, setExploring] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
-  const [activePlanets, setActivePlanets] = useState<PlanetData[]>([]);
-  const [glowingPlanet, setGlowingPlanet] = useState<string | null>(null);
-  const [collectedPlanets, setCollectedPlanets] = useState<string[]>([]);
-  const [currentFact, setCurrentFact] = useState<{ planet: PlanetData; fact: string } | null>(null);
+  const [selectedPlanet, setSelectedPlanet] = useState<PlanetData | null>(null);
   const [selectedStar, setSelectedStar] = useState<NamedStar | null>(null);
-  const [highScore, setHighScore] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const s = localStorage.getItem('solar-system-3d-highscore');
-      return s ? parseInt(s, 10) : 0;
-    }
-    return 0;
-  });
+  const [focusPoint, setFocusPoint] = useState<THREE.Vector3 | null>(null);
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const glowTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const glowIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const controlsRef = useRef<any>(null);
 
-  useEffect(() => {
-    if (score > highScore) {
-      setHighScore(score);
-      localStorage.setItem('solar-system-3d-highscore', String(score));
-    }
-  }, [score, highScore]);
+  const handlePlanetClick = useCallback((planet: PlanetData, worldPos: THREE.Vector3) => {
+    setSelectedPlanet(planet);
+    setSelectedStar(null);
+    if (worldPos.lengthSq() > 0.01) setFocusPoint(worldPos.clone());
+    playSuccess();
+  }, [playSuccess]);
 
-  useEffect(() => {
-    if (phase !== 'playing') return;
-    timerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) { clearInterval(timerRef.current!); setPhase('gameover'); playGameOver(); return 0; }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timerRef.current!);
-  }, [phase, playGameOver]);
+  const handleStarClick = useCallback((star: NamedStar) => {
+    setSelectedStar(star);
+    setSelectedPlanet(null);
+    playBeep();
+  }, [playBeep]);
 
-  useEffect(() => {
-    if (phase !== 'playing') return;
-    const cfg = DIFFICULTY_SETTINGS[difficulty];
-    const scheduleGlow = () => {
-      glowIntervalRef.current = setTimeout(() => {
-        setGlowingPlanet(prev => { if (prev) return prev; return null; });
-        setCollectedPlanets(collected => {
-          setActivePlanets(planets => {
-            const available = planets.filter(p => !collected.includes(p.name));
-            if (available.length === 0) return planets;
-            const chosen = available[Math.floor(Math.random() * available.length)];
-            setGlowingPlanet(chosen.name);
-            playBeep();
-            glowTimerRef.current = setTimeout(() => { setGlowingPlanet(null); scheduleGlow(); }, cfg.glowDuration);
-            return planets;
-          });
-          return collected;
-        });
-      }, 1500 + Math.random() * 1000);
-    };
-    scheduleGlow();
-    return () => { clearTimeout(glowIntervalRef.current!); clearTimeout(glowTimerRef.current!); };
-  }, [phase, difficulty, playBeep]);
-
-  const startGame = useCallback((diff: Difficulty) => {
-    const cfg = DIFFICULTY_SETTINGS[diff];
-    setDifficulty(diff);
-    setScore(0); setLives(3); setTimeLeft(cfg.timeLimit);
-    setCollectedPlanets([]); setGlowingPlanet(null); setCurrentFact(null);
-    setActivePlanets(ALL_PLANETS.slice(0, cfg.activePlanets));
-    setPhase('instructions'); setShowInstructions(true);
+  const handleClosePlanetPanel = useCallback(() => {
+    setSelectedPlanet(null);
+    setFocusPoint(null);
     playClick();
   }, [playClick]);
 
-  const startPlaying = useCallback(() => { setShowInstructions(false); setPhase('playing'); }, []);
-
-  const handlePlanetClick = useCallback((planet: PlanetData) => {
-    if (phase !== 'playing') return;
-    if (glowingPlanet === planet.name) {
-      clearTimeout(glowTimerRef.current!);
-      playSuccess();
-      setGlowingPlanet(null);
-      setScore(prev => prev + 200);
-      setCurrentFact({ planet, fact: planet.facts[locale] || planet.facts.en });
-      setCollectedPlanets(prev => {
-        const next = [...prev, planet.name];
-        const cfg = DIFFICULTY_SETTINGS[difficulty];
-        if (next.length >= cfg.activePlanets) {
-          setTimeout(() => { setCurrentFact(null); setPhase('win'); playWin(); }, 2000);
-        } else {
-          setTimeout(() => {
-            setCurrentFact(null);
-            glowIntervalRef.current = setTimeout(() => {
-              setCollectedPlanets(c2 => {
-                setActivePlanets(planets => {
-                  const available = planets.filter(p => !c2.includes(p.name));
-                  if (available.length === 0) return planets;
-                  const chosen = available[Math.floor(Math.random() * available.length)];
-                  setGlowingPlanet(chosen.name);
-                  playBeep();
-                  glowTimerRef.current = setTimeout(() => { setGlowingPlanet(null); }, DIFFICULTY_SETTINGS[difficulty].glowDuration);
-                  return planets;
-                });
-                return c2;
-              });
-            }, 1000);
-          }, 2000);
-        }
-        return next;
-      });
-    } else if (planet.name !== glowingPlanet) {
-      playHit();
-      setLives(prev => {
-        const next = prev - 1;
-        if (next <= 0) { setPhase('gameover'); playGameOver(); }
-        return next;
-      });
-    }
-  }, [phase, glowingPlanet, locale, difficulty, playSuccess, playHit, playWin, playGameOver, playBeep]);
-
-  useEffect(() => {
-    if (phase !== 'playing') return;
-    const handleKey = (e: KeyboardEvent) => {
-      const idx = parseInt(e.key, 10);
-      if (idx >= 1 && idx <= activePlanets.length) handlePlanetClick(activePlanets[idx - 1]);
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [phase, activePlanets, handlePlanetClick]);
-
-  const handleStarClick = useCallback((star: NamedStar) => { setSelectedStar(star); playBeep(); }, [playBeep]);
-
-  const cfg = DIFFICULTY_SETTINGS[difficulty];
+  const handleCloseStarPanel = useCallback(() => {
+    setSelectedStar(null);
+    playClick();
+  }, [playClick]);
 
   if (gameMode === 'earth-explorer') {
     return (
-      <GameWrapper title="\ud83c\udf0d Earth Explorer" onInstructionsClick={() => {}} fullHeight>
-        <EarthExplorerScene locale={locale} onBack={() => setGameMode('solar-system')} />
+      <GameWrapper title="🌍 Earth Explorer" onInstructionsClick={() => {}} fullHeight>
+        <EarthExplorerScene locale={locale} onBack={() => { setGameMode('solar-system'); playClick(); }} />
       </GameWrapper>
     );
   }
 
   return (
     <GameWrapper title={t.title} onInstructionsClick={() => setShowInstructions(true)} fullHeight>
-    <div className="relative w-full h-full bg-black overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
-      {(phase === 'playing' || phase === 'win' || phase === 'gameover') && (
-        <Canvas camera={{ position: [0, 28, 28], fov: 55 }} style={{ position: 'absolute', inset: 0 }}>
-          <Suspense fallback={null}>
-            <GameScene
-              activePlanets={activePlanets}
-              glowingPlanet={glowingPlanet}
-              collectedPlanets={collectedPlanets}
-              speedMultiplier={cfg.orbitSpeedMultiplier}
-              onPlanetClick={handlePlanetClick}
-              onStarClick={handleStarClick}
-              locale={locale}
+      <div className="relative w-full h-full bg-black overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
+
+        {/* 3D Scene */}
+        {exploring && (
+          <Canvas camera={{ position: [0, 28, 28], fov: 55 }} style={{ position: 'absolute', inset: 0 }}>
+            <Suspense fallback={null}>
+              <ExplorerScene
+                planets={ALL_PLANETS}
+                selectedPlanetName={selectedPlanet?.name ?? null}
+                selectedStarId={selectedStar?.id ?? null}
+                onPlanetClick={handlePlanetClick}
+                onStarClick={handleStarClick}
+                locale={locale}
+                controlsRef={controlsRef}
+                focusPoint={focusPoint}
+              />
+            </Suspense>
+            <OrbitControls
+              ref={controlsRef}
+              enablePan={false}
+              minDistance={3}
+              maxDistance={100}
+              enableDamping
+              dampingFactor={0.05}
             />
-          </Suspense>
-          <OrbitControls enablePan={false} minDistance={5} maxDistance={80} enableDamping dampingFactor={0.05} />
-        </Canvas>
-      )}
+          </Canvas>
+        )}
 
-      {phase === 'playing' && (
-        <div className="absolute top-4 left-0 right-0 flex justify-between items-start px-4 pointer-events-none z-10">
-          <div className="bg-black/60 rounded-2xl px-4 py-2 text-white text-sm font-bold space-y-1">
-            <div>\u2b50 {t.score}: {score}</div>
-            <div>\u2764\ufe0f {'\u2764\ufe0f'.repeat(lives)}</div>
-            <div>\ud83c\udf0d {t.collected}: {collectedPlanets.length}/{cfg.activePlanets}</div>
-          </div>
-          <div className="bg-black/60 rounded-2xl px-4 py-2 text-white text-center font-bold">
-            <div className="text-2xl">{timeLeft}s</div>
-            <div className="text-xs">{t.time}</div>
-          </div>
-        </div>
-      )}
-
-      {phase === 'playing' && !currentFact && (
-        <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none z-10">
-          <div className="inline-block bg-black/60 rounded-xl px-4 py-2 text-white text-sm">
-            {glowingPlanet ? ('\u2728 ' + glowingPlanet + ' is glowing! Click it!') : t.clickPlanet}
-          </div>
-        </div>
-      )}
-
-      {currentFact && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-30 p-4">
-          <div className="bg-gradient-to-br from-indigo-900 to-purple-900 rounded-3xl p-8 max-w-md text-center shadow-2xl border-2 border-yellow-400">
-            <div className="text-6xl mb-3">{currentFact.planet.emoji}</div>
-            <h3 className="text-2xl font-bold text-yellow-400 mb-2">{currentFact.planet.name}!</h3>
-            <p className="text-white text-lg leading-relaxed mb-6">{currentFact.fact}</p>
-            <div className="text-yellow-300 text-sm animate-pulse">\u231b Continuing in a moment...</div>
-          </div>
-        </div>
-      )}
-
-      {selectedStar && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-30 p-4">
-          <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl border border-white/20">
-            <div className="text-4xl mb-2" style={{ color: selectedStar.color }}>\u2605</div>
-            <h3 className="text-xl font-bold text-white mb-1">{selectedStar.name}</h3>
-            <div className="text-gray-400 text-xs mb-3">{selectedStar.bayer} \u00b7 {selectedStar.constellation}</div>
-            <div className="flex justify-center gap-4 text-sm mb-4">
-              <span className="text-yellow-300">Mag: {selectedStar.apparentMagnitude}</span>
-              <span className="text-cyan-300">{selectedStar.distanceLY} ly</span>
-              <span className="text-red-300">{selectedStar.temperatureK.toLocaleString()}K</span>
-            </div>
-            <p className="text-gray-200 text-sm leading-relaxed mb-5">
-              {selectedStar.facts[locale] || selectedStar.facts.en}
-            </p>
-            <button
-              onClick={() => setSelectedStar(null)}
-              className="min-h-[44px] px-6 rounded-2xl font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:scale-105 transition-transform text-sm"
-            >
-              {t.starInfoClose}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {phase === 'difficulty' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-950 to-black z-20">
-          <div className="text-center px-6 max-w-md">
-            <div className="text-7xl mb-4">\ud83e\ude90</div>
-            <h1 className="text-4xl font-bold text-white mb-2">{t.title}</h1>
-            <p className="text-indigo-300 mb-6">{t.chooseDifficulty}</p>
-            <div className="flex flex-col gap-3">
-              {(['easy', 'medium', 'hard'] as Difficulty[]).map(d => (
+        {/* Welcome Screen */}
+        {!exploring && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-950 to-black z-20">
+            <div className="text-center px-6 max-w-md">
+              <div className="text-8xl mb-4">🔭</div>
+              <h1 className="text-4xl font-bold text-white mb-2">{t.title}</h1>
+              <p className="text-indigo-300 mb-8 text-sm">{t.subtitle}</p>
+              <div className="flex flex-col gap-3">
                 <button
-                  key={d}
-                  onClick={() => startGame(d)}
-                  className="min-h-[56px] rounded-2xl font-bold text-lg text-white transition-transform hover:scale-105 active:scale-95 shadow-lg"
-                  style={{
-                    background: d === 'easy' ? 'linear-gradient(135deg, #22c55e, #16a34a)' :
-                      d === 'medium' ? 'linear-gradient(135deg, #f59e0b, #d97706)' :
-                        'linear-gradient(135deg, #ef4444, #dc2626)',
-                  }}
+                  onClick={() => { setExploring(true); playClick(); }}
+                  className="min-h-[56px] rounded-2xl font-bold text-xl text-white transition-transform hover:scale-105 active:scale-95 shadow-2xl"
+                  style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
                 >
-                  {d === 'easy' ? '\ud83d\udfe2' : d === 'medium' ? '\ud83d\udfe1' : '\ud83d\udd34'} {t[d]}
+                  {t.startExploring}
                 </button>
-              ))}
+                <button
+                  onClick={() => { setGameMode('earth-explorer'); playClick(); }}
+                  className="min-h-[56px] rounded-2xl font-bold text-lg text-white transition-transform hover:scale-105 active:scale-95 shadow-lg"
+                  style={{ background: 'linear-gradient(135deg, #0891b2, #0d9488)' }}
+                >
+                  {t.exploreEarth}
+                </button>
+                <button
+                  onClick={() => setShowInstructions(true)}
+                  className="min-h-[44px] rounded-2xl font-bold text-sm text-indigo-300 border border-indigo-700 hover:border-indigo-400 transition-colors"
+                >
+                  ℹ️ {t.instructions}
+                </button>
+              </div>
             </div>
+          </div>
+        )}
+
+        {/* Explore Earth button in-scene HUD */}
+        {exploring && (
+          <div className="absolute bottom-4 right-4 z-10 flex gap-2">
             <button
               onClick={() => { setGameMode('earth-explorer'); playClick(); }}
-              className="mt-5 min-h-[48px] w-full rounded-2xl font-bold text-white bg-gradient-to-r from-blue-700 to-teal-700 hover:scale-105 active:scale-95 transition-transform text-base shadow-lg"
+              className="min-h-[44px] px-4 py-2 rounded-2xl font-bold text-sm text-white bg-gradient-to-r from-teal-700 to-blue-700 hover:scale-105 active:scale-95 transition-transform shadow-lg"
             >
-              \ud83c\udf0d {t.exploreEarth}
+              🌍 {t.exploreEarth}
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {phase === 'gameover' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-20">
-          <div className="text-center">
-            <div className="text-7xl mb-4">\ud83d\udcab</div>
-            <h2 className="text-4xl font-bold text-white mb-2">{t.gameOver}</h2>
-            <p className="text-2xl text-yellow-400 mb-2">{t.score}: {score}</p>
-            <p className="text-indigo-300 mb-8">{t.collected}: {collectedPlanets.length}/{cfg.activePlanets}</p>
-            <button onClick={() => setPhase('difficulty')} className="min-h-[56px] px-8 rounded-2xl font-bold text-xl text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:scale-105 transition-transform">
-              {t.playAgain}
-            </button>
+        {/* Hint when no panel open */}
+        {exploring && !selectedPlanet && !selectedStar && (
+          <div className="absolute bottom-16 left-0 right-0 flex justify-center pointer-events-none z-10">
+            <div className="bg-black/60 rounded-xl px-4 py-2 text-white text-xs">{t.subtitle}</div>
           </div>
-        </div>
-      )}
+        )}
 
-      {phase === 'win' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-20">
-          <div className="text-center">
-            <div className="text-7xl mb-4">\ud83d\ude80</div>
-            <h2 className="text-4xl font-bold text-yellow-400 mb-2">{t.youWin}</h2>
-            <p className="text-2xl text-white mb-8">{t.score}: {score}</p>
-            <button onClick={() => setPhase('difficulty')} className="min-h-[56px] px-8 rounded-2xl font-bold text-xl text-white bg-gradient-to-r from-yellow-500 to-orange-500 hover:scale-105 transition-transform">
-              {t.playAgain}
-            </button>
+        {/* Planet panel */}
+        {selectedPlanet && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-30 p-4" onClick={handleClosePlanetPanel}>
+            <div
+              className="bg-gradient-to-br from-indigo-900 to-purple-900 rounded-3xl p-6 max-w-md w-full text-center shadow-2xl border border-white/20"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="text-6xl mb-3">{selectedPlanet.emoji}</div>
+              <h3 className="text-3xl font-bold text-yellow-300 mb-1">{selectedPlanet.name}</h3>
+              <div className="flex justify-center gap-4 text-xs text-indigo-300 mb-4 flex-wrap">
+                <span>🌀 {t.orbitDistance}: {selectedPlanet.orbitRadius} {t.au}</span>
+                <span>🌙 {t.knownMoons}: {selectedPlanet.moons}</span>
+              </div>
+              <div className="space-y-3 mb-5">
+                {(selectedPlanet.facts[locale] ?? selectedPlanet.facts.en).map((fact, i) => (
+                  <p key={i} className="text-white text-sm leading-relaxed bg-white/5 rounded-xl px-4 py-2">{fact}</p>
+                ))}
+              </div>
+              <button onClick={handleClosePlanetPanel}
+                className="min-h-[48px] px-8 rounded-2xl font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:scale-105 transition-transform">
+                {t.closePanel}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <InstructionsModal
-        isOpen={showInstructions}
-        onClose={startPlaying}
-        title={t.title}
-        instructions={instrData.instructions}
-        controls={instrData.controls}
-        tip={instrData.tip}
-        locale={locale}
-      />
-    </div>
+        {/* Star panel */}
+        {selectedStar && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-30 p-4" onClick={handleCloseStarPanel}>
+            <div
+              className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl border border-white/20"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="text-5xl mb-2" style={{ color: selectedStar.color }}>★</div>
+              <h3 className="text-2xl font-bold text-white mb-1">{selectedStar.name}</h3>
+              <div className="text-gray-400 text-xs mb-3">{selectedStar.bayer} · {selectedStar.constellation}</div>
+              <div className="grid grid-cols-2 gap-2 text-xs mb-4">
+                <div className="bg-white/5 rounded-lg px-3 py-2">
+                  <div className="text-gray-400">{t.distance}</div>
+                  <div className="text-cyan-300 font-bold">{selectedStar.distanceLY} ly</div>
+                </div>
+                <div className="bg-white/5 rounded-lg px-3 py-2">
+                  <div className="text-gray-400">{t.temperature}</div>
+                  <div className="text-orange-300 font-bold">{selectedStar.temperatureK.toLocaleString()} K</div>
+                </div>
+                <div className="bg-white/5 rounded-lg px-3 py-2">
+                  <div className="text-gray-400">{t.starType}</div>
+                  <div className="text-yellow-300 font-bold">{selectedStar.spectralType}</div>
+                </div>
+                <div className="bg-white/5 rounded-lg px-3 py-2">
+                  <div className="text-gray-400">{t.constellation}</div>
+                  <div className="text-purple-300 font-bold text-[11px]">{selectedStar.constellation}</div>
+                </div>
+              </div>
+              <p className="text-gray-200 text-sm leading-relaxed mb-5">
+                {selectedStar.facts[locale] || selectedStar.facts.en}
+              </p>
+              <button onClick={handleCloseStarPanel}
+                className="min-h-[44px] px-6 rounded-2xl font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:scale-105 transition-transform text-sm">
+                {t.starInfoClose}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <InstructionsModal
+          isOpen={showInstructions}
+          onClose={() => { setShowInstructions(false); if (!exploring) setExploring(true); }}
+          title={t.title}
+          instructions={instrData.instructions}
+          controls={instrData.controls}
+          tip={instrData.tip}
+          locale={locale}
+        />
+      </div>
     </GameWrapper>
   );
 }

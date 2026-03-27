@@ -29,6 +29,9 @@ const CATEGORY_COLORS: Record<string, string> = {
   geography: '#f59e0b',
   history: '#a855f7',
   science: '#3b82f6',
+  monument: '#f97316',
+  ocean: '#06b6d4',
+  wildlife: '#84cc16',
 };
 
 export function EarthHotspotMarker({ hotspot, earthRadius, locale, onHotspotClick }: EarthHotspotMarkerProps) {
