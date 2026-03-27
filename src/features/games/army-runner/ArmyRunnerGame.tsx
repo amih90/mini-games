@@ -178,6 +178,7 @@ export default function ArmyRunnerGame({ locale = 'en' }: ArmyRunnerGameProps) {
   const [showInstructions, setShowInstructions] = useState(true);
   const pointerRef = useRef<{ active: boolean }>({ active: false });
   const containerRef = useRef<HTMLDivElement>(null);
+  const mobileIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const {
     phase,
@@ -288,6 +289,22 @@ export default function ArmyRunnerGame({ locale = 'en' }: ArmyRunnerGameProps) {
     sounds.playClick();
     nextLevel();
   }, [sounds, nextLevel]);
+
+  // Mobile button helpers — continuous movement while held
+  const stopMobileMove = useCallback(() => {
+    if (mobileIntervalRef.current) {
+      clearInterval(mobileIntervalRef.current);
+      mobileIntervalRef.current = null;
+    }
+  }, []);
+
+  const startMobileMove = useCallback((dir: 1 | -1) => {
+    stopMobileMove();
+    moveGroup(dir * 0.15);
+    mobileIntervalRef.current = setInterval(() => {
+      moveGroup(dir * 0.15);
+    }, 16);
+  }, [moveGroup, stopMobileMove]);
 
   return (
     <GameWrapper
@@ -455,6 +472,34 @@ export default function ArmyRunnerGame({ locale = 'en' }: ArmyRunnerGameProps) {
                 </span>
               </motion.div>
             )}
+          </div>
+        )}
+
+        {/* On-screen mobile left/right buttons (shown when playing on small screens) */}
+        {phase === 'playing' && (
+          <div className="flex md:hidden justify-between gap-4 mt-3 w-full px-2">
+            <motion.button
+              whileTap={{ scale: 0.88 }}
+              onPointerDown={(e) => { e.preventDefault(); startMobileMove(1); }}
+              onPointerUp={stopMobileMove}
+              onPointerLeave={stopMobileMove}
+              onPointerCancel={stopMobileMove}
+              className="flex-1 py-4 bg-gradient-to-br from-blue-400 to-blue-600 text-white text-3xl font-bold rounded-2xl shadow-lg select-none active:from-blue-500 active:to-blue-700"
+              aria-label="Move Left"
+            >
+              ←
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.88 }}
+              onPointerDown={(e) => { e.preventDefault(); startMobileMove(-1); }}
+              onPointerUp={stopMobileMove}
+              onPointerLeave={stopMobileMove}
+              onPointerCancel={stopMobileMove}
+              className="flex-1 py-4 bg-gradient-to-br from-blue-400 to-blue-600 text-white text-3xl font-bold rounded-2xl shadow-lg select-none active:from-blue-500 active:to-blue-700"
+              aria-label="Move Right"
+            >
+              →
+            </motion.button>
           </div>
         )}
 
