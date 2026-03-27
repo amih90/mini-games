@@ -226,5 +226,17 @@
   "armyRunner": {
     "title": "军队跑酷3D",
     "description": "带领你的军队通过大门，躲避障碍，击败敌人！"
+  },
+  "shapeSorter3D": {
+    "title": "3D形状分类",
+    "description": "将3D形状分类到正确的槽中！学习立方体、球体等更多形状！"
+  },
+  "solarSystem3D": {
+    "title": "太阳系探索者",
+    "description": "探索太阳系！点击发光的行星学习惊人的事实！"
+  },
+  "numberTower3D": {
+    "title": "3D数字塔",
+    "description": "堆叠数字方块达到目标总和！用数学建造一座塔！"
   }
 }

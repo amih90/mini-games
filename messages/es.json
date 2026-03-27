@@ -226,5 +226,17 @@
   "armyRunner": {
     "title": "Carrera del Ejército 3D",
     "description": "¡Lidera tu ejército a través de puertas, esquiva obstáculos y aplasta enemigos!"
+  },
+  "shapeSorter3D": {
+    "title": "Clasificador de Formas 3D",
+    "description": "¡Clasifica formas 3D en las ranuras correctas! ¡Aprende sobre cubos, esferas y más!"
+  },
+  "solarSystem3D": {
+    "title": "Explorador del Sistema Solar",
+    "description": "¡Explora el sistema solar! ¡Haz clic en los planetas brillantes para aprender datos increíbles!"
+  },
+  "numberTower3D": {
+    "title": "Torre de Números 3D",
+    "description": "¡Apila bloques de números para alcanzar la suma objetivo! ¡Construye una torre con matemáticas!"
   }
 }
