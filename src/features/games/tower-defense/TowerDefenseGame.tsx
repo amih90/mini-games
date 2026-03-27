@@ -9,6 +9,7 @@ import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { useDirection } from '@/hooks/useDirection';
+import { useTranslations } from 'next-intl';
 import { TextDirection } from '@/i18n/routing';
 
 // ---------------------------------------------------------------------------
@@ -134,189 +135,7 @@ const PATH: [number, number][] = [
 
 const PATH_SET = new Set(PATH.map(([c, r]) => `${c},${r}`));
 
-// ---------------------------------------------------------------------------
-// Translations (en, he, zh, es)
-// ---------------------------------------------------------------------------
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    title: 'Tower Defense',
-    score: 'Score',
-    highScore: 'High Score',
-    lives: 'Lives',
-    gold: 'Gold',
-    wave: 'Wave',
-    level: 'Level',
-    start: 'Start Wave',
-    gameOver: 'Game Over',
-    youWin: 'You Win!',
-    playAgain: 'Play Again',
-    selectDifficulty: 'Select Difficulty',
-    easy: 'Easy',
-    medium: 'Medium',
-    hard: 'Hard',
-    basic: 'Basic Tower',
-    sniper: 'Sniper Tower',
-    splash: 'Splash Tower',
-    cost: 'Cost',
-    placeTower: 'Click grid to place tower',
-    pressKeys: 'Press 1/2/3 to select tower',
-    waveComing: 'Wave incoming!',
-    noGold: 'Not enough gold!',
-    blocked: 'Cannot place here',
-    bossWarning: 'Boss incoming!',
-  },
-  he: {
-    title: 'הגנת מגדלים',
-    score: 'ניקוד',
-    highScore: 'שיא',
-    lives: 'חיים',
-    gold: 'זהב',
-    wave: 'גל',
-    level: 'שלב',
-    start: 'התחל גל',
-    gameOver: 'המשחק נגמר',
-    youWin: '!ניצחת',
-    playAgain: 'שחק שוב',
-    selectDifficulty: 'בחר רמת קושי',
-    easy: 'קל',
-    medium: 'בינוני',
-    hard: 'קשה',
-    basic: 'מגדל בסיסי',
-    sniper: 'מגדל צלפים',
-    splash: 'מגדל פיצוץ',
-    cost: 'עלות',
-    placeTower: 'לחץ על המפה למקם מגדל',
-    pressKeys: 'לחץ 1/2/3 לבחירת מגדל',
-    waveComing: '!גל מתקרב',
-    noGold: '!אין מספיק זהב',
-    blocked: 'אי אפשר למקם כאן',
-    bossWarning: '!בוס מתקרב',
-  },
-  zh: {
-    title: '塔防',
-    score: '得分',
-    highScore: '最高分',
-    lives: '生命',
-    gold: '金币',
-    wave: '波次',
-    level: '关卡',
-    start: '开始波次',
-    gameOver: '游戏结束',
-    youWin: '你赢了！',
-    playAgain: '再玩一次',
-    selectDifficulty: '选择难度',
-    easy: '简单',
-    medium: '中等',
-    hard: '困难',
-    basic: '基础塔',
-    sniper: '狙击塔',
-    splash: '溅射塔',
-    cost: '费用',
-    placeTower: '点击网格放置塔',
-    pressKeys: '按1/2/3选择塔',
-    waveComing: '波次来袭！',
-    noGold: '金币不足！',
-    blocked: '无法放置',
-    bossWarning: 'Boss来了！',
-  },
-  es: {
-    title: 'Defensa de Torres',
-    score: 'Puntos',
-    highScore: 'Record',
-    lives: 'Vidas',
-    gold: 'Oro',
-    wave: 'Oleada',
-    level: 'Nivel',
-    start: 'Iniciar Oleada',
-    gameOver: 'Fin del Juego',
-    youWin: '!!Ganaste!',
-    playAgain: 'Jugar de nuevo',
-    selectDifficulty: 'Elige dificultad',
-    easy: 'Facil',
-    medium: 'Medio',
-    hard: 'Dificil',
-    basic: 'Torre Basica',
-    sniper: 'Torre Francotirador',
-    splash: 'Torre de Explosion',
-    cost: 'Costo',
-    placeTower: 'Haz clic para colocar torre',
-    pressKeys: 'Pulsa 1/2/3 para elegir torre',
-    waveComing: 'Oleada entrante!',
-    noGold: 'Oro insuficiente!',
-    blocked: 'No se puede colocar aqui',
-    bossWarning: 'Jefe acercandose!',
-  },
-};
 
-// ---------------------------------------------------------------------------
-// Instructions data (per locale)
-// ---------------------------------------------------------------------------
-const instructionsData: Record<string, {
-  instructions: { icon: string; title: string; description: string }[];
-  controls: { icon: string; description: string }[];
-  tip: string;
-}> = {
-  en: {
-    instructions: [
-      { icon: '🗼', title: 'Build Towers', description: 'Place towers along the path to stop enemies from reaching the end.' },
-      { icon: '👾', title: 'Stop Enemies', description: 'Enemies follow a fixed path. Destroy them before they escape!' },
-      { icon: '💰', title: 'Earn Gold', description: 'Each enemy killed gives gold. Use gold to buy more towers.' },
-      { icon: '🏆', title: 'Survive All Waves', description: 'Beat every wave to win. Protect your lives!' },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Click on empty grass tiles to place towers' },
-      { icon: '1️⃣', description: 'Press 1 for Basic Tower (cheap, balanced)' },
-      { icon: '2️⃣', description: 'Press 2 for Sniper Tower (long range, high damage)' },
-      { icon: '3️⃣', description: 'Press 3 for Splash Tower (area damage)' },
-    ],
-    tip: 'Place towers near path curves so they can shoot enemies for longer!',
-  },
-  he: {
-    instructions: [
-      { icon: '🗼', title: 'בנה מגדלים', description: 'הצב מגדלים לאורך השביל כדי לעצור אויבים.' },
-      { icon: '👾', title: 'עצור אויבים', description: 'אויבים עוקבים אחרי שביל קבוע. השמד אותם לפני שהם בורחים!' },
-      { icon: '💰', title: 'הרוויח זהב', description: 'כל אויב שנהרג נותן זהב. השתמש בזהב לקנות מגדלים.' },
-      { icon: '🏆', title: 'שרוד את כל הגלים', description: 'נצח בכל הגלים כדי לנצח. הגן על החיים שלך!' },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'לחץ על אריחי דשא ריקים כדי למקם מגדלים' },
-      { icon: '1️⃣', description: 'לחץ 1 למגדל בסיסי (זול, מאוזן)' },
-      { icon: '2️⃣', description: 'לחץ 2 למגדל צלפים (טווח ארוך, נזק גבוה)' },
-      { icon: '3️⃣', description: 'לחץ 3 למגדל פיצוץ (נזק אזורי)' },
-    ],
-    tip: 'הצב מגדלים ליד עיקולים בשביל כדי שיוכלו לירות באויבים יותר זמן!',
-  },
-  zh: {
-    instructions: [
-      { icon: '🗼', title: '建造塔', description: '沿路径放置塔以阻止敌人到达终点。' },
-      { icon: '👾', title: '阻止敌人', description: '敌人沿固定路径行走，在他们逃跑前消灭他们！' },
-      { icon: '💰', title: '赚取金币', description: '每消灭一个敌人获得金币，用金币购买更多塔。' },
-      { icon: '🏆', title: '存活所有波次', description: '击败所有波次即可获胜，保护你的生命！' },
-    ],
-    controls: [
-      { icon: '🖱️', description: '点击空草地放置塔' },
-      { icon: '1️⃣', description: '按1选择基础塔（便宜，平衡）' },
-      { icon: '2️⃣', description: '按2选择狙击塔（远程，高伤害）' },
-      { icon: '3️⃣', description: '按3选择溅射塔（范围伤害）' },
-    ],
-    tip: '在路径拐弯处放塔，这样可以攻击敌人更长时间！',
-  },
-  es: {
-    instructions: [
-      { icon: '🗼', title: 'Construir Torres', description: 'Coloca torres a lo largo del camino para detener a los enemigos.' },
-      { icon: '👾', title: 'Detener Enemigos', description: 'Los enemigos siguen una ruta fija. Destruyelos antes de que escapen!' },
-      { icon: '💰', title: 'Ganar Oro', description: 'Cada enemigo da oro. Usa el oro para comprar mas torres.' },
-      { icon: '🏆', title: 'Sobrevivir Oleadas', description: 'Supera todas las oleadas para ganar. Protege tus vidas!' },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Haz clic en cesped vacio para colocar torres' },
-      { icon: '1️⃣', description: 'Pulsa 1 para Torre Basica (barata, equilibrada)' },
-      { icon: '2️⃣', description: 'Pulsa 2 para Torre Francotirador (largo alcance)' },
-      { icon: '3️⃣', description: 'Pulsa 3 para Torre Explosion (dano en area)' },
-    ],
-    tip: 'Coloca torres cerca de las curvas del camino para atacar enemigos mas tiempo!',
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Component props
@@ -331,8 +150,7 @@ interface TowerDefenseGameProps {
 export default function TowerDefenseGame({ locale = 'en' }: TowerDefenseGameProps) {
   const direction = useDirection();
   const isRtl = direction === TextDirection.RTL;
-  const t = translations[locale] || translations.en;
-  const instrData = instructionsData[locale] || instructionsData.en;
+  const t = useTranslations('towerDefense');
 
   // Sounds
   const { playClick, playSuccess, playLevelUp, playGameOver, playHit, playShoot } = useRetroSounds();
@@ -457,9 +275,9 @@ export default function TowerDefenseGame({ locale = 'en' }: TowerDefenseGameProp
 
     const settings = DIFFICULTY_SETTINGS[difficultyRef.current];
     if (settings.spawnBosses && nextWave % 3 === 0) {
-      setMessage(t.bossWarning);
+      setMessage(t('bossWarning'));
     } else {
-      setMessage(t.waveComing);
+      setMessage(t('wave')Coming);
     }
     setTimeout(() => setMessage(''), 2000);
   }, [playLevelUp, spawnWave, t]);
@@ -480,20 +298,20 @@ export default function TowerDefenseGame({ locale = 'en' }: TowerDefenseGameProp
 
     // Cannot place on path
     if (PATH_SET.has(`${col},${row}`)) {
-      setMessage(t.blocked);
+      setMessage(t('blocked'));
       setTimeout(() => setMessage(''), 1500);
       return;
     }
     // Cannot place on existing tower
     if (towersRef.current.some(tw => tw.x === col && tw.y === row)) {
-      setMessage(t.blocked);
+      setMessage(t('blocked'));
       setTimeout(() => setMessage(''), 1500);
       return;
     }
 
     const config = TOWER_CONFIGS[selectedTower];
     if (goldRef.current < config.cost) {
-      setMessage(t.noGold);
+      setMessage(t('noGold'));
       setTimeout(() => setMessage(''), 1500);
       return;
     }
@@ -796,7 +614,7 @@ export default function TowerDefenseGame({ locale = 'en' }: TowerDefenseGameProp
   const towerTypes: TowerType[] = ['basic', 'sniper', 'splash'];
 
   return (
-    <GameWrapper title={t.title} onInstructionsClick={() => setShowInstructions(true)}>
+    <GameWrapper title={t('title')} onInstructionsClick={() => setShowInstructions(true)}>
       <div className={`flex flex-col items-center gap-4 ${isRtl ? 'direction-rtl' : ''}`}>
         {/* Difficulty chooser */}
         <AnimatePresence>
@@ -807,7 +625,7 @@ export default function TowerDefenseGame({ locale = 'en' }: TowerDefenseGameProp
               exit={{ opacity: 0, scale: 0.9 }}
               className="flex flex-col items-center gap-4 p-8 bg-white/90 rounded-2xl shadow-xl"
             >
-              <h2 className="text-2xl font-bold text-gray-800">{t.selectDifficulty}</h2>
+              <h2 className="text-2xl font-bold text-gray-800">{t('selectDifficulty')}</h2>
               <div className="flex gap-4">
                 {(['easy', 'medium', 'hard'] as Difficulty[]).map(diff => (
                   <button
@@ -834,16 +652,16 @@ export default function TowerDefenseGame({ locale = 'en' }: TowerDefenseGameProp
             <div className="flex flex-wrap items-center justify-center gap-4 text-sm font-bold">
               <LevelDisplay level={wave} />
               <span className="px-3 py-1 bg-yellow-400 rounded-full text-gray-800">
-                {'💰'} {t.gold}: {gold}
+                {'💰'} {t('gold')}: {gold}
               </span>
               <span className="px-3 py-1 bg-red-400 rounded-full text-white">
-                {'❤️'} {t.lives}: {lives}
+                {'❤️'} {t('lives')}: {lives}
               </span>
               <span className="px-3 py-1 bg-blue-400 rounded-full text-white">
-                {'⭐'} {t.score}: {score}
+                {'⭐'} {t('score')}: {score}
               </span>
               <span className="px-3 py-1 bg-purple-400 rounded-full text-white">
-                {'🏆'} {t.highScore}: {highScore}
+                {'🏆'} {t('highScore')}: {highScore}
               </span>
             </div>
 
@@ -901,12 +719,12 @@ export default function TowerDefenseGame({ locale = 'en' }: TowerDefenseGameProp
                 onClick={startWave}
                 className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-shadow"
               >
-                {'⚔️'} {t.start} {wave + 1}
+                {'⚔️'} {t('start')} {wave + 1}
               </motion.button>
             )}
 
             {/* Info line */}
-            <p className="text-xs text-gray-500">{t.placeTower} | {t.pressKeys}</p>
+            <p className="text-xs text-gray-500">{t('placeTower')} | {t('pressKeys')}</p>
           </>
         )}
 
@@ -920,15 +738,15 @@ export default function TowerDefenseGame({ locale = 'en' }: TowerDefenseGameProp
               className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-xl z-10"
             >
               <div className="flex flex-col items-center gap-4 p-8 bg-white rounded-2xl shadow-2xl">
-                <h2 className="text-3xl font-bold text-red-600">{t.gameOver}</h2>
-                <p className="text-lg">{t.score}: {score}</p>
+                <h2 className="text-3xl font-bold text-red-600">{t('gameOver')}</h2>
+                <p className="text-lg">{t('score')}: {score}</p>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={resetGame}
                   className="px-6 py-3 bg-blue-500 text-white font-bold rounded-xl"
                 >
-                  {t.playAgain}
+                  {t('playAgain')}
                 </motion.button>
               </div>
             </motion.div>
@@ -948,10 +766,20 @@ export default function TowerDefenseGame({ locale = 'en' }: TowerDefenseGameProp
       <InstructionsModal
         isOpen={showInstructions}
         onClose={() => setShowInstructions(false)}
-        title={t.title}
-        instructions={instrData.instructions}
-        controls={instrData.controls}
-        tip={instrData.tip}
+        title={t('title')}
+        instructions={[
+          { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+          { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+          { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+          { icon: t('instructions.step3Icon'), title: t('instructions.step3Title'), description: t('instructions.step3Desc') },
+        ]}
+        controls={[
+          { icon: t('instructions.control0Icon'), description: t('instructions.control0Desc') },
+          { icon: t('instructions.control1Icon'), description: t('instructions.control1Desc') },
+          { icon: t('instructions.control2Icon'), description: t('instructions.control2Desc') },
+          { icon: t('instructions.control3Icon'), description: t('instructions.control3Desc') },
+        ]}
+        tip={t('instructions.tip')}
         locale={locale}
       />
     </GameWrapper>

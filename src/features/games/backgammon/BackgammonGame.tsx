@@ -14,160 +14,6 @@ import { useBackgammonGame, Difficulty } from './useBackgammonGame';
 /* ------------------------------------------------------------------ */
 /*  Instructions data — Feynman-style, 4 languages                    */
 /* ------------------------------------------------------------------ */
-const instructionsData: Record<
-  string,
-  {
-    instructions: { icon: string; title: string; description: string }[];
-    controls: { icon: string; description: string }[];
-    tip: string;
-  }
-> = {
-  en: {
-    instructions: [
-      {
-        icon: '🎯',
-        title: 'Goal',
-        description:
-          'Move all 15 of your pieces (white) around the board and off the other side before your opponent does the same. Think of it like a race!',
-      },
-      {
-        icon: '🎲',
-        title: 'Rolling & Moving',
-        description:
-          'Roll two dice each turn. Each die tells you how many spaces you can move one piece. If you roll doubles, you get four moves instead of two!',
-      },
-      {
-        icon: '💥',
-        title: 'Hitting',
-        description:
-          'If you land on a point with just ONE opponent piece, you "hit" it — it goes to the bar and must re-enter the board before moving again.',
-      },
-      {
-        icon: '🏠',
-        title: 'Bearing Off',
-        description:
-          'Once ALL your pieces are in your home area (the last 6 points), you can start taking them off the board. First to remove all 15 wins!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Click a piece to select, then click destination' },
-      { icon: '⬅️➡️', description: 'Arrow keys to navigate points' },
-      { icon: '⏎', description: 'Enter to select / confirm move' },
-      { icon: '🎲', description: 'Space to roll dice' },
-      { icon: '💡', description: 'H for hint' },
-    ],
-    tip: 'Try to keep your pieces in pairs — a single piece alone can be hit!',
-  },
-  he: {
-    instructions: [
-      {
-        icon: '🎯',
-        title: 'מטרה',
-        description:
-          'הזיזו את כל 15 הכלים שלכם (לבנים) סביב הלוח והוציאו אותם לפני היריב. זה כמו מירוץ!',
-      },
-      {
-        icon: '🎲',
-        title: 'הטלה והזזה',
-        description:
-          'הטילו שתי קוביות בכל תור. כל קובייה אומרת כמה משבצות אפשר להזיז כלי אחד. דאבל? מקבלים ארבע תנועות!',
-      },
-      {
-        icon: '💥',
-        title: 'אכילה',
-        description:
-          'אם נוחתים על נקודה עם כלי יריב בודד — הוא עף לבר וצריך לחזור ללוח לפני שממשיך.',
-      },
-      {
-        icon: '🏠',
-        title: 'הוצאה',
-        description:
-          'כשכל הכלים שלכם בבית (6 הנקודות האחרונות) אפשר להתחיל להוציא אותם. הראשון שמוציא 15 — מנצח!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'לחצו על כלי לבחירה, ואז לחצו על היעד' },
-      { icon: '⬅️➡️', description: 'חצים לניווט בין נקודות' },
-      { icon: '⏎', description: 'Enter לבחירה / אישור' },
-      { icon: '🎲', description: 'רווח להטלת קוביות' },
-      { icon: '💡', description: 'H לרמז' },
-    ],
-    tip: 'נסו לשמור על הכלים בזוגות — כלי בודד יכול להיאכל!',
-  },
-  zh: {
-    instructions: [
-      {
-        icon: '🎯',
-        title: '目标',
-        description:
-          '将你的15颗棋子（白色）绕棋盘移动并移出，要比对手更快。就像一场赛跑！',
-      },
-      {
-        icon: '🎲',
-        title: '掷骰与移动',
-        description:
-          '每回合掷两个骰子。每个骰子的点数决定你能移动一颗棋子多少格。掷出双数？你有四次移动机会！',
-      },
-      {
-        icon: '💥',
-        title: '击打',
-        description:
-          '如果你落在只有一颗对手棋子的位置上，就能"击打"它——它会被放到中间栏，必须重新进入棋盘。',
-      },
-      {
-        icon: '🏠',
-        title: '离场',
-        description:
-          '当你所有的棋子都在内场（最后6个位置），就可以开始将它们移出棋盘。先移出全部15颗的玩家获胜！',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: '点击棋子选择，然后点击目标位置' },
-      { icon: '⬅️➡️', description: '方向键导航各点' },
-      { icon: '⏎', description: 'Enter 选择 / 确认移动' },
-      { icon: '🎲', description: '空格键掷骰子' },
-      { icon: '💡', description: 'H 键提示' },
-    ],
-    tip: '尽量让棋子成对——落单的棋子容易被击打！',
-  },
-  es: {
-    instructions: [
-      {
-        icon: '🎯',
-        title: 'Objetivo',
-        description:
-          'Mueve tus 15 fichas (blancas) alrededor del tablero y sácalas antes que tu oponente. ¡Es como una carrera!',
-      },
-      {
-        icon: '🎲',
-        title: 'Lanzar y mover',
-        description:
-          'Lanza dos dados en cada turno. Cada dado indica cuántas casillas puedes mover una ficha. ¡Si sacas dobles, tienes cuatro movimientos!',
-      },
-      {
-        icon: '💥',
-        title: 'Golpear',
-        description:
-          'Si caes en una casilla con solo UNA ficha del rival, la "golpeas" — va a la barra y debe volver a entrar antes de moverse.',
-      },
-      {
-        icon: '🏠',
-        title: 'Retirar fichas',
-        description:
-          'Cuando TODAS tus fichas estén en tu zona final (los últimos 6 puntos), puedes empezar a sacarlas. ¡El primero en sacar las 15 gana!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Haz clic en una ficha para seleccionar, luego clic en el destino' },
-      { icon: '⬅️➡️', description: 'Flechas para navegar entre puntos' },
-      { icon: '⏎', description: 'Enter para seleccionar / confirmar' },
-      { icon: '🎲', description: 'Espacio para lanzar dados' },
-      { icon: '💡', description: 'H para pista' },
-    ],
-    tip: '¡Intenta mantener tus fichas en parejas — una ficha sola puede ser golpeada!',
-  },
-};
-
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
@@ -370,7 +216,6 @@ export function BackgammonGame() {
   /* ================================================================ */
   /*  Helpers                                                          */
   /* ================================================================ */
-  const instrData = instructionsData[locale] || instructionsData.en;
 
   const handleDifficultyClick = (level: Difficulty) => {
     playClick();
@@ -674,9 +519,20 @@ export function BackgammonGame() {
         isOpen={showInstructions}
         onClose={() => setShowInstructions(false)}
         title={t('title') || 'Backgammon'}
-        instructions={instrData.instructions}
-        controls={instrData.controls}
-        tip={instrData.tip}
+        instructions={[
+            { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+            { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+            { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+            { icon: t('instructions.step3Icon'), title: t('instructions.step3Title'), description: t('instructions.step3Desc') }
+          ]}
+        controls={[
+            { icon: t('controls.control0Icon'), description: t('controls.control0Desc') },
+            { icon: t('controls.control1Icon'), description: t('controls.control1Desc') },
+            { icon: t('controls.control2Icon'), description: t('controls.control2Desc') },
+            { icon: t('controls.control3Icon'), description: t('controls.control3Desc') },
+            { icon: t('controls.control4Icon'), description: t('controls.control4Desc') }
+          ]}
+        tip={t('tip')}
         locale={locale}
       />
     </>

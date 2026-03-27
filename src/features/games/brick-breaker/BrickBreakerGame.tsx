@@ -10,6 +10,7 @@ import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { useDirection } from '@/hooks/useDirection';
 import { TextDirection } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 
 // ─── Constants ───────────────────────────────────────────────
 const CANVAS_WIDTH = 480;
@@ -75,177 +76,7 @@ const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
   },
 };
 
-// ─── 4-locale translations ──────────────────────────────────
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    title: 'Brick Breaker',
-    score: 'Score',
-    lives: 'Lives',
-    level: 'Level',
-    highScore: 'Best',
-    gameOver: 'Game Over!',
-    youWin: 'You Win!',
-    playAgain: 'Play Again',
-    nextLevel: 'Next Level',
-    tapToStart: 'Click to Start',
-    paused: 'Paused',
-    resume: 'Resume',
-    clickToLaunch: 'Click to Launch',
-    difficulty: 'Choose Difficulty',
-    easy: 'Easy',
-    medium: 'Medium',
-    hard: 'Hard',
-    mouseMove: 'Mouse = Move',
-    arrowMove: '←/→ Move',
-    spaceLaunch: 'Space = Launch',
-    escPause: 'P/Esc = Pause',
-    touchMove: 'Swipe = Move',
-  },
-  he: {
-    title: 'שובר לבנים',
-    score: 'ניקוד',
-    lives: 'חיים',
-    level: 'שלב',
-    highScore: 'שיא',
-    gameOver: 'המשחק נגמר!',
-    youWin: '!ניצחת',
-    playAgain: 'שחק שוב',
-    nextLevel: 'שלב הבא',
-    tapToStart: 'לחץ להתחלה',
-    paused: 'מושהה',
-    resume: 'המשך',
-    clickToLaunch: 'לחץ לשיגור',
-    difficulty: 'בחר רמת קושי',
-    easy: 'קל',
-    medium: 'בינוני',
-    hard: 'קשה',
-    mouseMove: 'עכבר = הזזה',
-    arrowMove: '←/→ הזזה',
-    spaceLaunch: 'רווח = שיגור',
-    escPause: 'P/Esc = השהיה',
-    touchMove: 'החלקה = הזזה',
-  },
-  zh: {
-    title: '打砖块',
-    score: '得分',
-    lives: '生命',
-    level: '关卡',
-    highScore: '最高分',
-    gameOver: '游戏结束！',
-    youWin: '你赢了！',
-    playAgain: '再玩一次',
-    nextLevel: '下一关',
-    tapToStart: '点击开始',
-    paused: '已暂停',
-    resume: '继续',
-    clickToLaunch: '点击发射',
-    difficulty: '选择难度',
-    easy: '简单',
-    medium: '中等',
-    hard: '困难',
-    mouseMove: '鼠标 = 移动',
-    arrowMove: '←/→ 移动',
-    spaceLaunch: '空格 = 发射',
-    escPause: 'P/Esc = 暂停',
-    touchMove: '滑动 = 移动',
-  },
-  es: {
-    title: 'Rompe Ladrillos',
-    score: 'Puntuación',
-    lives: 'Vidas',
-    level: 'Nivel',
-    highScore: 'Récord',
-    gameOver: '¡Fin del juego!',
-    youWin: '¡Ganaste!',
-    playAgain: 'Jugar de nuevo',
-    nextLevel: 'Siguiente nivel',
-    tapToStart: 'Haz clic para empezar',
-    paused: 'Pausado',
-    resume: 'Continuar',
-    clickToLaunch: 'Haz clic para lanzar',
-    difficulty: 'Elige dificultad',
-    easy: 'Fácil',
-    medium: 'Medio',
-    hard: 'Difícil',
-    mouseMove: 'Ratón = Mover',
-    arrowMove: '←/→ Mover',
-    spaceLaunch: 'Espacio = Lanzar',
-    escPause: 'P/Esc = Pausa',
-    touchMove: 'Deslizar = Mover',
-  },
-};
 
-// ─── 4-locale instructions (Feynman style) ───────────────────
-const instructionsData: Record<string, {
-  instructions: { icon: string; title: string; description: string }[];
-  controls: { icon: string; description: string }[];
-  tip: string;
-}> = {
-  en: {
-    instructions: [
-      { icon: '🎯', title: 'Break Bricks', description: 'Use the paddle to bounce the ball and break all the bricks. Move the paddle with your mouse or keyboard!' },
-      { icon: '💎', title: 'Point Values', description: 'Different bricks are worth different points! Top bricks (red) = 50, orange = 40, yellow = 30, green = 20, blue = 10.' },
-      { icon: '⭐', title: 'Level Up', description: 'Break all bricks to advance to the next level! Each level adds more rows and the ball moves faster!' },
-      { icon: '❤️', title: 'Keep Your Lives', description: "Don't let the ball fall below the paddle! If you lose all lives, game over." },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Mouse - Move Paddle' },
-      { icon: '⬅️', description: 'Left Arrow / A - Move Left' },
-      { icon: '➡️', description: 'Right Arrow / D - Move Right' },
-      { icon: '␣', description: 'Space / Click - Launch Ball' },
-      { icon: '📱', description: 'Touch & Swipe - Move on mobile' },
-    ],
-    tip: 'Pro tip: Hit the ball with the edges of the paddle to change its angle. This helps reach difficult bricks!',
-  },
-  he: {
-    instructions: [
-      { icon: '🎯', title: 'שברו לבנים', description: 'השתמשו במחבט כדי להקפיץ את הכדור ולשבור את כל הלבנים. הזיזו את המחבט עם העכבר או המקלדת!' },
-      { icon: '💎', title: 'שווי נקודות', description: 'לבנים שונים שווים נקודות שונות! לבנים עליונות (אדומות) = 50, כתומות = 40, צהובות = 30, ירוקות = 20, כחולות = 10.' },
-      { icon: '⭐', title: 'עלו רמות', description: 'שברו את כל הלבנים כדי לעבור לרמה הבאה! כל רמה מוסיפה שורות נוספות והכדור נע מהר יותר!' },
-      { icon: '❤️', title: 'שימרו על החיים', description: 'אל תתנו לכדור ליפול! אם תאבדו את כל החיים, המשחק נגמר.' },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'עכבר - הזז מחבט' },
-      { icon: '⬅️', description: 'חץ שמאלה / A - הזז שמאלה' },
-      { icon: '➡️', description: 'חץ ימינה / D - הזז ימינה' },
-      { icon: '␣', description: 'רווח / לחיצה - שגר כדור' },
-      { icon: '📱', description: 'מגע והחלקה - בנייד' },
-    ],
-    tip: 'טיפ למומחים: נסו לפגוע בכדור עם הקצוות של המחבט כדי לשנות את הזווית שלו. זה יעזור לכם להגיע ללבנים קשות!',
-  },
-  zh: {
-    instructions: [
-      { icon: '🎯', title: '打碎砖块', description: '用挡板弹球打碎所有砖块。用鼠标或键盘移动挡板！' },
-      { icon: '💎', title: '分数值', description: '不同颜色的砖块分数不同！顶部红色 = 50，橙色 = 40，黄色 = 30，绿色 = 20，蓝色 = 10。' },
-      { icon: '⭐', title: '升级', description: '打碎所有砖块即可进入下一关！每关会增加更多行，球速也会加快！' },
-      { icon: '❤️', title: '保护生命', description: '不要让球掉到挡板下面！失去所有生命就会游戏结束。' },
-    ],
-    controls: [
-      { icon: '🖱️', description: '鼠标 - 移动挡板' },
-      { icon: '⬅️', description: '左箭头 / A - 向左移动' },
-      { icon: '➡️', description: '右箭头 / D - 向右移动' },
-      { icon: '␣', description: '空格 / 点击 - 发射球' },
-      { icon: '📱', description: '触摸滑动 - 移动端操作' },
-    ],
-    tip: '小技巧：用挡板的边缘击球可以改变球的角度，帮助你打到难以触及的砖块！',
-  },
-  es: {
-    instructions: [
-      { icon: '🎯', title: 'Rompe ladrillos', description: 'Usa la paleta para rebotar la pelota y romper todos los ladrillos. ¡Mueve la paleta con el ratón o el teclado!' },
-      { icon: '💎', title: 'Puntos', description: '¡Los ladrillos tienen diferentes valores! Rojos (arriba) = 50, naranjas = 40, amarillos = 30, verdes = 20, azules = 10.' },
-      { icon: '⭐', title: 'Sube de nivel', description: '¡Rompe todos los ladrillos para avanzar al siguiente nivel! Cada nivel añade más filas y la pelota se mueve más rápido.' },
-      { icon: '❤️', title: 'Cuida tus vidas', description: '¡No dejes que la pelota caiga! Si pierdes todas las vidas, se acabó el juego.' },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Ratón - Mover paleta' },
-      { icon: '⬅️', description: 'Flecha izquierda / A - Mover a la izquierda' },
-      { icon: '➡️', description: 'Flecha derecha / D - Mover a la derecha' },
-      { icon: '␣', description: 'Espacio / Clic - Lanzar pelota' },
-      { icon: '📱', description: 'Toque y deslizar - En móvil' },
-    ],
-    tip: 'Consejo: ¡Golpea la pelota con los bordes de la paleta para cambiar su ángulo y alcanzar ladrillos difíciles!',
-  },
-};
 
 // ─── Component ───────────────────────────────────────────────
 export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProps) {
@@ -279,10 +110,9 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
     playHit, playPowerUp, playWin,
   } = useRetroSounds();
 
-  const t = translations[locale] || translations.en;
+  const t = useTranslations('brickBreaker');
   const direction = useDirection();
   const isRtl = direction === TextDirection.RTL;
-  const instrData = instructionsData[locale] || instructionsData.en;
 
   // ─── Helpers ─────────────────────────────────────────────
   const updateHighScore = useCallback((newScore: number) => {
@@ -519,7 +349,7 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
         ctx.fillStyle = 'rgba(255,255,255,0.7)';
         ctx.font = '16px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(t.clickToLaunch, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+        ctx.fillText(t('clickToLaunch'), CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
       }
     };
 
@@ -642,7 +472,7 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
     return () => {
       if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     };
-  }, [gameState, level, resetBall, playClick, playSuccess, playPowerUp, playHit, playWin, playGameOver, updateHighScore, t.clickToLaunch]);
+  }, [gameState, level, resetBall, playClick, playSuccess, playPowerUp, playHit, playWin, playGameOver, updateHighScore, t('clickToLaunch')]);
 
   // ─── Draw idle / menu screen ──────────────────────────────
   useEffect(() => {
@@ -690,7 +520,7 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
 
   return (
     <GameWrapper
-      title={t.title}
+      title={t('title')}
       onInstructionsClick={() => setShowInstructions(true)}
     >
       <div className="flex flex-col items-center gap-4">
@@ -699,15 +529,15 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
           <div className="flex flex-wrap items-center justify-center gap-3">
             <LevelDisplay level={level} />
             <div className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full shadow-md">
-              <span className="text-sm font-medium text-slate-500">{t.score}:</span>
+              <span className="text-sm font-medium text-slate-500">{t('score')}:</span>
               <span className="text-lg font-bold text-[#3b82f6]">{score}</span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full shadow-md">
-              <span className="text-sm font-medium text-slate-500">{t.lives}:</span>
+              <span className="text-sm font-medium text-slate-500">{t('lives')}:</span>
               <span className="text-lg font-bold text-[#ef4444]">{'❤️'.repeat(Math.max(0, lives))}</span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full shadow-md">
-              <span className="text-sm font-medium text-slate-500">{t.highScore}:</span>
+              <span className="text-sm font-medium text-slate-500">{t('highScore')}:</span>
               <span className="text-lg font-bold text-[#f97316]">{highScore}</span>
             </div>
             {difficulty && (
@@ -744,8 +574,8 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
                 >
                   🧱
                 </motion.div>
-                <h2 className="text-3xl font-bold text-white mb-2">{t.title}</h2>
-                <p className="text-white/80 text-lg mb-6">{t.difficulty}</p>
+                <h2 className="text-3xl font-bold text-white mb-2">{t('title')}</h2>
+                <p className="text-white/80 text-lg mb-6">{t('difficulty')}</p>
                 <div className="flex flex-col gap-3 w-56">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -753,7 +583,7 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
                     onClick={() => selectDifficulty('easy')}
                     className="px-8 py-3 bg-[#22c55e] hover:bg-[#16a34a] text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                   >
-                    🟢 {t.easy}
+                    🟢 {t('easy')}
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -761,7 +591,7 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
                     onClick={() => selectDifficulty('medium')}
                     className="px-8 py-3 bg-[#eab308] hover:bg-[#ca8a04] text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                   >
-                    🟡 {t.medium}
+                    🟡 {t('medium')}
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -769,7 +599,7 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
                     onClick={() => selectDifficulty('hard')}
                     className="px-8 py-3 bg-[#ef4444] hover:bg-[#dc2626] text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                   >
-                    🔴 {t.hard}
+                    🔴 {t('hard')}
                   </motion.button>
                 </div>
               </motion.div>
@@ -789,7 +619,7 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
                   onClick={startGame}
                   className="px-8 py-3 bg-[#3b82f6] hover:bg-[#2563eb] text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                 >
-                  ▶️ {t.tapToStart}
+                  ▶️ {t('tapToStart')}
                 </motion.button>
               </motion.div>
             )}
@@ -802,14 +632,14 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
                 exit={{ opacity: 0 }}
                 className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 rounded-xl"
               >
-                <h2 className="text-3xl font-bold text-white mb-4">⏸️ {t.paused}</h2>
+                <h2 className="text-3xl font-bold text-white mb-4">⏸️ {t('paused')}</h2>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setGameState('playing')}
                   className="px-8 py-3 bg-[#3b82f6] text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                 >
-                  ▶️ {t.resume}
+                  ▶️ {t('resume')}
                 </motion.button>
               </motion.div>
             )}
@@ -823,15 +653,15 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
               >
                 <div className="bg-white rounded-3xl p-6 text-center shadow-2xl">
                   <div className="text-4xl mb-3">💥</div>
-                  <h2 className="text-xl font-bold text-slate-800 mb-3">{t.gameOver}</h2>
-                  <div className="text-2xl font-bold text-[#3b82f6] mb-4">{t.score}: {score}</div>
+                  <h2 className="text-xl font-bold text-slate-800 mb-3">{t('gameOver')}</h2>
+                  <div className="text-2xl font-bold text-[#3b82f6] mb-4">{t('score')}: {score}</div>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={restartGame}
                     className="px-6 py-2 bg-[#3b82f6] text-white font-bold rounded-full shadow-lg min-h-[48px]"
                   >
-                    {t.playAgain}
+                    {t('playAgain')}
                   </motion.button>
                 </div>
               </motion.div>
@@ -846,8 +676,8 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
               >
                 <div className="bg-white rounded-3xl p-6 text-center shadow-2xl">
                   <div className="text-4xl mb-3">🎉</div>
-                  <h2 className="text-xl font-bold text-slate-800 mb-3">{t.youWin}</h2>
-                  <div className="text-2xl font-bold text-[#22c55e] mb-4">{t.score}: {score}</div>
+                  <h2 className="text-xl font-bold text-slate-800 mb-3">{t('youWin')}</h2>
+                  <div className="text-2xl font-bold text-[#22c55e] mb-4">{t('score')}: {score}</div>
                   <div className="flex gap-3">
                     <motion.button
                       whileHover={{ scale: 1.05 }}
@@ -855,7 +685,7 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
                       onClick={() => { setShowWin(false); nextLevel(); }}
                       className="px-6 py-2 bg-[#22c55e] text-white font-bold rounded-full shadow-lg min-h-[48px]"
                     >
-                      {t.nextLevel}
+                      {t('nextLevel')}
                     </motion.button>
                     <motion.button
                       whileHover={{ scale: 1.05 }}
@@ -863,7 +693,7 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
                       onClick={restartGame}
                       className="px-6 py-2 bg-slate-500 text-white font-bold rounded-full shadow-lg min-h-[48px]"
                     >
-                      {t.playAgain}
+                      {t('playAgain')}
                     </motion.button>
                   </div>
                 </div>
@@ -912,10 +742,10 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
 
         {/* Control hints (translated) */}
         <div className="hidden md:flex flex-wrap justify-center gap-3 text-slate-600 text-sm">
-          <span className="px-3 py-1 bg-white/80 rounded-full">🖱️ {t.mouseMove}</span>
-          <span className="px-3 py-1 bg-white/80 rounded-full">⌨️ {t.arrowMove}</span>
-          <span className="px-3 py-1 bg-white/80 rounded-full">␣ {t.spaceLaunch}</span>
-          <span className="px-3 py-1 bg-white/80 rounded-full">⏸️ {t.escPause}</span>
+          <span className="px-3 py-1 bg-white/80 rounded-full">🖱️ {t('mouseMove')}</span>
+          <span className="px-3 py-1 bg-white/80 rounded-full">⌨️ {t('arrowMove')}</span>
+          <span className="px-3 py-1 bg-white/80 rounded-full">␣ {t('spaceLaunch')}</span>
+          <span className="px-3 py-1 bg-white/80 rounded-full">⏸️ {t('escPause')}</span>
         </div>
       </div>
 
@@ -929,10 +759,21 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
       <InstructionsModal
         isOpen={showInstructions}
         onClose={() => setShowInstructions(false)}
-        title={t.title}
-        instructions={instrData.instructions}
-        controls={instrData.controls}
-        tip={instrData.tip}
+        title={t('title')}
+        instructions={[
+          { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+          { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+          { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+          { icon: t('instructions.step3Icon'), title: t('instructions.step3Title'), description: t('instructions.step3Desc') },
+        ]}
+        controls={[
+          { icon: t('instructions.control0Icon'), description: t('instructions.control0Desc') },
+          { icon: t('instructions.control1Icon'), description: t('instructions.control1Desc') },
+          { icon: t('instructions.control2Icon'), description: t('instructions.control2Desc') },
+          { icon: t('instructions.control3Icon'), description: t('instructions.control3Desc') },
+          { icon: t('instructions.control4Icon'), description: t('instructions.control4Desc') },
+        ]}
+        tip={t('instructions.tip')}
         locale={locale}
       />
     </GameWrapper>

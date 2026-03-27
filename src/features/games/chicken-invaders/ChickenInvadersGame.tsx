@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GameWrapper } from '../shared/GameWrapper';
 import { WinModal } from '../shared/WinModal';
@@ -122,266 +123,7 @@ const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
 };
 
 // ---------------------------------------------------------------------------
-// i18n – 4 locales
-// ---------------------------------------------------------------------------
 
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    title: 'Chicken Invaders',
-    description: 'Defend Earth from the chickens!',
-    score: 'Score',
-    highScore: 'Best',
-    lives: 'Lives',
-    level: 'Wave',
-    gameOver: 'Game Over!',
-    victory: 'Victory!',
-    playAgain: 'Play Again',
-    tapToStart: 'Start Game',
-    selectDifficulty: 'Select Difficulty',
-    easy: '🟢 Easy',
-    medium: '🟡 Medium',
-    hard: '🔴 Hard',
-    easyDesc: 'Ages 3-6',
-    mediumDesc: 'Ages 6-10',
-    hardDesc: 'Ages 10+',
-    wave: 'Wave',
-    waveCleared: 'Wave Cleared!',
-    finalScore: 'Final Score',
-    newHighScore: 'New High Score!',
-    shoot: 'FIRE',
-    left: '◀',
-    right: '▶',
-  },
-  he: {
-    title: 'פולשי התרנגולות',
-    description: '!הגנו על כדור הארץ מפני התרנגולות',
-    score: 'ניקוד',
-    highScore: 'שיא',
-    lives: 'חיים',
-    level: 'גל',
-    gameOver: '!המשחק נגמר',
-    victory: '!ניצחון',
-    playAgain: 'שחק שוב',
-    tapToStart: 'התחל משחק',
-    selectDifficulty: 'בחר רמת קושי',
-    easy: '🟢 קל',
-    medium: '🟡 בינוני',
-    hard: '🔴 קשה',
-    easyDesc: 'גילאי 3-6',
-    mediumDesc: 'גילאי 6-10',
-    hardDesc: '+גילאי 10',
-    wave: 'גל',
-    waveCleared: '!הגל נוקה',
-    finalScore: 'ניקוד סופי',
-    newHighScore: '!שיא חדש',
-    shoot: 'ירי',
-    left: '◀',
-    right: '▶',
-  },
-  zh: {
-    title: '小鸡入侵者',
-    description: '保卫地球，击退小鸡！',
-    score: '得分',
-    highScore: '最高分',
-    lives: '生命',
-    level: '波次',
-    gameOver: '游戏结束！',
-    victory: '胜利！',
-    playAgain: '再玩一次',
-    tapToStart: '开始游戏',
-    selectDifficulty: '选择难度',
-    easy: '🟢 简单',
-    medium: '🟡 中等',
-    hard: '🔴 困难',
-    easyDesc: '3-6岁',
-    mediumDesc: '6-10岁',
-    hardDesc: '10岁+',
-    wave: '波次',
-    waveCleared: '波次通过！',
-    finalScore: '最终得分',
-    newHighScore: '新纪录！',
-    shoot: '开火',
-    left: '◀',
-    right: '▶',
-  },
-  es: {
-    title: 'Invasores Pollo',
-    description: '¡Defiende la Tierra de los pollos!',
-    score: 'Puntos',
-    highScore: 'Récord',
-    lives: 'Vidas',
-    level: 'Oleada',
-    gameOver: '¡Fin del juego!',
-    victory: '¡Victoria!',
-    playAgain: 'Jugar de nuevo',
-    tapToStart: 'Iniciar juego',
-    selectDifficulty: 'Elige dificultad',
-    easy: '🟢 Fácil',
-    medium: '🟡 Medio',
-    hard: '🔴 Difícil',
-    easyDesc: 'Edades 3-6',
-    mediumDesc: 'Edades 6-10',
-    hardDesc: 'Edades 10+',
-    wave: 'Oleada',
-    waveCleared: '¡Oleada superada!',
-    finalScore: 'Puntuación final',
-    newHighScore: '¡Nuevo récord!',
-    shoot: 'FUEGO',
-    left: '◀',
-    right: '▶',
-  },
-};
-
-// ---------------------------------------------------------------------------
-// Instructions (Feynman-style) – 4 locales
-// ---------------------------------------------------------------------------
-
-const instructionsData: Record<string, {
-  instructions: { icon: string; title: string; description: string }[];
-  controls: { icon: string; description: string }[];
-  tip: string;
-}> = {
-  en: {
-    instructions: [
-      {
-        icon: '🐔',
-        title: 'The Chickens Are Coming!',
-        description:
-          'Waves of angry chickens are invading from space! They march across the sky and drop eggs on you. Your job is to zap them all before they reach your spaceship.',
-      },
-      {
-        icon: '🚀',
-        title: 'You Are The Pilot',
-        description:
-          'Move your spaceship left and right at the bottom of the screen. Press fire to shoot lasers up at the chickens. Each chicken you hit disappears in a puff of feathers!',
-      },
-      {
-        icon: '🥚',
-        title: 'Watch Out For Eggs!',
-        description:
-          'Chickens drop eggs that fall toward you. If an egg hits your ship you lose a life. Dodge them by moving out of the way!',
-      },
-      {
-        icon: '⭐',
-        title: 'Scoring & Golden Chickens',
-        description:
-          'Normal chickens = 10 pts. Golden chickens = 50 pts! Clear all chickens in a wave to advance. Beat all waves to win!',
-      },
-    ],
-    controls: [
-      { icon: '⬅️', description: 'Arrow keys or A/D to move left/right' },
-      { icon: '🔫', description: 'Space or click/tap to shoot' },
-      { icon: '🖱️', description: 'Move mouse to steer ship' },
-      { icon: '📱', description: 'Use on-screen buttons on mobile' },
-    ],
-    tip: 'Focus on dodging eggs first — you can always shoot more chickens, but you only have a few lives!',
-  },
-  he: {
-    instructions: [
-      {
-        icon: '🐔',
-        title: '!התרנגולות באות',
-        description:
-          'גלי תרנגולות כועסות פולשים מהחלל! הן צועדות על פני השמיים ומפילות ביצים. המשימה שלך היא לחסל את כולן לפני שהן מגיעות לחללית.',
-      },
-      {
-        icon: '🚀',
-        title: 'אתה הטייס',
-        description:
-          'הזז את החללית שלך שמאלה וימינה בתחתית המסך. לחץ על ירי כדי לשגר לייזרים לעבר התרנגולות. כל תרנגולת שפוגעים בה נעלמת בענן נוצות!',
-      },
-      {
-        icon: '🥚',
-        title: '!היזהרו מביצים',
-        description:
-          'תרנגולות מפילות ביצים שנופלות לעברך. אם ביצה פוגעת בחללית אתה מאבד חיים. התחמק על ידי תזוזה הצידה!',
-      },
-      {
-        icon: '⭐',
-        title: 'ניקוד ותרנגולות זהב',
-        description:
-          'תרנגולת רגילה = 10 נק\'. תרנגולת זהב = 50 נק\'! חסלו את כל התרנגולות בגל כדי להתקדם. נצחו את כל הגלים כדי לנצח!',
-      },
-    ],
-    controls: [
-      { icon: '⬅️', description: 'חצים או A/D לתזוזה שמאלה/ימינה' },
-      { icon: '🔫', description: 'רווח או לחיצה/נגיעה לירי' },
-      { icon: '🖱️', description: 'הזז את העכבר לכיוון החללית' },
-      { icon: '📱', description: 'השתמש בכפתורים במסך בנייד' },
-    ],
-    tip: 'התמקדו קודם בהתחמקות מביצים — תמיד אפשר לירות עוד תרנגולות, אבל יש לכם רק כמה חיים!',
-  },
-  zh: {
-    instructions: [
-      {
-        icon: '🐔',
-        title: '小鸡来了！',
-        description:
-          '一波又一波愤怒的小鸡正从太空入侵！它们在天空中行军并向你扔鸡蛋。你的任务是在它们到达你的飞船之前消灭它们。',
-      },
-      {
-        icon: '🚀',
-        title: '你是飞行员',
-        description:
-          '在屏幕底部左右移动你的飞船。按射击键向小鸡发射激光。每只被击中的小鸡都会化为一团羽毛！',
-      },
-      {
-        icon: '🥚',
-        title: '小心鸡蛋！',
-        description:
-          '小鸡会扔下鸡蛋向你砸来。如果鸡蛋击中你的飞船，你会失去一条命。移动躲开它们！',
-      },
-      {
-        icon: '⭐',
-        title: '计分与金鸡',
-        description:
-          '普通小鸡=10分。金色小鸡=50分！消灭一波中的所有小鸡即可推进。打败所有波次即可获胜！',
-      },
-    ],
-    controls: [
-      { icon: '⬅️', description: '方向键或A/D左右移动' },
-      { icon: '🔫', description: '空格键或点击/触摸射击' },
-      { icon: '🖱️', description: '移动鼠标控制飞船' },
-      { icon: '📱', description: '移动端使用屏幕按钮' },
-    ],
-    tip: '先专注于躲避鸡蛋——你总能打更多小鸡，但生命只有几条！',
-  },
-  es: {
-    instructions: [
-      {
-        icon: '🐔',
-        title: '¡Los pollos vienen!',
-        description:
-          '¡Oleadas de pollos furiosos invaden desde el espacio! Marchan por el cielo y te lanzan huevos. Tu misión es eliminarlos antes de que alcancen tu nave.',
-      },
-      {
-        icon: '🚀',
-        title: 'Tú eres el piloto',
-        description:
-          'Mueve tu nave a izquierda y derecha en la parte inferior de la pantalla. Pulsa disparar para lanzar láseres hacia los pollos. ¡Cada pollo alcanzado explota en una nube de plumas!',
-      },
-      {
-        icon: '🥚',
-        title: '¡Cuidado con los huevos!',
-        description:
-          'Los pollos lanzan huevos que caen hacia ti. Si un huevo golpea tu nave, pierdes una vida. ¡Esquívalos moviéndote!',
-      },
-      {
-        icon: '⭐',
-        title: 'Puntuación y pollos dorados',
-        description:
-          'Pollo normal = 10 pts. ¡Pollo dorado = 50 pts! Elimina todos los pollos de una oleada para avanzar. ¡Supera todas las oleadas para ganar!',
-      },
-    ],
-    controls: [
-      { icon: '⬅️', description: 'Flechas o A/D para mover izquierda/derecha' },
-      { icon: '🔫', description: 'Espacio o clic/toque para disparar' },
-      { icon: '🖱️', description: 'Mueve el ratón para dirigir la nave' },
-      { icon: '📱', description: 'Usa los botones en pantalla en móvil' },
-    ],
-    tip: '¡Concéntrate primero en esquivar huevos — siempre puedes disparar más pollos, pero solo tienes unas pocas vidas!',
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Component
@@ -408,10 +150,9 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
   } = useRetroSounds();
 
   // i18n helpers
-  const t = translations[locale] || translations.en;
+  const t = useTranslations('chickenInvaders');
   const direction = useDirection();
   const isRtl = direction === TextDirection.RTL;
-  const instrData = instructionsData[locale] || instructionsData.en;
 
   // Game state
   const [gameState, setGameState] = useState<'menu' | 'playing' | 'gameover' | 'win'>('menu');
@@ -1078,7 +819,7 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
 
   return (
     <GameWrapper
-      title={t.title}
+      title={t('title')}
       onInstructionsClick={() => setShowInstructions(true)}
     >
       <div className={`flex flex-col items-center gap-4 ${isRtl ? 'direction-rtl' : ''}`} ref={containerRef}>
@@ -1086,16 +827,16 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
         {(gameState === 'playing' || gameState === 'gameover' || gameState === 'win') && (
           <div className="flex flex-wrap justify-center gap-3 text-center">
             <div className="bg-white/90 rounded-2xl px-4 py-2 shadow-lg">
-              <div className="text-xs text-slate-500 font-medium">{t.score}</div>
+              <div className="text-xs text-slate-500 font-medium">{t('score')}</div>
               <div className="text-xl font-bold text-[#00a4e4]">{score}</div>
             </div>
             <div className="bg-white/90 rounded-2xl px-4 py-2 shadow-lg">
-              <div className="text-xs text-slate-500 font-medium">{t.highScore}</div>
+              <div className="text-xs text-slate-500 font-medium">{t('highScore')}</div>
               <div className="text-xl font-bold text-[#f7941d]">{Math.max(highScore, score)}</div>
             </div>
             <LevelDisplay level={level} />
             <div className="bg-white/90 rounded-2xl px-4 py-2 shadow-lg">
-              <div className="text-xs text-slate-500 font-medium">{t.lives}</div>
+              <div className="text-xs text-slate-500 font-medium">{t('lives')}</div>
               <div className="text-xl font-bold text-[#ec4399]">
                 {'❤️'.repeat(Math.max(0, lives))}
                 {'🖤'.repeat(Math.max(0, maxLives - Math.max(0, lives)))}
@@ -1104,7 +845,7 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
             {difficulty && (
               <div className="bg-white/90 rounded-2xl px-4 py-2 shadow-lg">
                 <div className="text-xs text-slate-500 font-medium">
-                  {difficulty === 'easy' ? t.easy : difficulty === 'medium' ? t.medium : t.hard}
+                  {difficulty === 'easy' ? t('easy') : difficulty === 'medium' ? t('medium') : t('hard')}
                 </div>
               </div>
             )}
@@ -1138,10 +879,10 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
                   🐔
                 </motion.div>
                 <h2 className="text-3xl font-bold text-white mb-1 drop-shadow-lg">
-                  {t.title}
+                  {t('title')}
                 </h2>
-                <p className="text-white/70 text-sm mb-5">{t.description}</p>
-                <p className="text-white font-semibold mb-3 text-lg">{t.selectDifficulty}</p>
+                <p className="text-white/70 text-sm mb-5">{t('description')}</p>
+                <p className="text-white font-semibold mb-3 text-lg">{t('selectDifficulty')}</p>
                 <div className="flex flex-col gap-3 w-56">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1149,8 +890,8 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
                     onClick={() => { playClick(); startGame('easy'); }}
                     className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                   >
-                    {t.easy}
-                    <span className="block text-xs font-normal opacity-80">{t.easyDesc}</span>
+                    {t('easy')}
+                    <span className="block text-xs font-normal opacity-80">{t('easyDesc')}</span>
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1158,8 +899,8 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
                     onClick={() => { playClick(); startGame('medium'); }}
                     className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                   >
-                    {t.medium}
-                    <span className="block text-xs font-normal opacity-80">{t.mediumDesc}</span>
+                    {t('medium')}
+                    <span className="block text-xs font-normal opacity-80">{t('mediumDesc')}</span>
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1167,8 +908,8 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
                     onClick={() => { playClick(); startGame('hard'); }}
                     className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                   >
-                    {t.hard}
-                    <span className="block text-xs font-normal opacity-80">{t.hardDesc}</span>
+                    {t('hard')}
+                    <span className="block text-xs font-normal opacity-80">{t('hardDesc')}</span>
                   </motion.button>
                 </div>
               </motion.div>
@@ -1190,18 +931,18 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
                   className="bg-white rounded-3xl p-8 text-center shadow-2xl max-w-xs w-full"
                 >
                   <div className="text-5xl mb-4">💥</div>
-                  <h2 className="text-2xl font-bold text-slate-800 mb-2">{t.gameOver}</h2>
+                  <h2 className="text-2xl font-bold text-slate-800 mb-2">{t('gameOver')}</h2>
                   <div className="text-lg text-slate-600 mb-1">
-                    {t.finalScore}: <span className="font-bold text-[#00a4e4]">{score}</span>
+                    {t('finalScore')}: <span className="font-bold text-[#00a4e4]">{score}</span>
                   </div>
                   {score >= highScore && score > 0 && (
-                    <div className="text-sm font-bold text-[#f7941d] mb-1">{t.newHighScore}</div>
+                    <div className="text-sm font-bold text-[#f7941d] mb-1">{t('newHighScore')}</div>
                   )}
                   <div className="text-sm text-slate-500 mb-1">
-                    {t.highScore}: {Math.max(highScore, score)}
+                    {t('highScore')}: {Math.max(highScore, score)}
                   </div>
                   <div className="text-sm text-slate-500 mb-6">
-                    {t.wave}: {level}
+                    {t('wave')}: {level}
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1209,7 +950,7 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
                     onClick={() => { playClick(); restartGame(); }}
                     className="px-8 py-3 bg-[#6cbe45] hover:bg-[#5aa838] text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                   >
-                    {t.playAgain}
+                    {t('playAgain')}
                   </motion.button>
                 </motion.div>
               </motion.div>
@@ -1231,15 +972,15 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
                   className="bg-white rounded-3xl p-8 text-center shadow-2xl max-w-xs w-full"
                 >
                   <div className="text-5xl mb-4">🏆</div>
-                  <h2 className="text-2xl font-bold text-slate-800 mb-2">{t.victory}</h2>
+                  <h2 className="text-2xl font-bold text-slate-800 mb-2">{t('victory')}</h2>
                   <div className="text-lg text-slate-600 mb-1">
-                    {t.finalScore}: <span className="font-bold text-[#00a4e4]">{score}</span>
+                    {t('finalScore')}: <span className="font-bold text-[#00a4e4]">{score}</span>
                   </div>
                   {score >= highScore && score > 0 && (
-                    <div className="text-sm font-bold text-[#f7941d] mb-1">{t.newHighScore}</div>
+                    <div className="text-sm font-bold text-[#f7941d] mb-1">{t('newHighScore')}</div>
                   )}
                   <div className="text-sm text-slate-500 mb-6">
-                    {t.highScore}: {Math.max(highScore, score)}
+                    {t('highScore')}: {Math.max(highScore, score)}
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1247,7 +988,7 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
                     onClick={() => { playClick(); restartGame(); }}
                     className="px-8 py-3 bg-[#6cbe45] hover:bg-[#5aa838] text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                   >
-                    {t.playAgain}
+                    {t('playAgain')}
                   </motion.button>
                 </motion.div>
               </motion.div>
@@ -1270,7 +1011,7 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
             className="min-h-[56px] min-w-[56px] rounded-2xl bg-white/90 shadow-lg text-2xl font-bold flex items-center justify-center select-none active:bg-white"
             aria-label="Move left"
           >
-            {t.left}
+            {t('left')}
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.85 }}
@@ -1281,7 +1022,7 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
             className="min-h-[56px] min-w-[72px] rounded-2xl bg-red-500 shadow-lg text-white text-lg font-bold flex items-center justify-center select-none active:bg-red-600"
             aria-label="Shoot"
           >
-            {t.shoot}
+            {t('shoot')}
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.85 }}
@@ -1296,7 +1037,7 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
             className="min-h-[56px] min-w-[56px] rounded-2xl bg-white/90 shadow-lg text-2xl font-bold flex items-center justify-center select-none active:bg-white"
             aria-label="Move right"
           >
-            {t.right}
+            {t('right')}
           </motion.button>
         </div>
 
@@ -1323,10 +1064,20 @@ export default function ChickenInvadersGame({ locale = 'en' }: ChickenInvadersGa
       <InstructionsModal
         isOpen={showInstructions}
         onClose={() => setShowInstructions(false)}
-        title={t.title}
-        instructions={instrData.instructions}
-        controls={instrData.controls}
-        tip={instrData.tip}
+        title={t('title')}
+        instructions={[
+          { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+          { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+          { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+          { icon: t('instructions.step3Icon'), title: t('instructions.step3Title'), description: t('instructions.step3Desc') },
+        ]}
+        controls={[
+          { icon: t('instructions.control0Icon'), description: t('instructions.control0Desc') },
+          { icon: t('instructions.control1Icon'), description: t('instructions.control1Desc') },
+          { icon: t('instructions.control2Icon'), description: t('instructions.control2Desc') },
+          { icon: t('instructions.control3Icon'), description: t('instructions.control3Desc') },
+        ]}
+        tip={t('instructions.tip')}
         locale={locale}
       />
     </GameWrapper>

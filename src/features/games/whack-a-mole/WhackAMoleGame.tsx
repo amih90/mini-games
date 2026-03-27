@@ -8,6 +8,7 @@ import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { useDirection } from '@/hooks/useDirection';
+import { useTranslations } from 'next-intl';
 import { TextDirection } from '@/i18n/routing';
 
 // ---------------------------------------------------------------------------
@@ -86,255 +87,7 @@ const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
   },
 };
 
-// ---------------------------------------------------------------------------
-// Translations (4 locales)
-// ---------------------------------------------------------------------------
 
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    title: 'Whack-a-Mole',
-    score: 'Score',
-    time: 'Time',
-    combo: 'Combo',
-    highScore: 'Best',
-    gameOver: "Time's Up!",
-    playAgain: 'Play Again',
-    newHighScore: '🏆 New High Score!',
-    selectDifficulty: 'Choose Difficulty',
-    easy: '🟢 Easy',
-    medium: '🟡 Medium',
-    hard: '🔴 Hard',
-    easyDesc: 'For little ones — slower moles, no bombs',
-    mediumDesc: 'Balanced fun — some bombs appear',
-    hardDesc: 'Super fast — lots of bombs!',
-    miss: 'MISS!',
-    molePoints: '🐹 Mole = +10 pts',
-    goldenPoints: '👑 Golden = +50 pts',
-    bombPoints: '💣 Bomb = −50 pts',
-    comboPoints: '🔥 Combo = ×multiplier',
-    difficulty: 'Difficulty',
-    level: 'Level',
-  },
-  he: {
-    title: 'הכה את השומה',
-    score: 'ניקוד',
-    time: 'זמן',
-    combo: 'קומבו',
-    highScore: 'שיא',
-    gameOver: '!נגמר הזמן',
-    playAgain: 'שחק שוב',
-    newHighScore: '🏆 !שיא חדש',
-    selectDifficulty: 'בחר רמת קושי',
-    easy: '🟢 קל',
-    medium: '🟡 בינוני',
-    hard: '🔴 קשה',
-    easyDesc: 'לקטנטנים — שומות איטיות, בלי פצצות',
-    mediumDesc: 'מאוזן — כמה פצצות מופיעות',
-    hardDesc: '!סופר מהיר — הרבה פצצות',
-    miss: '!פספוס',
-    molePoints: '🐹 שומה = +10 נק׳',
-    goldenPoints: '👑 זהב = +50 נק׳',
-    bombPoints: '💣 פצצה = −50 נק׳',
-    comboPoints: '🔥 קומבו = ×מכפיל',
-    difficulty: 'קושי',
-    level: 'שלב',
-  },
-  zh: {
-    title: '打地鼠',
-    score: '得分',
-    time: '时间',
-    combo: '连击',
-    highScore: '最高分',
-    gameOver: '时间到！',
-    playAgain: '再玩一次',
-    newHighScore: '🏆 新纪录！',
-    selectDifficulty: '选择难度',
-    easy: '🟢 简单',
-    medium: '🟡 中等',
-    hard: '🔴 困难',
-    easyDesc: '适合小朋友——地鼠慢，没有炸弹',
-    mediumDesc: '平衡模式——偶尔出现炸弹',
-    hardDesc: '超级快——很多炸弹！',
-    miss: '没打中！',
-    molePoints: '🐹 地鼠 = +10 分',
-    goldenPoints: '👑 金色 = +50 分',
-    bombPoints: '💣 炸弹 = −50 分',
-    comboPoints: '🔥 连击 = ×倍数',
-    difficulty: '难度',
-    level: '关卡',
-  },
-  es: {
-    title: 'Golpea al Topo',
-    score: 'Puntos',
-    time: 'Tiempo',
-    combo: 'Combo',
-    highScore: 'Récord',
-    gameOver: '¡Se acabó el tiempo!',
-    playAgain: 'Jugar de nuevo',
-    newHighScore: '🏆 ¡Nuevo récord!',
-    selectDifficulty: 'Elige dificultad',
-    easy: '🟢 Fácil',
-    medium: '🟡 Medio',
-    hard: '🔴 Difícil',
-    easyDesc: 'Para peques — topos lentos, sin bombas',
-    mediumDesc: 'Equilibrado — algunas bombas',
-    hardDesc: '¡Súper rápido — muchas bombas!',
-    miss: '¡Fallo!',
-    molePoints: '🐹 Topo = +10 pts',
-    goldenPoints: '👑 Dorado = +50 pts',
-    bombPoints: '💣 Bomba = −50 pts',
-    comboPoints: '🔥 Combo = ×multiplicador',
-    difficulty: 'Dificultad',
-    level: 'Nivel',
-  },
-};
-
-// ---------------------------------------------------------------------------
-// Instructions data (Feynman-style, 4 locales)
-// ---------------------------------------------------------------------------
-
-const instructionsData: Record<string, {
-  instructions: { icon: string; title: string; description: string }[];
-  controls: { icon: string; description: string }[];
-  tip: string;
-}> = {
-  en: {
-    instructions: [
-      {
-        icon: '🐹',
-        title: 'Moles pop up!',
-        description:
-          'Little moles peek out of holes in the ground. Your job is to bonk them on the head before they hide again!',
-      },
-      {
-        icon: '🔨',
-        title: 'Whack them!',
-        description:
-          'Click or tap a mole to whack it. Each mole you hit gives you points. Golden moles are worth extra!',
-      },
-      {
-        icon: '💣',
-        title: 'Watch out for bombs!',
-        description:
-          'Black round things with a fuse are bombs — do NOT hit them or you lose 50 points. Only whack the moles!',
-      },
-      {
-        icon: '⏰',
-        title: 'Beat the clock',
-        description:
-          'You have limited time. Whack as many moles as you can before the timer runs out. Hit moles in a row for combo bonus!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Click or tap on moles to whack them' },
-      { icon: '🔢', description: 'Keys 1-9 whack holes (top-left to bottom-right)' },
-      { icon: '⏸️', description: 'Escape to go back to menu' },
-    ],
-    tip: 'Keep your eyes on the whole field — don\'t focus on just one hole. Quick combos multiply your score!',
-  },
-  he: {
-    instructions: [
-      {
-        icon: '🐹',
-        title: '!שומות מציצות',
-        description:
-          'שומות קטנות מציצות מחורים באדמה. המשימה שלך היא לתפוס אותן לפני שהן מתחבאות!',
-      },
-      {
-        icon: '🔨',
-        title: '!הכה אותן',
-        description:
-          'לחץ או הקש על שומה כדי להכות אותה. כל שומה שאתה פוגע בה נותנת ניקוד. שומות זהב שוות יותר!',
-      },
-      {
-        icon: '💣',
-        title: '!היזהר מפצצות',
-        description:
-          'דברים שחורים עגולים עם פתיל הם פצצות — אל תפגע בהם או שתאבד 50 נקודות!',
-      },
-      {
-        icon: '⏰',
-        title: 'נצח את השעון',
-        description:
-          'יש לך זמן מוגבל. הכה כמה שיותר שומות לפני שהטיימר נגמר. פגיעות רצופות נותנות בונוס קומבו!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'לחץ או הקש על שומות כדי להכות' },
-      { icon: '🔢', description: 'מקשים 1-9 מכים חורים (שמאל-למעלה עד ימין-למטה)' },
-      { icon: '⏸️', description: 'Escape לחזרה לתפריט' },
-    ],
-    tip: 'שמור עיניים על כל השטח — אל תתמקד בחור אחד. קומבו מהיר מכפיל ניקוד!',
-  },
-  zh: {
-    instructions: [
-      {
-        icon: '🐹',
-        title: '地鼠冒出来！',
-        description:
-          '小地鼠会从地上的洞里探出头来。你的任务是在它们藏起来之前敲中它们！',
-      },
-      {
-        icon: '🔨',
-        title: '敲打它们！',
-        description:
-          '点击或轻触地鼠来敲打它。每打中一只地鼠都能得分。金色地鼠分数更高！',
-      },
-      {
-        icon: '💣',
-        title: '小心炸弹！',
-        description:
-          '黑色圆形带引线的是炸弹——千万不要打它们，否则会扣50分！',
-      },
-      {
-        icon: '⏰',
-        title: '跑赢时间',
-        description:
-          '时间有限。在计时结束前尽可能多地敲打地鼠。连续命中可获得连击加成！',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: '点击或轻触地鼠来敲打' },
-      { icon: '🔢', description: '按1-9键敲打对应位置的洞（左上到右下）' },
-      { icon: '⏸️', description: 'Escape键返回菜单' },
-    ],
-    tip: '注意整个场地——不要只盯着一个洞。快速连击可以翻倍得分！',
-  },
-  es: {
-    instructions: [
-      {
-        icon: '🐹',
-        title: '¡Los topos aparecen!',
-        description:
-          'Pequeños topos asoman por los agujeros del suelo. ¡Tu misión es golpearlos antes de que se escondan!',
-      },
-      {
-        icon: '🔨',
-        title: '¡Golpéalos!',
-        description:
-          'Haz clic o toca un topo para golpearlo. Cada topo te da puntos. ¡Los topos dorados valen más!',
-      },
-      {
-        icon: '💣',
-        title: '¡Cuidado con las bombas!',
-        description:
-          'Las cosas negras redondas con mecha son bombas — ¡NO las golpees o perderás 50 puntos!',
-      },
-      {
-        icon: '⏰',
-        title: 'Gana al reloj',
-        description:
-          'Tienes tiempo limitado. Golpea tantos topos como puedas antes de que acabe el tiempo. ¡Los combos multiplican tu puntuación!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Haz clic o toca los topos para golpear' },
-      { icon: '🔢', description: 'Teclas 1-9 golpean los agujeros (arriba-izq a abajo-der)' },
-      { icon: '⏸️', description: 'Escape para volver al menú' },
-    ],
-    tip: 'Mira todo el campo — no te fijes en un solo agujero. ¡Los combos rápidos multiplican tu puntuación!',
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Difficulty level mapping for LevelDisplay
@@ -384,10 +137,9 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
     useRetroSounds();
 
   // --- i18n ---
-  const t = translations[locale] || translations.en;
+  const t = useTranslations('whackAMole');
   const direction = useDirection();
   const isRtl = direction === TextDirection.RTL;
-  const instrData = instructionsData[locale] || instructionsData.en;
 
   // Keep refs in sync with state for use in canvas loop
   useEffect(() => {
@@ -697,8 +449,8 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
 
       // --- Miss animation ---
       if (missAnimationRef.current) {
-        missAnimationRef.current.time--;
-        if (missAnimationRef.current.time <= 0) missAnimationRef.current = null;
+        missAnimationRef.current('time')--;
+        if (missAnimationRef.current('time') <= 0) missAnimationRef.current = null;
       }
 
       // ========== DRAW ==========
@@ -970,7 +722,7 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
 
       // Miss text
       if (missAnimationRef.current) {
-        const missT = translations[locale]?.miss || 'MISS!';
+        const missT = t('miss');
         ctx.fillStyle = 'rgba(255, 0, 0, 0.6)';
         ctx.font = 'bold 24px sans-serif';
         ctx.textAlign = 'center';
@@ -978,7 +730,7 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
         ctx.fillText(
           missT,
           missAnimationRef.current.x,
-          missAnimationRef.current.y - (20 - missAnimationRef.current.time)
+          missAnimationRef.current.y - (20 - missAnimationRef.current('time'))
         );
       }
 
@@ -1030,7 +782,7 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
   // ---------------------------------------------------------------------------
 
   return (
-    <GameWrapper title={t.title} onInstructionsClick={() => setShowInstructions(true)}>
+    <GameWrapper title={t('title')} onInstructionsClick={() => setShowInstructions(true)}>
       <div className={`flex flex-col items-center gap-4 ${isRtl ? 'direction-rtl' : ''}`}>
         {/* ---------- MENU / DIFFICULTY SELECTOR ---------- */}
         <AnimatePresence>
@@ -1050,9 +802,9 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
                 🐹
               </motion.div>
 
-              <h2 className="text-3xl font-bold text-slate-800 text-center">{t.title}</h2>
+              <h2 className="text-3xl font-bold text-slate-800 text-center">{t('title')}</h2>
               <p className="text-lg font-semibold text-slate-600 text-center">
-                {t.selectDifficulty}
+                {t('selectDifficulty')}
               </p>
 
               <div className="flex flex-col gap-3 w-full">
@@ -1083,7 +835,7 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
 
               {highScore > 0 && (
                 <div className="text-center text-slate-500 mt-2">
-                  {t.highScore}: <span className="font-bold text-[#f97316]">{highScore}</span>
+                  {t('highScore')}: <span className="font-bold text-[#f97316]">{highScore}</span>
                 </div>
               )}
             </motion.div>
@@ -1098,11 +850,11 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
               <LevelDisplay level={difficultyLevel[difficulty]} />
 
               <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center">
-                <div className="text-sm text-slate-500 font-medium">{t.score}</div>
+                <div className="text-sm text-slate-500 font-medium">{t('score')}</div>
                 <div className="text-2xl font-bold text-[#8B4513]">{score}</div>
               </div>
               <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center">
-                <div className="text-sm text-slate-500 font-medium">{t.time}</div>
+                <div className="text-sm text-slate-500 font-medium">{t('time')}</div>
                 <div
                   className={`text-2xl font-bold ${
                     timeLeft <= 5 ? 'text-red-500 animate-pulse' : 'text-[#3b82f6]'
@@ -1112,13 +864,13 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
                 </div>
               </div>
               <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center">
-                <div className="text-sm text-slate-500 font-medium">{t.combo}</div>
+                <div className="text-sm text-slate-500 font-medium">{t('combo')}</div>
                 <div className="text-2xl font-bold text-[#a855f7]">
                   x{Math.min(combo, 5)}
                 </div>
               </div>
               <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center">
-                <div className="text-sm text-slate-500 font-medium">{t.highScore}</div>
+                <div className="text-sm text-slate-500 font-medium">{t('highScore')}</div>
                 <div className="text-2xl font-bold text-[#f97316]">{highScore}</div>
               </div>
             </div>
@@ -1136,12 +888,12 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
 
             {/* Legend */}
             <div className="flex flex-wrap justify-center gap-3 text-slate-600 text-sm">
-              <span className="px-3 py-1 bg-white/80 rounded-full">{t.molePoints}</span>
-              <span className="px-3 py-1 bg-white/80 rounded-full">{t.goldenPoints}</span>
+              <span className="px-3 py-1 bg-white/80 rounded-full">{t('molePoints')}</span>
+              <span className="px-3 py-1 bg-white/80 rounded-full">{t('goldenPoints')}</span>
               {difficulty !== 'easy' && (
-                <span className="px-3 py-1 bg-white/80 rounded-full">{t.bombPoints}</span>
+                <span className="px-3 py-1 bg-white/80 rounded-full">{t('bombPoints')}</span>
               )}
-              <span className="px-3 py-1 bg-white/80 rounded-full">{t.comboPoints}</span>
+              <span className="px-3 py-1 bg-white/80 rounded-full">{t('combo')Points}</span>
             </div>
           </>
         )}
@@ -1158,10 +910,10 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
             >
               <div className="bg-white rounded-3xl p-8 text-center shadow-2xl max-w-sm w-full">
                 <div className="text-5xl mb-4">⏰</div>
-                <h2 className="text-2xl font-bold text-slate-800 mb-3">{t.gameOver}</h2>
+                <h2 className="text-2xl font-bold text-slate-800 mb-3">{t('gameOver')}</h2>
                 <div className="text-4xl font-bold text-[#8B4513] mb-2">{score}</div>
                 {isNewHighScore && (
-                  <div className="text-lg text-[#f97316] font-bold mb-3">{t.newHighScore}</div>
+                  <div className="text-lg text-[#f97316] font-bold mb-3">{t('newHighScore')}</div>
                 )}
                 <div className="flex flex-col gap-3 mt-4">
                   <motion.button
@@ -1173,7 +925,7 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
                     }}
                     className="px-8 py-3 bg-[#8B4513] hover:bg-[#6B3410] text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                   >
-                    {t.playAgain}
+                    {t('playAgain')}
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1184,7 +936,7 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
                     }}
                     className="px-8 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 text-lg font-bold rounded-full shadow min-h-[48px]"
                   >
-                    {t.selectDifficulty}
+                    {t('selectDifficulty')}
                   </motion.button>
                 </div>
               </div>
@@ -1197,10 +949,19 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
       <InstructionsModal
         isOpen={showInstructions}
         onClose={() => setShowInstructions(false)}
-        title={t.title}
-        instructions={instrData.instructions}
-        controls={instrData.controls}
-        tip={instrData.tip}
+        title={t('title')}
+        instructions={[
+          { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+          { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+          { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+          { icon: t('instructions.step3Icon'), title: t('instructions.step3Title'), description: t('instructions.step3Desc') },
+        ]}
+        controls={[
+          { icon: t('instructions.control0Icon'), description: t('instructions.control0Desc') },
+          { icon: t('instructions.control1Icon'), description: t('instructions.control1Desc') },
+          { icon: t('instructions.control2Icon'), description: t('instructions.control2Desc') },
+        ]}
+        tip={t('instructions.tip')}
         locale={locale}
       />
     </GameWrapper>

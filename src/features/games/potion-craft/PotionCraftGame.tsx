@@ -10,313 +10,9 @@ import { PotionCraftScene } from './PotionCraftScene';
 import { usePotionCraftGame } from './usePotionCraftGame';
 import { CREATURES, POTIONS } from './recipes';
 import { Difficulty, PotionId } from './types';
+import { useTranslations } from 'next-intl';
 
-// ─── 4-locale translations ──────────────────────────────────
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    title: 'Potion Craft Lab',
-    difficulty: 'Choose Difficulty',
-    easy: 'Easy',
-    medium: 'Medium',
-    hard: 'Hard',
-    level: 'Level',
-    score: 'Score',
-    highScore: 'Best',
-    mission: 'Create:',
-    stir: 'Stir',
-    brew: 'Brew!',
-    undo: 'Undo',
-    heat: 'Heat',
-    brewing: 'Brewing...',
-    success: 'Success!',
-    failure: 'Oops!',
-    tryAgain: 'Try Again',
-    nextLevel: 'Next Level',
-    paused: 'Paused',
-    resume: 'Resume',
-    timeRemaining: 'Time',
-    creatureSlime: 'Slime',
-    creatureFireImp: 'Fire Imp',
-    creatureWaterSprite: 'Water Sprite',
-    creatureStoneGolem: 'Stone Golem',
-    creatureFairy: 'Fairy',
-    creatureShadowWisp: 'Shadow Wisp',
-    creatureCrystalDragon: 'Crystal Dragon',
-    creatureGoldenPhoenix: 'Golden Phoenix',
-    creatureFailBlob: 'Blob',
-    creatureFailSpiky: 'Spiky Thing',
-    creatureFailWobbly: 'Wobbly Mess',
-    stirCount: 'Stirs',
-    easyDesc: 'Simple recipes, hints shown',
-    mediumDesc: 'More ingredients, no hints',
-    hardDesc: 'Time pressure, strict heat',
-    recipe: 'Recipe',
-    mix: 'Mix',
-    thenSetHeat: 'Heat',
-    thenStir: 'Stir ≥',
-    times: 'times',
-    thenBrew: 'then Brew!',
-    orderMatters: 'Order matters!',
-    potionGreen: 'Green',
-    potionPurple: 'Purple',
-    potionBlue: 'Blue',
-    potionRed: 'Red',
-    potionYellow: 'Yellow',
-    potionCyan: 'Cyan',
-    potionGolden: 'Golden',
-    potionPink: 'Pink',
-    step1: '1. Add potions',
-    step2: '2. Set heat',
-    step3: '3. Stir',
-    step4: '4. Brew!',
-  },
-  he: {
-    title: 'מעבדת השיקויים',
-    difficulty: 'בחר רמת קושי',
-    easy: 'קל',
-    medium: 'בינוני',
-    hard: 'קשה',
-    level: 'שלב',
-    score: 'ניקוד',
-    highScore: 'שיא',
-    mission: ':צור',
-    stir: 'ערבב',
-    brew: '!בשל',
-    undo: 'בטל',
-    heat: 'חום',
-    brewing: '...מבשל',
-    success: '!הצלחה',
-    failure: '!אופס',
-    tryAgain: 'נסה שוב',
-    nextLevel: 'שלב הבא',
-    paused: 'מושהה',
-    resume: 'המשך',
-    timeRemaining: 'זמן',
-    creatureSlime: 'סליים',
-    creatureFireImp: 'שדון אש',
-    creatureWaterSprite: 'רוח מים',
-    creatureStoneGolem: 'גולם אבן',
-    creatureFairy: 'פיה',
-    creatureShadowWisp: 'רוח צל',
-    creatureCrystalDragon: 'דרקון קריסטל',
-    creatureGoldenPhoenix: 'עוף חול זהוב',
-    creatureFailBlob: 'כתם',
-    creatureFailSpiky: 'דבר דוקרני',
-    creatureFailWobbly: 'בלגן מתנדנד',
-    stirCount: 'ערבובים',
-    easyDesc: 'מתכונים פשוטים, רמזים מוצגים',
-    mediumDesc: 'יותר מרכיבים, ללא רמזים',
-    hardDesc: 'לחץ זמן, חום מדויק',
-    recipe: 'מתכון',
-    mix: 'ערבב',
-    thenSetHeat: 'חום',
-    thenStir: 'ערבב ≥',
-    times: 'פעמים',
-    thenBrew: 'אז בשל!',
-    orderMatters: '!הסדר חשוב',
-    potionGreen: 'ירוק',
-    potionPurple: 'סגול',
-    potionBlue: 'כחול',
-    potionRed: 'אדום',
-    potionYellow: 'צהוב',
-    potionCyan: 'טורקיז',
-    potionGolden: 'זהוב',
-    potionPink: 'ורוד',
-    step1: '1. הוסף שיקויים',
-    step2: '2. כוונן חום',
-    step3: '3. ערבב',
-    step4: '4. בשל!',
-  },
-  zh: {
-    title: '药水工坊',
-    difficulty: '选择难度',
-    easy: '简单',
-    medium: '中等',
-    hard: '困难',
-    level: '关卡',
-    score: '得分',
-    highScore: '最高',
-    mission: '目标：',
-    stir: '搅拌',
-    brew: '酿造！',
-    undo: '撤销',
-    heat: '温度',
-    brewing: '酿造中...',
-    success: '成功！',
-    failure: '哎呀！',
-    tryAgain: '再试一次',
-    nextLevel: '下一关',
-    paused: '已暂停',
-    resume: '继续',
-    timeRemaining: '时间',
-    creatureSlime: '史莱姆',
-    creatureFireImp: '火焰小鬼',
-    creatureWaterSprite: '水精灵',
-    creatureStoneGolem: '石头魔像',
-    creatureFairy: '仙子',
-    creatureShadowWisp: '暗影魂火',
-    creatureCrystalDragon: '水晶龙',
-    creatureGoldenPhoenix: '金凤凰',
-    creatureFailBlob: '黏团',
-    creatureFailSpiky: '刺球怪',
-    creatureFailWobbly: '摇摆怪',
-    stirCount: '搅拌次数',
-    easyDesc: '简单配方，有提示',
-    mediumDesc: '更多材料，无提示',
-    hardDesc: '时间压力，严格温度',
-    recipe: '配方',
-    mix: '混合',
-    thenSetHeat: '温度',
-    thenStir: '搅拌 ≥',
-    times: '次',
-    thenBrew: '然后酿造！',
-    orderMatters: '顺序很重要！',
-    potionGreen: '绿色',
-    potionPurple: '紫色',
-    potionBlue: '蓝色',
-    potionRed: '红色',
-    potionYellow: '黄色',
-    potionCyan: '青色',
-    potionGolden: '金色',
-    potionPink: '粉色',
-    step1: '1. 加药水',
-    step2: '2. 调温度',
-    step3: '3. 搅拌',
-    step4: '4. 酿造！',
-  },
-  es: {
-    title: 'Laboratorio de Pociones',
-    difficulty: 'Elige dificultad',
-    easy: 'Fácil',
-    medium: 'Medio',
-    hard: 'Difícil',
-    level: 'Nivel',
-    score: 'Puntos',
-    highScore: 'Récord',
-    mission: 'Crea:',
-    stir: 'Revolver',
-    brew: '¡Preparar!',
-    undo: 'Deshacer',
-    heat: 'Calor',
-    brewing: 'Preparando...',
-    success: '¡Éxito!',
-    failure: '¡Ups!',
-    tryAgain: 'Intentar de nuevo',
-    nextLevel: 'Siguiente nivel',
-    paused: 'Pausado',
-    resume: 'Continuar',
-    timeRemaining: 'Tiempo',
-    creatureSlime: 'Baba',
-    creatureFireImp: 'Diablillo de Fuego',
-    creatureWaterSprite: 'Hada de Agua',
-    creatureStoneGolem: 'Gólem de Piedra',
-    creatureFairy: 'Hada',
-    creatureShadowWisp: 'Espectro de Sombra',
-    creatureCrystalDragon: 'Dragón de Cristal',
-    creatureGoldenPhoenix: 'Fénix Dorado',
-    creatureFailBlob: 'Masa',
-    creatureFailSpiky: 'Cosa Espinosa',
-    creatureFailWobbly: 'Desastre Tambaleante',
-    stirCount: 'Revueltas',
-    easyDesc: 'Recetas simples, con pistas',
-    mediumDesc: 'Más ingredientes, sin pistas',
-    hardDesc: 'Presión de tiempo, calor estricto',
-    recipe: 'Receta',
-    mix: 'Mezcla',
-    thenSetHeat: 'Calor',
-    thenStir: 'Revuelve ≥',
-    times: 'veces',
-    thenBrew: '¡luego Prepara!',
-    orderMatters: '¡El orden importa!',
-    potionGreen: 'Verde',
-    potionPurple: 'Morado',
-    potionBlue: 'Azul',
-    potionRed: 'Rojo',
-    potionYellow: 'Amarillo',
-    potionCyan: 'Cian',
-    potionGolden: 'Dorado',
-    potionPink: 'Rosa',
-    step1: '1. Añade pociones',
-    step2: '2. Ajusta calor',
-    step3: '3. Revuelve',
-    step4: '4. ¡Prepara!',
-  },
-};
 
-const instructionsData: Record<string, {
-  instructions: { icon: string; title: string; description: string }[];
-  controls: { icon: string; description: string }[];
-  tip: string;
-}> = {
-  en: {
-    instructions: [
-      { icon: '🧪', title: 'Pick Potions', description: 'Select potions from the shelf by clicking bottles or pressing number keys 1-8.' },
-      { icon: '🔥', title: 'Adjust Heat', description: 'Use the heat slider to set the right temperature. Each creature needs a specific heat range!' },
-      { icon: '🥄', title: 'Stir the Cauldron', description: 'Press Space or click Stir to mix. More stirs = better results. Each recipe has a minimum.' },
-      { icon: '✨', title: 'Brew & Discover', description: 'Hit Brew to see what creature you\'ve made! Match the recipe perfectly for 3 stars.' },
-    ],
-    controls: [
-      { icon: '🔢', description: 'Keys 1-8 to select potions' },
-      { icon: '⎵', description: 'Space to stir' },
-      { icon: '⏎', description: 'Enter to brew' },
-      { icon: '🌡️', description: '+/- to adjust heat' },
-      { icon: '↩️', description: 'Z to undo last potion' },
-      { icon: '⏸️', description: 'Esc or P to pause' },
-    ],
-    tip: 'Start with stir count — it\'s the easiest thing to get right. Then nail the heat range for 3 stars!',
-  },
-  he: {
-    instructions: [
-      { icon: '🧪', title: 'בחר שיקויים', description: 'בחר שיקויים מהמדף על ידי לחיצה על בקבוקים או מקשי מספרים 1-8.' },
-      { icon: '🔥', title: 'כוונן חום', description: 'השתמש במחוון החום לקביעת הטמפרטורה הנכונה. לכל יצור יש טווח חום ספציפי!' },
-      { icon: '🥄', title: 'ערבב בקלחת', description: 'לחץ רווח או לחץ על ערבב. יותר ערבובים = תוצאות טובות יותר!' },
-      { icon: '✨', title: 'בשל וגלה', description: 'לחץ בשל כדי לראות איזה יצור יצרת! התאם את המתכון בדיוק ל-3 כוכבים.' },
-    ],
-    controls: [
-      { icon: '🔢', description: 'מקשים 1-8 לבחירת שיקויים' },
-      { icon: '⎵', description: 'רווח לערבוב' },
-      { icon: '⏎', description: 'אנטר לבישול' },
-      { icon: '🌡️', description: '+/- לכיוון חום' },
-      { icon: '↩️', description: 'Z לביטול שיקוי אחרון' },
-      { icon: '⏸️', description: 'Esc או P להשהיה' },
-    ],
-    tip: 'התחל עם מספר הערבובים — זה הדבר הכי קל לדייק. אחר כך כוונן את החום ל-3 כוכבים!',
-  },
-  zh: {
-    instructions: [
-      { icon: '🧪', title: '选择药水', description: '点击瓶子或按数字键1-8从架子上选择药水。' },
-      { icon: '🔥', title: '调节温度', description: '使用温度滑块设置正确的温度。每个生物需要特定的温度范围！' },
-      { icon: '🥄', title: '搅拌大锅', description: '按空格键或点击搅拌来混合。搅拌越多=效果越好！' },
-      { icon: '✨', title: '酿造与发现', description: '点击酿造看看你创造了什么生物！完美匹配配方获得3星。' },
-    ],
-    controls: [
-      { icon: '🔢', description: '数字键1-8选择药水' },
-      { icon: '⎵', description: '空格键搅拌' },
-      { icon: '⏎', description: '回车键酿造' },
-      { icon: '🌡️', description: '+/-调节温度' },
-      { icon: '↩️', description: 'Z撤销上一个药水' },
-      { icon: '⏸️', description: 'Esc或P暂停' },
-    ],
-    tip: '先搞定搅拌次数——这是最容易做对的。然后把温度调准就能拿3星！',
-  },
-  es: {
-    instructions: [
-      { icon: '🧪', title: 'Elige Pociones', description: 'Selecciona pociones del estante haciendo clic en botellas o presionando teclas 1-8.' },
-      { icon: '🔥', title: 'Ajusta el Calor', description: 'Usa el control de calor para la temperatura correcta. ¡Cada criatura necesita un rango específico!' },
-      { icon: '🥄', title: 'Revuelve el Caldero', description: 'Presiona Espacio o clic en Revolver. ¡Más revueltas = mejores resultados!' },
-      { icon: '✨', title: 'Prepara y Descubre', description: '¡Pulsa Preparar para ver qué criatura creaste! Iguala la receta perfectamente para 3 estrellas.' },
-    ],
-    controls: [
-      { icon: '🔢', description: 'Teclas 1-8 para seleccionar pociones' },
-      { icon: '⎵', description: 'Espacio para revolver' },
-      { icon: '⏎', description: 'Enter para preparar' },
-      { icon: '🌡️', description: '+/- para ajustar calor' },
-      { icon: '↩️', description: 'Z para deshacer última poción' },
-      { icon: '⏸️', description: 'Esc o P para pausar' },
-    ],
-    tip: '¡Empieza con las revueltas — es lo más fácil de acertar. Luego ajusta el calor para 3 estrellas!',
-  },
-};
 
 // ─── Temperature conversion (0-1 → Celsius) ────────────────
 const MIN_TEMP = 20;
@@ -358,8 +54,7 @@ interface PotionCraftGameProps {
 }
 
 export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps) {
-  const t = translations[locale] || translations.en;
-  const instData = instructionsData[locale] || instructionsData.en;
+  const t = useTranslations('potionCraft');
   const sounds = useRetroSounds();
   const [showInstructions, setShowInstructions] = useState(true);
   const [selectedPotion, setSelectedPotion] = useState<PotionId | null>(null);
@@ -532,17 +227,17 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
   }, [state.phase, state.stars, sounds]);
 
   // ─── Derived values ─────────────────────────────────────
-  const targetCreatureName = t[CREATURES[state.targetCreature]?.label] || state.targetCreature;
+  const targetCreatureName = t(CREATURES[state.targetCreature]?.label ?? '') || state.targetCreature;
   const targetEmoji = creatureEmoji[state.targetCreature] || '❓';
   const resultCreatureName = state.resultCreature
-    ? (t[CREATURES[state.resultCreature]?.label] || state.resultCreature)
+    ? (t(CREATURES[state.resultCreature]?.label ?? '') || state.resultCreature)
     : '';
   const resultEmoji = state.resultCreature ? (creatureEmoji[state.resultCreature] || '❓') : '';
   const potionList = potionIdsRef.current;
 
   return (
     <GameWrapper
-      title={t.title}
+      title={t('title')}
       onInstructionsClick={() => setShowInstructions(true)}
     >
       <div className="flex flex-col items-center gap-3 w-full max-w-[800px] mx-auto">
@@ -556,11 +251,11 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
               exit={{ opacity: 0, y: -20 }}
               className="flex flex-col items-center gap-4 p-6 bg-white rounded-3xl shadow-lg w-full"
             >
-              <h2 className="text-2xl font-bold text-gray-800">{t.difficulty}</h2>
+              <h2 className="text-2xl font-bold text-gray-800">{t('difficulty')}</h2>
 
               {state.highScore > 0 && (
                 <p className="text-sm text-gray-500">
-                  {t.highScore}: {state.highScore}
+                  {t('highScore')}: {state.highScore}
                 </p>
               )}
 
@@ -581,8 +276,8 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
                         ${colors[diff]}`}
                     >
                       <span className="text-2xl">{emojis[diff]}</span>
-                      <div>{t[diff]}</div>
-                      <div className="text-xs opacity-80">{t[`${diff}Desc`]}</div>
+                      <div>{t(diff)}</div>
+                      <div className="text-xs opacity-80">{t(`${diff}Desc`)}</div>
                     </button>
                   );
                 })}
@@ -621,7 +316,7 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
               <div className="flex justify-between items-start gap-2">
                 {/* Level badge */}
                 <div className="bg-black/50 backdrop-blur-sm rounded-lg px-2.5 py-1 text-white text-xs font-bold pointer-events-auto shrink-0">
-                  {t.level} {state.level}
+                  {t('level')} {state.level}
                 </div>
 
                 {/* Timer (if active) */}
@@ -646,7 +341,7 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
                 <div className="bg-gradient-to-b from-amber-500/90 to-amber-700/90
                   border-2 border-yellow-300/80 rounded-xl px-2 py-2 shadow-lg shadow-yellow-500/25">
                   <div className="flex flex-col items-center gap-0.5">
-                    <span className="text-[9px] text-yellow-100/80 font-medium uppercase tracking-wider">🎯 {t.mission}</span>
+                    <span className="text-[9px] text-yellow-100/80 font-medium uppercase tracking-wider">🎯 {t('mission')}</span>
                     <span className="text-2xl drop-shadow-md">{targetEmoji}</span>
                     <span className="text-xs font-bold text-white drop-shadow-sm text-center leading-tight">{targetCreatureName}</span>
                   </div>
@@ -667,7 +362,7 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
                               style={{ backgroundColor: potionColors[pid] }}
                             />
                             <span className="text-[11px] text-gray-200 leading-tight">
-                              {t[POTIONS[pid].label] || pid}
+                              {t(POTIONS[pid].label) || pid}
                             </span>
                             {idx < state.cauldronPotions.length && (
                               <span className="text-green-400 text-[10px]">✓</span>
@@ -697,7 +392,7 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
                           ))}
                         </div>
                         {state.currentLevel.recipe.orderMatters && (
-                          <div className="text-yellow-300">⚠️ {t.orderMatters}</div>
+                          <div className="text-yellow-300">⚠️ {t('orderMatters')}</div>
                         )}
                       </div>
                     </>
@@ -775,7 +470,7 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
                     ))
                   ) : (
                     <span className="text-xs text-gray-300/80 italic">
-                      {t.step1}
+                      {t('step1')}
                     </span>
                   )}
                 </div>
@@ -787,7 +482,7 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
                       key={id}
                       onClick={() => handleAddPotion(id)}
                       className="flex flex-col items-center gap-0.5 group cursor-pointer select-none"
-                      title={`${t[POTIONS[id].label] || id} (${idx + 1})`}
+                      title={`${t(POTIONS[id].label) || id} (${idx + 1})`}
                     >
                       <span
                         className="w-10 h-10 rounded-full border-2 border-white/70 shadow-lg
@@ -798,7 +493,7 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
                         {idx + 1}
                       </span>
                       <span className="text-[10px] text-gray-300 leading-none">
-                        {t[POTIONS[id].label] || id}
+                        {t(POTIONS[id].label) || id}
                       </span>
                     </button>
                   ))}
@@ -814,7 +509,7 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
                       shadow-md hover:bg-gray-600 active:scale-95 transition-all
                       disabled:opacity-30 disabled:cursor-not-allowed min-h-[36px]"
                   >
-                    ↩️ {t.undo}
+                    ↩️ {t('undo')}
                   </button>
 
                   {/* Interactive Stir Wheel */}
@@ -836,7 +531,7 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
                     {/* Stir count display */}
                     <div className="flex flex-col items-center px-1">
                       <span className="text-white font-bold text-sm tabular-nums">{state.stirCount}</span>
-                      <span className="text-[9px] text-gray-400 leading-none">{t.stir}</span>
+                      <span className="text-[9px] text-gray-400 leading-none">{t('stir')}</span>
                     </div>
 
                     {/* Clockwise button */}
@@ -862,7 +557,7 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
                       shadow-md hover:bg-purple-700 active:scale-95 transition-all
                       disabled:opacity-30 disabled:cursor-not-allowed min-h-[36px]"
                   >
-                    ✨ {t.brew}
+                    ✨ {t('brew')}
                   </button>
                 </div>
               </div>
@@ -884,7 +579,7 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
                   >
                     🧪
                   </motion.div>
-                  <h2 className="text-2xl font-bold text-white">{t.brewing}</h2>
+                  <h2 className="text-2xl font-bold text-white">{t('brewing')}</h2>
                   <div className="w-48 h-3 bg-gray-700 rounded-full overflow-hidden">
                     <motion.div
                       className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
@@ -913,7 +608,7 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
                     {resultEmoji}
                   </motion.div>
                   <h2 className={`text-3xl font-bold ${state.stars > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {state.stars > 0 ? t.success : t.failure}
+                    {state.stars > 0 ? t('success') : t('failure')}
                   </h2>
                   <p className="text-xl text-white">{resultCreatureName}</p>
                   <div className="text-2xl">
@@ -921,14 +616,14 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
                       <span key={i}>{i < state.stars ? '⭐' : '☆'}</span>
                     ))}
                   </div>
-                  <p className="text-white">{t.score}: {state.score}</p>
+                  <p className="text-white">{t('score')}: {state.score}</p>
                   <div className="flex gap-3 mt-2">
                     <button
                       onClick={handleRetry}
                       className="px-6 py-2 bg-orange-500 text-white font-bold rounded-2xl
                         shadow-lg hover:bg-orange-600 active:scale-95 transition-all min-h-[44px]"
                     >
-                      {t.tryAgain}
+                      {t('tryAgain')}
                     </button>
                     {state.stars > 0 && (
                       <button
@@ -936,7 +631,7 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
                         className="px-6 py-2 bg-green-500 text-white font-bold rounded-2xl
                           shadow-lg hover:bg-green-600 active:scale-95 transition-all min-h-[44px]"
                       >
-                        {t.nextLevel}
+                        {t('nextLevel')}
                       </button>
                     )}
                   </div>
@@ -953,13 +648,13 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
                   exit={{ opacity: 0 }}
                   className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-4 rounded-xl z-20"
                 >
-                  <h2 className="text-4xl font-bold text-white">{t.paused}</h2>
+                  <h2 className="text-4xl font-bold text-white">{t('paused')}</h2>
                   <button
                     onClick={() => { sounds.playClick(); resume(); }}
                     className="px-8 py-3 bg-green-500 text-white text-xl font-bold rounded-2xl
                       shadow-lg hover:bg-green-600 active:scale-95 transition-all min-h-[48px]"
                   >
-                    {t.resume}
+                    {t('resume')}
                   </button>
                   <button
                     onClick={handleBackToMenu}
@@ -978,10 +673,22 @@ export default function PotionCraftGame({ locale = 'en' }: PotionCraftGameProps)
         <InstructionsModal
           isOpen={showInstructions}
           onClose={() => setShowInstructions(false)}
-          title={t.title}
-          instructions={instData.instructions}
-          controls={instData.controls}
-          tip={instData.tip}
+          title={t('title')}
+          instructions={[
+            { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+            { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+            { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+            { icon: t('instructions.step3Icon'), title: t('instructions.step3Title'), description: t('instructions.step3Desc') },
+          ]}
+          controls={[
+            { icon: t('instructions.control0Icon'), description: t('instructions.control0Desc') },
+            { icon: t('instructions.control1Icon'), description: t('instructions.control1Desc') },
+            { icon: t('instructions.control2Icon'), description: t('instructions.control2Desc') },
+            { icon: t('instructions.control3Icon'), description: t('instructions.control3Desc') },
+            { icon: t('instructions.control4Icon'), description: t('instructions.control4Desc') },
+            { icon: t('instructions.control5Icon'), description: t('instructions.control5Desc') },
+          ]}
+          tip={t('instructions.tip')}
           locale={locale}
         />
       </div>

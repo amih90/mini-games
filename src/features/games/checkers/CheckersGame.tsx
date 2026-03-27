@@ -14,155 +14,7 @@ import { useCheckersGame, Difficulty } from './useCheckersGame';
 // ---------------------------------------------------------------------------
 // Instructions data – Feynman-style, 4 locales
 // ---------------------------------------------------------------------------
-const instructionsData: Record<
-  string,
-  {
-    instructions: { icon: string; title: string; description: string }[];
-    controls: { icon: string; description: string }[];
-    tip: string;
-  }
-> = {
-  en: {
-    instructions: [
-      {
-        icon: '🎯',
-        title: 'Goal',
-        description:
-          'Capture all of your opponent\'s pieces — or block them so they can\'t move. You play the red pieces and the computer plays black.',
-      },
-      {
-        icon: '↗️',
-        title: 'Moving',
-        description:
-          'Pieces move diagonally, one square at a time, on the dark squares. Regular pieces can only move forward (up the board).',
-      },
-      {
-        icon: '🦘',
-        title: 'Jumping & Capturing',
-        description:
-          'If an opponent\'s piece is next to yours diagonally with an empty square behind it, you MUST jump over it to capture it. You can chain multiple jumps in one turn!',
-      },
-      {
-        icon: '👑',
-        title: 'Becoming a King',
-        description:
-          'When your piece reaches the far side of the board it becomes a King! Kings can move and jump both forward AND backward.',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Click a red piece to select it, then click a green square to move' },
-      { icon: '⬆️', description: 'Arrow keys to move the cursor on the board' },
-      { icon: '⏎', description: 'Enter to select a piece or confirm a move' },
-      { icon: '💡', description: 'Press the Hint button to see a suggested move' },
-    ],
-    tip: 'Try to keep your pieces together and control the center of the board. If you must jump, you must — those are the rules!',
-  },
-  he: {
-    instructions: [
-      {
-        icon: '🎯',
-        title: 'מטרה',
-        description:
-          'לכוד את כל כלי היריב — או חסום אותם כך שלא יוכלו לזוז. אתה משחק בכלים האדומים והמחשב משחק בשחורים.',
-      },
-      {
-        icon: '↗️',
-        title: 'תנועה',
-        description:
-          'הכלים זזים באלכסון, משבצת אחת בכל פעם, על המשבצות הכהות. כלים רגילים יכולים לזוז רק קדימה (למעלה על הלוח).',
-      },
-      {
-        icon: '🦘',
-        title: 'קפיצה ולכידה',
-        description:
-          'אם כלי של היריב נמצא ליד שלך באלכסון ויש משבצת ריקה מאחוריו, אתה חייב לקפוץ מעליו כדי ללכוד אותו! אפשר לשרשר מספר קפיצות בתור אחד!',
-      },
-      {
-        icon: '👑',
-        title: 'הפיכה למלך',
-        description:
-          'כשכלי שלך מגיע לצד הרחוק של הלוח הוא הופך למלך! מלכים יכולים לזוז ולקפוץ קדימה וגם אחורה.',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'לחץ על כלי אדום כדי לבחור אותו, ואז לחץ על משבצת ירוקה כדי לזוז' },
-      { icon: '⬆️', description: 'מקשי החצים להזזת הסמן על הלוח' },
-      { icon: '⏎', description: 'Enter כדי לבחור כלי או לאשר מהלך' },
-      { icon: '💡', description: 'לחץ על כפתור הרמז כדי לראות מהלך מומלץ' },
-    ],
-    tip: 'נסה לשמור על הכלים שלך ביחד ולשלוט במרכז הלוח. אם אתה חייב לקפוץ, אתה חייב — אלה הכללים!',
-  },
-  zh: {
-    instructions: [
-      {
-        icon: '🎯',
-        title: '目标',
-        description:
-          '吃掉对手所有的棋子——或者堵住它们让对手无法移动。你执红子，电脑执黑子。',
-      },
-      {
-        icon: '↗️',
-        title: '移动',
-        description:
-          '棋子沿对角线移动，每次一格，只能在深色格子上。普通棋子只能向前移动（向上）。',
-      },
-      {
-        icon: '🦘',
-        title: '跳吃',
-        description:
-          '如果对手的棋子在你的棋子对角线旁边，而且后面有空格，你必须跳过去吃掉它！一个回合可以连续跳吃！',
-      },
-      {
-        icon: '👑',
-        title: '升王',
-        description:
-          '当你的棋子到达棋盘对面时，它会升级为王！王可以向前和向后移动和跳吃。',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: '点击红色棋子选中它，再点击绿色格子移动' },
-      { icon: '⬆️', description: '方向键移动光标' },
-      { icon: '⏎', description: 'Enter键选择棋子或确认移动' },
-      { icon: '💡', description: '点击提示按钮查看建议的走法' },
-    ],
-    tip: '尽量让你的棋子聚在一起并控制棋盘中央。如果必须跳吃，那就必须跳——这是规则！',
-  },
-  es: {
-    instructions: [
-      {
-        icon: '🎯',
-        title: 'Objetivo',
-        description:
-          'Captura todas las piezas de tu oponente o bloquéalas para que no puedan moverse. Juegas con las piezas rojas y la computadora con las negras.',
-      },
-      {
-        icon: '↗️',
-        title: 'Movimiento',
-        description:
-          'Las piezas se mueven en diagonal, una casilla a la vez, en las casillas oscuras. Las piezas regulares solo pueden avanzar (hacia arriba).',
-      },
-      {
-        icon: '🦘',
-        title: 'Saltar y capturar',
-        description:
-          'Si una pieza del oponente está junto a la tuya en diagonal y hay una casilla vacía detrás, ¡DEBES saltar para capturarla! ¡Puedes encadenar varios saltos en un turno!',
-      },
-      {
-        icon: '👑',
-        title: 'Coronarse',
-        description:
-          '¡Cuando tu pieza llega al otro lado del tablero se convierte en Rey! Los reyes pueden moverse y saltar tanto hacia adelante como hacia atrás.',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Haz clic en una pieza roja para seleccionarla y luego en una casilla verde para mover' },
-      { icon: '⬆️', description: 'Flechas del teclado para mover el cursor en el tablero' },
-      { icon: '⏎', description: 'Enter para seleccionar una pieza o confirmar movimiento' },
-      { icon: '💡', description: 'Pulsa el botón de pista para ver un movimiento sugerido' },
-    ],
-    tip: 'Intenta mantener tus piezas juntas y controlar el centro del tablero. Si debes saltar, debes hacerlo — ¡esas son las reglas!',
-  },
-};
+
 
 // ---------------------------------------------------------------------------
 // CheckersGame component
@@ -344,7 +196,7 @@ export function CheckersGame() {
   );
 
   // Instruction data for the current locale
-  const instrData = instructionsData[locale] || instructionsData.en;
+
 
   // --- Render --------------------------------------------------------------
   return (
@@ -531,10 +383,20 @@ export function CheckersGame() {
       <InstructionsModal
         isOpen={showInstructions}
         onClose={() => setShowInstructions(false)}
-        title={t('title') || 'Checkers'}
-        instructions={instrData.instructions}
-        controls={instrData.controls}
-        tip={instrData.tip}
+        title={t('title')}
+        instructions={[
+          { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+          { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+          { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+          { icon: t('instructions.step3Icon'), title: t('instructions.step3Title'), description: t('instructions.step3Desc') },
+        ]}
+        controls={[
+          { icon: t('instructions.control0Icon'), description: t('instructions.control0Desc') },
+          { icon: t('instructions.control1Icon'), description: t('instructions.control1Desc') },
+          { icon: t('instructions.control2Icon'), description: t('instructions.control2Desc') },
+          { icon: t('instructions.control3Icon'), description: t('instructions.control3Desc') },
+        ]}
+        tip={t('instructions.tip')}
         locale={locale}
       />
     </GameWrapper>
