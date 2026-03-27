@@ -532,6 +532,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                 playerPosition={playerPosition}
                 playerLap={playerLap}
                 totalLaps={levelConfig.laps}
+                numAiCars={levelConfig.opponents}
                 countdown={countdown}
                 locale={locale}
               />

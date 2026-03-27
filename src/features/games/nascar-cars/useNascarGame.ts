@@ -14,6 +14,11 @@ export interface CarState {
   tireWear: number;     // 0 = fresh, 100 = fully worn
   inPit: boolean;       // Currently in pit
   pitTimer: number;     // Seconds remaining in pit stop
+  personality: 'aggressive' | 'defensive' | 'steady';
+  isDrafting: boolean;
+  draftTarget: number;
+  overtaking: boolean;
+  defending: boolean;
 }
 
 export interface LevelConfig {
@@ -45,6 +50,9 @@ export interface RaceState {
   playerSpeedPct: number; // 0-100 for HUD display
   playerTireWear: number; // 0-100 for HUD
   playerInPit: boolean;
+  playerBraking: boolean;
+  playerDrafting: boolean;
+  playerDraftBoost: number;
 }
 
 // ─── Constants ───────────────────────────────────────────────
@@ -140,6 +148,76 @@ function normalizeAngle(angle: number): number {
   return ((angle % TWO_PI) + TWO_PI) % TWO_PI;
 }
 
+// ─── Drafting / slipstream constants ─────────────────────────
+const DRAFT_RANGE = 2.8;
+const DRAFT_MAX_BOOST = 0.08;
+const DRAFT_LANE_TOLERANCE = 0.85;
+
+interface DraftResult { boost: number; isDrafting: boolean; draftTarget: number; }
+
+function getDraftBoost(
+  followerAngle: number,
+  followerLane: number,
+  allCars: { angle: number; laneOffset: number; finished: boolean }[],
+): DraftResult {
+  let bestBoost = 0;
+  let draftTarget = -1;
+  const followerNorm = normalizeAngle(followerAngle);
+  const approxRangeRad = DRAFT_RANGE / TRACK_RADIUS_X;
+
+  for (let i = 0; i < allCars.length; i++) {
+    const car = allCars[i];
+    if (car.finished) continue;
+    const carNorm = normalizeAngle(car.angle);
+    let angleDiff = carNorm - followerNorm;
+    if (angleDiff < 0) angleDiff += TWO_PI;
+    if (angleDiff < 0.02 || angleDiff > approxRangeRad * 1.5) continue;
+    const laneDiff = Math.abs(car.laneOffset - followerLane);
+    if (laneDiff > DRAFT_LANE_TOLERANCE) continue;
+    const trackDist = angleDiff * TRACK_RADIUS_X;
+    if (trackDist > DRAFT_RANGE) continue;
+    const distFactor = Math.max(0, 1 - trackDist / DRAFT_RANGE);
+    const laneFactor = Math.max(0, 1 - laneDiff / DRAFT_LANE_TOLERANCE);
+    const boost = DRAFT_MAX_BOOST * distFactor * laneFactor;
+    if (boost > bestBoost) { bestBoost = boost; draftTarget = i; }
+  }
+  return { boost: bestBoost, isDrafting: bestBoost > 0.01, draftTarget };
+}
+
+function getTrackSection(angle: number): 'front-straight' | 'turn-1-2' | 'back-straight' | 'turn-3-4' {
+  const n = normalizeAngle(angle);
+  if (n < 0.5 || n > TWO_PI - 0.5) return 'front-straight';
+  if (n > 0.5 && n < Math.PI - 0.5) return 'turn-1-2';
+  if (n > Math.PI - 0.5 && n < Math.PI + 0.5) return 'back-straight';
+  return 'turn-3-4';
+}
+
+const SECTION_SPEED: Record<string, number> = {
+  'front-straight': 1.0,
+  'turn-1-2': 0.88,
+  'back-straight': 0.97,
+  'turn-3-4': 0.88,
+};
+
+function getIdealLane(
+  personality: string,
+  section: string,
+  playerLane: number,
+  carLane: number,
+  isDefending: boolean,
+): number {
+  const base: Record<string, number> = {
+    'front-straight': -0.4,
+    'turn-1-2': 1.1,
+    'back-straight': -0.3,
+    'turn-3-4': 1.1,
+  };
+  let target = base[section] ?? 0;
+  if (personality === 'aggressive') target -= 0.3;
+  if (isDefending) target = playerLane; // block!
+  return clamp(target, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
+}
+
 function updateLaps(
   car: CarState,
   targetLaps: number,
@@ -166,7 +244,7 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
   const levelConfig = levels[Math.min(levelIndex, levels.length - 1)];
 
   const raceState = useRef<RaceState>({
-    player: { angle: 0, speed: 0, laneOffset: 0, laps: 0, lastCheckpoint: 0, finished: false, tireWear: 0, inPit: false, pitTimer: 0 },
+    player: { angle: 0, speed: 0, laneOffset: 0, laps: 0, lastCheckpoint: 0, finished: false, tireWear: 0, inPit: false, pitTimer: 0, personality: 'steady', isDrafting: false, draftTarget: -1, overtaking: false, defending: false },
     aiCars: [],
     raceTime: 0,
     countdown: 3,
@@ -175,10 +253,14 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
     playerSpeedPct: 0,
     playerTireWear: 0,
     playerInPit: false,
+    playerBraking: false,
+    playerDrafting: false,
+    playerDraftBoost: 0,
   });
 
   const aiTargetLanes = useRef<number[]>([]);
   const aiSpeedFactors = useRef<number[]>([]);
+  const rubberBandMultiplier = useRef(1.0);
 
   const initRace = useCallback(() => {
     const numOpponents = levelConfig.opponents;
@@ -204,6 +286,11 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
         tireWear: 0,
         inPit: false,
         pitTimer: 0,
+        personality: (['aggressive', 'defensive', 'steady', 'aggressive', 'defensive'] as const)[i % 5],
+        isDrafting: false,
+        draftTarget: -1,
+        overtaking: false,
+        defending: false,
       });
       targetLanes.push(lane);
       speedFactors.push(
@@ -212,7 +299,7 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
     }
 
     raceState.current = {
-      player: { angle: 0, speed: 0, laneOffset: 0, laps: 0, lastCheckpoint: 0, finished: false, tireWear: 0, inPit: false, pitTimer: 0 },
+      player: { angle: 0, speed: 0, laneOffset: 0, laps: 0, lastCheckpoint: 0, finished: false, tireWear: 0, inPit: false, pitTimer: 0, personality: 'steady', isDrafting: false, draftTarget: -1, overtaking: false, defending: false },
       aiCars,
       raceTime: 0,
       countdown: 3,
@@ -221,6 +308,9 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
       playerSpeedPct: 0,
       playerTireWear: 0,
       playerInPit: false,
+      playerBraking: false,
+      playerDrafting: false,
+      playerDraftBoost: 0,
     };
     aiTargetLanes.current = targetLanes;
     aiSpeedFactors.current = speedFactors;
@@ -306,6 +396,27 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
       state.playerTireWear = Math.round(player.tireWear);
     }
 
+    // ── Player drafting ──
+    const aiCarsForDraft = state.aiCars.map(c => ({
+      angle: c.angle, laneOffset: c.laneOffset, finished: c.finished,
+    }));
+    const playerDraft = getDraftBoost(player.angle, player.laneOffset, aiCarsForDraft);
+    if (playerDraft.isDrafting && !player.inPit) {
+      player.speed = Math.min(player.speed * (1 + playerDraft.boost), settings.maxSpeed * 1.12);
+    }
+    state.playerDrafting = playerDraft.isDrafting;
+    state.playerDraftBoost = playerDraft.boost;
+
+    // ── Player braking ──
+    state.playerBraking = braking && player.speed > settings.maxSpeed * 0.3;
+
+    // ── Corner speed cap for player ──
+    const playerSection = getTrackSection(player.angle);
+    const cornerCap = (SECTION_SPEED[playerSection] ?? 1.0) * settings.maxSpeed * (player.tireWear > 60 ? 0.92 : 1.0);
+    if (!settings.autoAccelerate) {
+      player.speed = Math.min(player.speed, cornerCap * (1 - (player.tireWear / 100) * (1 - TIRE_WEAR_PENALTY)));
+    }
+
     // Speed for HUD (0-100%)
     state.playerSpeedPct = Math.round((player.speed / settings.maxSpeed) * 100);
 
@@ -336,11 +447,13 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
         return;
       }
 
+      // ── Section-aware speed ──
+      const section = getTrackSection(aiCar.angle);
+      const sectionMult = SECTION_SPEED[section] ?? 1.0;
       const factor = aiSpeedFactors.current[i];
       const aiWearFactor = 1 - (aiCar.tireWear / 100) * (1 - TIRE_WEAR_PENALTY);
-      const targetSpeed = settings.maxSpeed * factor * settings.aiAggressiveness * aiWearFactor;
+      const targetSpeed = settings.maxSpeed * factor * settings.aiAggressiveness * aiWearFactor * sectionMult * rubberBandMultiplier.current;
 
-      // AI ramps up speed (faster than player to create challenge)
       if (aiCar.speed < targetSpeed) {
         aiCar.speed += settings.acceleration * 0.9 * dt;
       } else {
@@ -348,23 +461,56 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
       }
       aiCar.speed = clamp(aiCar.speed, 0, settings.maxSpeed * 1.05);
 
-      // AI lane changes — try to find open lanes and avoid collisions
-      if (Math.random() < 0.02) {
-        // Random target lane
-        aiTargetLanes.current[i] = (Math.random() - 0.5) * MAX_LANE_OFFSET * 1.5;
+      // ── Drafting ──
+      const allCarsForDraft = [
+        { angle: player.angle, laneOffset: player.laneOffset, finished: player.finished },
+        ...state.aiCars.map((c, ci) => ({ angle: c.angle, laneOffset: c.laneOffset, finished: c.finished || ci === i })),
+      ];
+      // exclude self (i+1 in combined array)
+      allCarsForDraft[i + 1].finished = true; // suppress self
+      const aiDraft = getDraftBoost(aiCar.angle, aiCar.laneOffset, allCarsForDraft);
+      aiCar.isDrafting = aiDraft.isDrafting;
+      aiCar.draftTarget = aiDraft.draftTarget;
+      if (aiDraft.isDrafting) {
+        aiCar.speed = Math.min(aiCar.speed * (1 + aiDraft.boost), settings.maxSpeed * 1.12);
       }
 
-      // Smooth lane movement
-      const laneDiff = aiTargetLanes.current[i] - aiCar.laneOffset;
-      aiCar.laneOffset += clamp(laneDiff * 3 * dt, -2 * dt, 2 * dt);
+      // ── Racing line / lane AI ──
+      const playerIsJustAhead = (() => {
+        const diff = normalizeAngle(player.angle - aiCar.angle);
+        return diff > 0.01 && diff < 0.35;
+      })();
+      const playerIsJustBehind = (() => {
+        const diff = normalizeAngle(aiCar.angle - player.angle);
+        return diff > 0.01 && diff < 0.35;
+      })();
+
+      aiCar.defending = aiCar.personality === 'defensive' && playerIsJustBehind;
+      aiCar.overtaking = aiCar.personality === 'aggressive' && playerIsJustAhead;
+
+      if (aiCar.isDrafting && aiDraft.draftTarget >= 0) {
+        // Drafting: match leader's lane
+        const leaderLane = aiDraft.draftTarget === 0 ? player.laneOffset : state.aiCars[aiDraft.draftTarget - 1]?.laneOffset ?? 0;
+        aiTargetLanes.current[i] = leaderLane;
+      } else if (aiCar.overtaking) {
+        // Slingshot: take opposite lane to make a pass
+        aiCar.speed = Math.min(aiCar.speed * 1.025, settings.maxSpeed * 1.08);
+        aiTargetLanes.current[i] = clamp(-player.laneOffset + (player.laneOffset > 0 ? -0.6 : 0.6), -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
+      } else {
+        aiTargetLanes.current[i] = getIdealLane(aiCar.personality, section, player.laneOffset, aiCar.laneOffset, aiCar.defending);
+      }
+
+      const laneSpeed = aiCar.personality === 'aggressive' ? 4.5 : 3.0;
+      const laneDiff2 = aiTargetLanes.current[i] - aiCar.laneOffset;
+      aiCar.laneOffset += clamp(laneDiff2 * laneSpeed * dt, -3 * dt, 3 * dt);
       aiCar.laneOffset = clamp(aiCar.laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
 
-      // Move along track
+      // ── Tire wear ──
+      aiCar.tireWear = clamp(aiCar.tireWear + TIRE_WEAR_RATE * (aiCar.speed / settings.maxSpeed) * dt, 0, 100);
+
+      // ── Move along track ──
       const aiEffective = TRACK_RADIUS_X + aiCar.laneOffset * 0.3;
       aiCar.angle += (aiCar.speed / aiEffective) * dt * TRACK_RADIUS_X;
-
-      // AI tire wear
-      aiCar.tireWear = clamp(aiCar.tireWear + TIRE_WEAR_RATE * (aiCar.speed / settings.maxSpeed) * dt, 0, 100);
 
       updateLaps(aiCar, levelConfig.laps, () => {});
     });
@@ -372,23 +518,27 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
     // ── Collisions (bump between cars) ──
     const playerPos = getTrackPosition(player.angle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
     state.aiCars.forEach((aiCar) => {
-      if (aiCar.finished) return;
+      if (aiCar.finished || aiCar.inPit) return;
       const aiPos = getTrackPosition(aiCar.angle, TRACK_RADIUS_X, TRACK_RADIUS_Z, aiCar.laneOffset);
       const dx = playerPos.x - aiPos.x;
       const dz = playerPos.z - aiPos.z;
       const dist = Math.sqrt(dx * dx + dz * dz);
       if (dist < CAR_HITBOX && dist > 0.01) {
-        const overlap = (CAR_HITBOX - dist) * 0.5;
-        const pushX = (dx / dist) * overlap;
-        const pushZ = (dz / dist) * overlap;
-        // Push player laterally (lane shift) and slow down
-        player.laneOffset += pushX * 0.15;
+        const overlap = CAR_HITBOX - dist;
+        const playerAhead = normalizeAngle(player.angle - aiCar.angle) < Math.PI;
+        if (playerAhead) {
+          // Player rear-ended by AI — player gets minor push, AI slows hard
+          player.speed = Math.min(player.speed + aiCar.speed * 0.02, settings.maxSpeed * 1.04);
+          aiCar.speed *= 0.86;
+        } else {
+          // Player hit AI from behind
+          player.speed *= 0.84;
+          aiCar.speed *= 0.97;
+        }
+        player.laneOffset += (dx / dist) * overlap * 0.28;
+        aiCar.laneOffset -= (dx / dist) * overlap * 0.22;
         player.laneOffset = clamp(player.laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
-        player.speed *= 0.92;
-        // Push AI too
-        aiCar.laneOffset -= pushX * 0.1;
         aiCar.laneOffset = clamp(aiCar.laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
-        aiCar.speed *= 0.95;
       }
     });
 
@@ -400,6 +550,13 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
       if (aiProgress > playerProgress) position++;
     });
     state.playerPosition = position;
+
+    // ── Rubber banding ──
+    const totalCars = state.aiCars.length + 1;
+    const posRatio = (state.playerPosition - 1) / Math.max(totalCars - 1, 1);
+    const targetBand = 1.0 + (posRatio - 0.5) * 0.08;
+    rubberBandMultiplier.current += (targetBand - rubberBandMultiplier.current) * dt * 0.25;
+    rubberBandMultiplier.current = clamp(rubberBandMultiplier.current, 0.93, 1.07);
 
     // ── Check race finish ──
     if (player.finished && !state.raceFinished) {

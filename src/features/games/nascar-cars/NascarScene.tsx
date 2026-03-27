@@ -1,8 +1,9 @@
 'use client';
 
-import { useRef, useEffect, useMemo } from 'react';
+import { useRef, useEffect, useMemo, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Text, Sky } from '@react-three/drei';
+import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { Car, AI_CAR_COLORS } from './Car';
 import { Track, getTrackPosition } from './Track';
@@ -18,6 +19,7 @@ interface NascarSceneProps {
   playerPosition: number;
   playerLap: number;
   totalLaps: number;
+  numAiCars: number;
   countdown: number;
   locale: string;
 }
@@ -38,7 +40,6 @@ function CountdownText({
 
   useFrame(() => {
     if (!ref.current) return;
-    // Place text halfway between camera and look-at, elevated
     const mid = new THREE.Vector3()
       .addVectors(cameraPos.current, cameraTarget.current)
       .multiplyScalar(0.5);
@@ -69,9 +70,8 @@ export function NascarScene({
   paused,
   gameActive,
   onFrame,
-  playerPosition,
-  playerLap,
-  totalLaps,
+  // playerPosition, playerLap, totalLaps — received but HUD lives in NascarCarsGame
+  numAiCars,
   countdown,
   locale,
 }: NascarSceneProps) {
@@ -79,7 +79,14 @@ export function NascarScene({
   const playerCarRef = useRef<THREE.Group>(null);
   const aiCarRefs = useRef<(THREE.Group | null)[]>([]);
   const cameraTarget = useRef(new THREE.Vector3());
-  const cameraPos = useRef(new THREE.Vector3(0, 8, 20));
+  const cameraPos = useRef(new THREE.Vector3(0, 4, 20));
+  const flagRef = useRef<THREE.Mesh | null>(null);
+
+  // Braking / drafting / speed as state — safe to read in JSX
+  const [playerSpeed, setPlayerSpeed] = useState(0);
+  const [isBraking, setIsBraking] = useState(false);
+  const [isDrafting, setIsDrafting] = useState(false);
+  const prevPlayerSpeedRef = useRef(0);
 
   // Locale labels for HUD
   const labels = useMemo(() => {
@@ -94,12 +101,25 @@ export function NascarScene({
 
   // Game loop
   useFrame((_, delta) => {
+    // Animate flag
+    if (flagRef.current) {
+      flagRef.current.rotation.y = Math.sin(Date.now() * 0.005) * 0.35;
+    }
+
     if (paused || !gameActive) return;
 
     onFrame(delta);
 
     const state = raceStateRef.current;
     const player = state.player;
+
+    // Detect braking / drafting for car visual props
+    const currentSpeed = player.speed;
+    const braking = currentSpeed < prevPlayerSpeedRef.current - 0.02;
+    prevPlayerSpeedRef.current = currentSpeed;
+    setPlayerSpeed(currentSpeed);
+    setIsBraking(braking);
+    setIsDrafting(state.playerDrafting ?? false);
 
     // Update player car 3D position
     const playerPos = getTrackPosition(player.angle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
@@ -119,34 +139,43 @@ export function NascarScene({
       }
     });
 
-    // 3rd-person camera following player
-    const camDist = 7;
-    const camHeight = 4;
-    const behindAngle = player.angle - 0.18;
+    // ── Cinematic low-slung NASCAR camera ──
+    const camDist = 5;      // was 7 — tighter, more immersive
+    const camHeight = 1.8;  // was 4 — TV broadcast low-angle feel
+    const behindAngle = player.angle - 0.12;
     const behindPos = getTrackPosition(behindAngle, TRACK_RADIUS_X + camDist, TRACK_RADIUS_Z + camDist, 0);
 
     const targetCamPos = new THREE.Vector3(behindPos.x, camHeight, behindPos.z);
-    const targetLookAt = new THREE.Vector3(playerPos.x, 0.5, playerPos.z);
 
-    // Faster lerp for responsive camera — 0.12 position, 0.18 look-at
-    cameraPos.current.lerp(targetCamPos, 0.12);
-    cameraTarget.current.lerp(targetLookAt, 0.18);
+    // Look slightly ahead of player — shows oncoming traffic
+    const aheadAngle = player.angle + 0.14;
+    const aheadPos = getTrackPosition(aheadAngle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
+    const targetLookAt = new THREE.Vector3(aheadPos.x, 0.7, aheadPos.z);
+
+    cameraPos.current.lerp(targetCamPos, 0.10);
+    cameraTarget.current.lerp(targetLookAt, 0.15);
 
     camera.position.copy(cameraPos.current);
     camera.lookAt(cameraTarget.current);
+
+    // Camera shake at high speed — mutate via cameraPos ref, not camera directly
+    const speedPct = state.playerSpeedPct / 100;
+    if (speedPct > 0.65) {
+      const shakeAmt = (speedPct - 0.65) * 0.018;
+      cameraPos.current.x += (Math.random() - 0.5) * shakeAmt;
+      cameraPos.current.y += (Math.random() - 0.5) * shakeAmt * 0.4;
+      camera.position.copy(cameraPos.current);
+    }
   });
 
-  const state = raceStateRef.current;
-  const numAiCars = state.aiCars.length;
-
-  // Ensure refs array size
+  // Ensure refs array size (numAiCars is a prop, never changes mid-race)
   useEffect(() => {
     aiCarRefs.current = Array(numAiCars).fill(null);
   }, [numAiCars]);
 
   return (
     <>
-      {/* Sky — warm dusk/race-day feel */}
+      {/* Sky — race-day afternoon feel */}
       <Sky sunPosition={[100, 40, 80]} turbidity={3} rayleigh={0.6} mieCoefficient={0.005} mieDirectionalG={0.8} />
       <color attach="background" args={['#87ceeb']} />
       <fog attach="fog" args={['#c8d6e5', 50, 120]} />
@@ -164,7 +193,6 @@ export function NascarScene({
         shadow-camera-top={30}
         shadow-camera-bottom={-30}
       />
-      {/* Fill light from opposite side */}
       <directionalLight position={[-15, 15, -10]} intensity={0.4} />
       <hemisphereLight args={['#87ceeb', '#3a8c3f', 0.5]} />
       <ambientLight intensity={0.25} />
@@ -172,14 +200,32 @@ export function NascarScene({
       {/* Track (Daytona style with pit lane) */}
       <Track showPitLane />
 
+      {/* Animated checkered flag at start/finish */}
+      <mesh ref={flagRef} position={[TRACK_RADIUS_X + 3.5, 4.5, 0.5]}>
+        <planeGeometry args={[1.2, 0.8]} />
+        <meshStandardMaterial color="white" side={THREE.DoubleSide} />
+      </mesh>
+      <mesh position={[TRACK_RADIUS_X + 3.5, 4.5, 0.51]}>
+        <planeGeometry args={[0.56, 0.36]} />
+        <meshStandardMaterial color="#111" />
+      </mesh>
+      {/* Flag pole */}
+      <mesh position={[TRACK_RADIUS_X + 3.5, 2.5, 0.5]}>
+        <cylinderGeometry args={[0.04, 0.04, 5, 8]} />
+        <meshStandardMaterial color="#888" metalness={0.8} />
+      </mesh>
+
       {/* Player Car */}
       <group ref={playerCarRef} position={[TRACK_RADIUS_X, 0.25, 0]}>
         <Car
           position={[0, 0, 0]}
           rotation={[0, 0, 0]}
           color="#ffeb3b"
-          speed={state.player.speed}
+          speed={playerSpeed}
           isPlayer
+          carNumber={1}
+          braking={isBraking}
+          drafting={isDrafting}
         />
       </group>
 
@@ -194,12 +240,12 @@ export function NascarScene({
             position={[0, 0, 0]}
             rotation={[0, 0, 0]}
             color={AI_CAR_COLORS[i % AI_CAR_COLORS.length]}
-            speed={state.aiCars[i]?.speed ?? 0}
+            carNumber={i + 2}
           />
         </group>
       ))}
 
-      {/* Countdown text — positioned in front of camera */}
+      {/* Countdown text */}
       {countdown > 0 && (
         <CountdownText
           cameraTarget={cameraTarget}
@@ -208,6 +254,12 @@ export function NascarScene({
           goLabel={labels.go}
         />
       )}
+
+      {/* Post-processing — bloom + vignette for cinematic feel */}
+      <EffectComposer>
+        <Bloom luminanceThreshold={0.35} luminanceSmoothing={0.7} intensity={0.9} />
+        <Vignette eskil={false} offset={0.35} darkness={0.55} />
+      </EffectComposer>
     </>
   );
 }
