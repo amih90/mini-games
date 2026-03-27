@@ -30,10 +30,14 @@ export const PLAYER_COLORS = [
 ];
 
 // ─── Model paths ─────────────────────────────────────────────
+// Next.js basePath is '/mini-games' on GitHub Pages, empty locally.
+// useGLTF does raw fetch, so we must prepend basePath manually.
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 const MODEL_PATHS: Record<CarType, string> = {
-  stock: '/models/cars/stock.glb',
-  formula: '/models/cars/formula.glb',
-  muscle: '/models/cars/muscle.glb',
+  stock: `${BASE_PATH}/models/cars/stock.glb`,
+  formula: `${BASE_PATH}/models/cars/formula.glb`,
+  muscle: `${BASE_PATH}/models/cars/muscle.glb`,
 };
 
 // Preload all models on module load
