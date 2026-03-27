@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import { KidButton } from '@/components/ui/KidButton';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import { trackGameComplete } from '@/lib/gtag';
 import { usePlayAgainKey } from './usePlayAgainKey';
 
 interface WinModalProps {
@@ -18,14 +20,22 @@ interface WinModalProps {
 export function WinModal({ isOpen, onPlayAgain, onClose, score, moves }: WinModalProps) {
   const t = useTranslations('common');
   const { playSuccess } = useRetroSounds();
+  const pathname = usePathname();
 
   usePlayAgainKey(isOpen, onPlayAgain);
 
   useEffect(() => {
     if (isOpen) {
       playSuccess();
+      // Extract game slug from pathname (e.g. /en/games/tetris -> tetris)
+      const segments = pathname.split('/');
+      const gamesIdx = segments.indexOf('games');
+      const slug = gamesIdx !== -1 ? segments[gamesIdx + 1] : undefined;
+      if (slug) {
+        trackGameComplete(slug, score);
+      }
     }
-  }, [isOpen, playSuccess]);
+  }, [isOpen, playSuccess, pathname, score]);
 
   return (
     <AnimatePresence>

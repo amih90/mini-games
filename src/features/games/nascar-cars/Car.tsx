@@ -53,6 +53,7 @@ interface CarProps {
   braking?: boolean;
   drafting?: boolean;
   carType?: CarType;
+  steerAngle?: number; // -1 to 1 for visual steering + body roll
 }
 
 /**
@@ -68,8 +69,10 @@ function CarModel({
   braking = false,
   drafting = false,
   carType = 'stock',
+  steerAngle = 0,
 }: Omit<CarProps, 'position' | 'rotation'>) {
   const groupRef = useRef<THREE.Group>(null);
+  const bodyTiltRef = useRef<THREE.Group>(null);
   const { scene } = useGLTF(MODEL_PATHS[carType]);
 
   // Clone so each car instance gets its own materials
@@ -84,16 +87,22 @@ function CarModel({
 
   // Refs to named parts for animation
   const wheelRefs = useRef<THREE.Object3D[]>([]);
+  const frontWheelRefs = useRef<THREE.Object3D[]>([]);
 
   // Find wheel and body nodes on mount
   useEffect(() => {
     const wheels: THREE.Object3D[] = [];
+    const frontWheels: THREE.Object3D[] = [];
     model.traverse((child) => {
       if (child.name.startsWith('wheel-')) {
         wheels.push(child);
+        if (child.name.includes('front')) {
+          frontWheels.push(child);
+        }
       }
     });
     wheelRefs.current = wheels;
+    frontWheelRefs.current = frontWheels;
   }, [model]);
 
   // Apply clearcoat paint color to body meshes
@@ -115,17 +124,31 @@ function CarModel({
     });
   }, [model, color]);
 
-  // Wheel spin
+  // Wheel spin + body suspension wobble + front wheel steering
   useFrame((_, delta) => {
     const spinRate = speed * delta * 12;
     wheelRefs.current.forEach((wheel) => {
       wheel.rotation.x += spinRate;
     });
+
+    // Front wheels steer visually
+    frontWheelRefs.current.forEach((wheel) => {
+      wheel.rotation.y = THREE.MathUtils.lerp(wheel.rotation.y, steerAngle * 0.4, 0.15);
+    });
+
+    // Suspension body tilt: roll in turns, nose dip on brake, rear squat on accel
+    if (bodyTiltRef.current) {
+      const targetRoll = -steerAngle * 0.04 * Math.min(speed, 2); // lean into turns
+      const targetPitch = braking ? 0.02 : (speed > 1 ? -0.01 : 0); // nose dip / rear squat
+      bodyTiltRef.current.rotation.z = THREE.MathUtils.lerp(bodyTiltRef.current.rotation.z, targetRoll, 0.08);
+      bodyTiltRef.current.rotation.x = THREE.MathUtils.lerp(bodyTiltRef.current.rotation.x, targetPitch, 0.06);
+    }
   });
 
   return (
     <group ref={groupRef}>
-      <primitive object={model} />
+      <group ref={bodyTiltRef}>
+        <primitive object={model} />
 
       {/* Headlight glow */}
       <pointLight position={[0, 0.15, 0.9]} intensity={0.6} color="#fffde7" distance={5} />
@@ -199,6 +222,7 @@ function CarModel({
           position={[0, -0.1, -0.6]}
         />
       )}
+      </group>
     </group>
   );
 }
@@ -216,6 +240,7 @@ export function Car({
   braking = false,
   drafting = false,
   carType = 'stock',
+  steerAngle = 0,
 }: CarProps) {
   return (
     <group position={position} rotation={rotation}>
@@ -228,6 +253,7 @@ export function Car({
           braking={braking}
           drafting={drafting}
           carType={carType}
+          steerAngle={steerAngle}
         />
       </Suspense>
     </group>

@@ -9,6 +9,7 @@ import { Header } from '@/components/Header';
 import { getAllGames, getAllCategories, getGamesByCategory, type GameCategory } from '@/features/games/registry';
 import type { Locale } from '@/i18n/routing';
 import { ScrollReveal, GradientOrbs } from '@/components/animations';
+import { trackGameCardClick } from '@/lib/gtag';
 
 export function GamesPageContent() {
   const t = useTranslations();
@@ -402,7 +403,7 @@ function GameCard({ game, locale, index, t, categoryData }: GameCardProps) {
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
     >
-      <Link href={`/games/${game.slug}`}>
+      <Link href={`/games/${game.slug}`} onClick={() => trackGameCardClick(game.slug)}>
         <motion.div
           className="relative group bg-[#1a1a2e]/80 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 hover:border-[#ffdd00]/50 transition-all duration-300"
           animate={{
@@ -514,7 +515,7 @@ function GameListItem({ game, locale, index, t, categoryData }: GameCardProps) {
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.05 }}
     >
-      <Link href={`/games/${game.slug}`}>
+      <Link href={`/games/${game.slug}`} onClick={() => trackGameCardClick(game.slug)}>
         <motion.div
           className="group flex items-center gap-4 md:gap-6 p-4 bg-[#1a1a2e]/80 backdrop-blur-sm rounded-2xl border border-white/10 hover:border-[#ffdd00]/50 transition-all duration-300"
           whileHover={{ x: 8, boxShadow: '0 10px 40px -15px rgba(255, 221, 0, 0.2)' }}

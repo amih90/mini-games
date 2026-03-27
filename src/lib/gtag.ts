@@ -25,31 +25,48 @@ export function event({ action, category, label, value }: GTagEvent) {
   });
 }
 
-// Track when a game is started/loaded
+// Track when a game is started/loaded — sends game_slug as a custom parameter
+// so GA4 can break down reports by individual game.
+// Register "game_slug" as a custom dimension in GA4 Admin > Custom definitions.
 export function trackGamePlay(gameSlug: string) {
-  event({
-    action: 'game_play',
-    category: 'games',
-    label: gameSlug,
+  if (!GA_MEASUREMENT_ID) return;
+  window.gtag('event', 'game_play', {
+    event_category: 'games',
+    event_label: gameSlug,
+    game_slug: gameSlug,
   });
 }
 
-// Track game difficulty selection
-export function trackDifficultySelect(gameSlug: string, difficulty: string) {
-  event({
-    action: 'select_difficulty',
-    category: 'games',
-    label: `${gameSlug}:${difficulty}`,
+// Track how long a user spent in a game (fired on exit/unmount)
+export function trackGameSession(gameSlug: string, durationSeconds: number) {
+  if (!GA_MEASUREMENT_ID) return;
+  window.gtag('event', 'game_session', {
+    event_category: 'games',
+    event_label: gameSlug,
+    game_slug: gameSlug,
+    duration_seconds: Math.round(durationSeconds),
+    value: Math.round(durationSeconds),
   });
 }
 
 // Track game completion
 export function trackGameComplete(gameSlug: string, score?: number) {
-  event({
-    action: 'game_complete',
-    category: 'games',
-    label: gameSlug,
+  if (!GA_MEASUREMENT_ID) return;
+  window.gtag('event', 'game_complete', {
+    event_category: 'games',
+    event_label: gameSlug,
+    game_slug: gameSlug,
     value: score,
+  });
+}
+
+// Track game card click on listing page
+export function trackGameCardClick(gameSlug: string) {
+  if (!GA_MEASUREMENT_ID) return;
+  window.gtag('event', 'game_card_click', {
+    event_category: 'games',
+    event_label: gameSlug,
+    game_slug: gameSlug,
   });
 }
 

@@ -394,7 +394,12 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
     setSpeedPct(state.playerSpeedPct);
     setTireWear(state.playerTireWear);
     setInPit(state.playerInPit);
-  }, [update, levelIndex, unlockedLevel, careerLevels.length, playLevelUp, playWin, playGameOver]);
+
+    // Sound effects on collision
+    if (state.collisionEvents && state.collisionEvents.length > 0) {
+      playHit();
+    }
+  }, [update, levelIndex, unlockedLevel, careerLevels.length, playLevelUp, playWin, playGameOver, playHit]);
 
   // ── Difficulty options ──
   const difficultyOptions: { key: Difficulty; emoji: string; color: string }[] = [

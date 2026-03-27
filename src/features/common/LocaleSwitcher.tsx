@@ -5,6 +5,7 @@ import { useRouter, usePathname } from '@/i18n/navigation';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { locales, type Locale } from '@/i18n/routing';
+import { trackLocaleChange } from '@/lib/gtag';
 
 const localeNames: Record<Locale, string> = {
   en: 'English',
@@ -26,6 +27,7 @@ export function LocaleSwitcher() {
   const pathname = usePathname();
 
   const handleLocaleChange = (newLocale: Locale) => {
+    trackLocaleChange(newLocale);
     router.replace(pathname, { locale: newLocale });
   };
 

@@ -267,14 +267,35 @@ export function Track({
         <meshStandardMaterial color="#4caf50" roughness={0.9} />
       </mesh>
 
-      {/* ── Track surface (banked) ── */}
+      {/* ── Track surface (banked) — darker asphalt with slight roughness ── */}
       <mesh geometry={trackGeometry} position={[0, 0.01, 0]} receiveShadow>
-        <meshStandardMaterial color="#333" roughness={0.5} />
+        <meshStandardMaterial color="#2a2a2a" roughness={0.7} metalness={0.05} />
       </mesh>
 
-      {/* ── Track apron ── */}
+      {/* ── Racing line tire marks in corners ── */}
+      {[Math.PI * 0.5, -Math.PI * 0.5].map((turnCenter, ti) => (
+        <group key={`tiremarks-${ti}`}>
+          {Array.from({ length: 12 }).map((_, i) => {
+            const a = turnCenter - 0.35 + (i / 11) * 0.7;
+            const cos = Math.cos(a);
+            const sin = Math.sin(a);
+            return (
+              <mesh
+                key={`tm-${ti}-${i}`}
+                position={[cos * trackRadiusX, 0.015, sin * trackRadiusZ]}
+                rotation={[-Math.PI / 2, 0, -a + Math.PI / 2]}
+              >
+                <planeGeometry args={[3.5, 0.15]} />
+                <meshStandardMaterial color="#1a1a1a" transparent opacity={0.4 + Math.random() * 0.2} />
+              </mesh>
+            );
+          })}
+        </group>
+      ))}
+
+      {/* ── Track apron — slightly lighter asphalt ── */}
       <mesh geometry={apronGeometry} receiveShadow>
-        <meshStandardMaterial color="#666" roughness={0.7} />
+        <meshStandardMaterial color="#555" roughness={0.8} />
       </mesh>
 
       {/* ── Lane markers ── */}

@@ -53,6 +53,7 @@ export interface RaceState {
   playerBraking: boolean;
   playerDrafting: boolean;
   playerDraftBoost: number;
+  collisionEvents: { x: number; z: number; intensity: number }[];
 }
 
 // ─── Constants ───────────────────────────────────────────────
@@ -260,6 +261,7 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
     playerBraking: false,
     playerDrafting: false,
     playerDraftBoost: 0,
+    collisionEvents: [],
   });
 
   const aiTargetLanes = useRef<number[]>([]);
@@ -315,6 +317,7 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
       playerBraking: false,
       playerDrafting: false,
       playerDraftBoost: 0,
+      collisionEvents: [],
     };
     aiTargetLanes.current = targetLanes;
     aiSpeedFactors.current = speedFactors;
@@ -342,6 +345,7 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
     if (state.raceFinished) return { ...state };
 
     state.raceTime += dt;
+    state.collisionEvents = []; // Clear previous frame's events
 
     // ── Player physics ──
     const player = state.player;
@@ -560,6 +564,8 @@ export function useNascarGame(difficulty: Difficulty, levelIndex: number, locale
         aiCar.angle -= nz * pushStrength * 0.01;
         player.laneOffset = clamp(player.laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
         aiCar.laneOffset = clamp(aiCar.laneOffset, -MAX_LANE_OFFSET, MAX_LANE_OFFSET);
+        // Emit collision event for debris/sound
+        state.collisionEvents.push({ x: (playerPos.x + aiPos.x) / 2, z: (playerPos.z + aiPos.z) / 2, intensity: Math.min(overlap / CAR_HITBOX, 1) });
       }
     });
 

@@ -9,6 +9,9 @@ import * as THREE from 'three';
 import { Car, AI_CAR_COLORS, CarType } from './Car';
 import { Track, getTrackPosition } from './Track';
 import { RaceState, GAME_CONSTANTS } from './useNascarGame';
+import { TrackScenery } from './components/TrackScenery';
+import { DebrisSystem, CollisionEvent } from './components/DebrisSystem';
+import { TrafficLights } from './components/TrafficLights';
 
 export type CameraMode = 'tv' | 'cockpit';
 
@@ -97,6 +100,7 @@ export function NascarScene({
   const [playerSpeed, setPlayerSpeed] = useState(0);
   const [isBraking, setIsBraking] = useState(false);
   const [isDrafting, setIsDrafting] = useState(false);
+  const [collisionEvents, setCollisionEvents] = useState<CollisionEvent[]>([]);
   const prevPlayerSpeedRef = useRef(0);
 
   // Locale labels for HUD
@@ -131,6 +135,11 @@ export function NascarScene({
     setPlayerSpeed(currentSpeed);
     setIsBraking(braking);
     setIsDrafting(state.playerDrafting ?? false);
+
+    // Read collision events for debris system
+    if (state.collisionEvents && state.collisionEvents.length > 0) {
+      setCollisionEvents([...state.collisionEvents]);
+    }
 
     // Update player car 3D position
     const playerPos = getTrackPosition(player.angle, TRACK_RADIUS_X, TRACK_RADIUS_Z, player.laneOffset);
@@ -240,6 +249,15 @@ export function NascarScene({
       {/* Track (Daytona style with pit lane) */}
       <Track showPitLane />
 
+      {/* Track scenery — trees, barriers, cones, billboards from Kenney Racing Kit */}
+      <TrackScenery />
+
+      {/* Traffic light gantry at start/finish */}
+      <TrafficLights countdown={countdown} />
+
+      {/* Debris system — flying car parts on collision */}
+      <DebrisSystem events={collisionEvents} />
+
       {/* Animated checkered flag at start/finish — outside SAFER barrier */}
       <mesh ref={flagRef} position={[TRACK_RADIUS_X + 8, 6.5, 1.5]}>
         <planeGeometry args={[2.4, 1.6]} />
@@ -268,6 +286,7 @@ export function NascarScene({
             braking={isBraking}
             drafting={isDrafting}
             carType={playerCarType}
+            steerAngle={steerAngle}
           />
         )}
 
