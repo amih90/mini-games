@@ -11,6 +11,11 @@ import { useSceneProgress } from './hooks/useSceneProgress';
 import { t } from './data/translations';
 import { SCENES, SCENE_BY_ID } from './data/scenes';
 import { ANIMALS, ANIMALS_BY_CONTINENT } from './data/animals';
+import { HubGlobe } from './scenes/HubGlobe';
+import { SceneContainer } from './scenes/Environments';
+import { ChallengeRouter } from './scenes/ChallengeRouter';
+import { KiwiNarrator } from './components/KiwiNarrator';
+import { ProgressTracker } from './components/ProgressTracker';
 import type { Difficulty, GamePhase } from './types';
 
 interface WildFriendsGameProps {
@@ -218,40 +223,48 @@ export default function WildFriendsGame({ locale = 'en' }: WildFriendsGameProps)
         </div>
       </div>
 
-      <p className="text-green-600 text-center">{t(locale, 'explore')}</p>
+      <ProgressTracker
+        discovered={album.discoveredCount}
+        total={album.totalCount}
+        scenesCompleted={progress.completedCount}
+        totalScenes={progress.totalScenes}
+        label={t(locale, 'collection')}
+      />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+      {/* 3D Globe */}
+      <HubGlobe
+        completedScenes={progress.completedScenes}
+        onSelectScene={handleEnterScene}
+      />
+
+      <p className="text-green-600 text-center text-sm">{t(locale, 'explore')}</p>
+
+      {/* Continent buttons fallback */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full">
         {SCENES.map((scene) => {
           const completed = progress.isSceneCompleted(scene.id);
           return (
             <button
               key={scene.id}
               onClick={() => handleEnterScene(scene.id)}
-              className={`relative p-5 rounded-2xl text-white font-bold text-lg
+              className={`relative p-3 rounded-xl text-white font-bold text-sm
                 bg-gradient-to-br ${SCENE_COLORS[scene.id] ?? 'from-gray-400 to-gray-500'}
-                shadow-lg transition-all active:scale-95 touch-manipulation
-                ${completed ? 'ring-4 ring-yellow-300 ring-offset-2' : ''}`}
+                shadow-md transition-all active:scale-95 touch-manipulation
+                ${completed ? 'ring-2 ring-yellow-300' : ''}`}
             >
-              <div className="text-3xl mb-1">{scene.biome}</div>
-              <div>{scene.continent[locale as keyof typeof scene.continent] ?? scene.continent.en}</div>
-              {completed && (
-                <div className="absolute top-2 right-2 text-2xl">✅</div>
-              )}
+              <span className="text-xl">{scene.biome}</span>{' '}
+              <span>{scene.continent[locale as keyof typeof scene.continent] ?? scene.continent.en}</span>
+              {completed && <span className="ml-1">✅</span>}
             </button>
           );
         })}
       </div>
 
-      {/* Progress bar */}
-      <div className="w-full bg-green-200 rounded-full h-4 mt-2">
-        <div
-          className="bg-green-500 rounded-full h-4 transition-all duration-500"
-          style={{ width: `${(album.discoveredCount / album.totalCount) * 100}%` }}
-        />
-      </div>
-      <p className="text-xs text-gray-500">
-        {album.discoveredCount} / {album.totalCount} 🐾
-      </p>
+      <KiwiNarrator
+        message={t(locale, 'kiwiWelcome')}
+        autoHide={5000}
+        position="bottom-center"
+      />
     </motion.div>
   );
 
@@ -294,7 +307,7 @@ export default function WildFriendsGame({ locale = 'en' }: WildFriendsGameProps)
     );
   };
 
-  // ─── Exploring (Animal Grid) ───────────────────────────
+  // ─── Exploring (3D scene + Animal Grid) ─────────────────
 
   const renderExploring = () => (
     <motion.div
@@ -308,6 +321,12 @@ export default function WildFriendsGame({ locale = 'en' }: WildFriendsGameProps)
           {currentScene.continent[locale as keyof typeof currentScene.continent] ?? currentScene.continent.en}
         </h2>
       )}
+
+      {/* 3D environment */}
+      {currentScene && (
+        <SceneContainer sceneId={currentScene.id} />
+      )}
+
       <p className="text-green-600">{t(locale, 'discover')}</p>
 
       <div className="grid grid-cols-3 gap-4 w-full">
@@ -421,14 +440,10 @@ export default function WildFriendsGame({ locale = 'en' }: WildFriendsGameProps)
     );
   };
 
-  // ─── Challenge (placeholder for scene-specific mini-games) ──
+  // ─── Challenge (interactive mini-games via ChallengeRouter) ──
 
   const renderChallenge = () => {
     if (!currentAnimal) return null;
-    const challengeKey = `challenge${currentAnimal.challengeType
-      .split('_')
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join('')}`;
 
     return (
       <motion.div
@@ -437,19 +452,12 @@ export default function WildFriendsGame({ locale = 'en' }: WildFriendsGameProps)
         exit={{ opacity: 0 }}
         className="flex flex-col items-center gap-4 p-6 max-w-sm mx-auto text-center"
       >
-        <h3 className="text-xl font-bold text-orange-600">{t(locale, challengeKey)}</h3>
-        <div className="text-6xl my-4">{currentAnimal.emoji}</div>
-
-        <p className="text-gray-500 text-sm">(Mini-game scene coming soon)</p>
-
-        <button
-          onClick={handleCompleteChallenge}
-          className="px-6 py-3 bg-gradient-to-r from-green-400 to-emerald-500
-            text-white font-bold rounded-2xl shadow-lg
-            active:scale-95 transition-all touch-manipulation"
-        >
-          ✅ {t(locale, 'great')}
-        </button>
+        <ChallengeRouter
+          animal={currentAnimal}
+          locale={locale}
+          difficulty={game.state.difficulty}
+          onComplete={handleCompleteChallenge}
+        />
       </motion.div>
     );
   };
