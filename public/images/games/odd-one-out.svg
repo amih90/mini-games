@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="ooBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a5f"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="200" height="200" rx="20" fill="url(#ooBg)"/>
+
+  <!-- Grid of shapes (3x3 grid = 8 same + 1 odd) -->
+  <!-- Row 1: circles (blue) -->
+  <circle cx="45" cy="55" r="20" fill="#3b82f6" stroke="#93c5fd" stroke-width="2"/>
+  <circle cx="100" cy="55" r="20" fill="#3b82f6" stroke="#93c5fd" stroke-width="2"/>
+  <!-- ODD ONE OUT: star/different shape in row 1 pos 3 -->
+  <polygon points="155,35 160,50 175,50 163,60 167,75 155,65 143,75 147,60 135,50 150,50" fill="#f97316" stroke="#fed7aa" stroke-width="2">
+    <animate attributeName="opacity" values="1;0.5;1" dur="1.2s" repeatCount="indefinite"/>
+    <animateTransform attributeName="transform" type="scale" values="1 1;1.1 1.1;1 1" dur="1.2s" repeatCount="indefinite" additive="sum" transformOrigin="155 55"/>
+  </polygon>
+
+  <!-- Row 2: circles (blue) -->
+  <circle cx="45" cy="110" r="20" fill="#3b82f6" stroke="#93c5fd" stroke-width="2"/>
+  <circle cx="100" cy="110" r="20" fill="#3b82f6" stroke="#93c5fd" stroke-width="2"/>
+  <circle cx="155" cy="110" r="20" fill="#3b82f6" stroke="#93c5fd" stroke-width="2"/>
+
+  <!-- Row 3: circles (blue) -->
+  <circle cx="45" cy="165" r="20" fill="#3b82f6" stroke="#93c5fd" stroke-width="2"/>
+  <circle cx="100" cy="165" r="20" fill="#3b82f6" stroke="#93c5fd" stroke-width="2"/>
+  <circle cx="155" cy="165" r="20" fill="#3b82f6" stroke="#93c5fd" stroke-width="2"/>
+
+  <!-- Magnifying glass overlay pointing at odd one -->
+  <g opacity="0.85">
+    <animateTransform attributeName="transform" type="translate" values="0,0;5,-5;0,0" dur="2s" repeatCount="indefinite"/>
+    <!-- Glass circle -->
+    <circle cx="148" cy="52" r="28" fill="none" stroke="#fbbf24" stroke-width="3"/>
+    <circle cx="148" cy="52" r="28" fill="rgba(251,191,36,0.08)"/>
+    <!-- Handle -->
+    <line x1="170" y1="74" x2="185" y2="89" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
+    <line x1="172" y1="76" x2="187" y2="91" stroke="#d97706" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <!-- Question mark label -->
+  <text x="100" y="22" font-size="12" fill="#fbbf24" text-anchor="middle" font-weight="bold">SPOT THE DIFFERENCE!</text>
+</svg>

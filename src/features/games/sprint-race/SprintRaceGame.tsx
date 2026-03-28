@@ -629,7 +629,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
               ? t('set')
               : countdown === 1
                 ? '1'
-                : cdT.go;
+                : t('go');
         ctx.fillStyle = 'rgba(0,0,0,0.4)';
         ctx.fillText(cdText, CANVAS_WIDTH / 2 + 3, canvasH / 2 + 3);
         ctx.fillStyle = countdown === 0 ? '#76ff03' : '#fff';

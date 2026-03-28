@@ -277,7 +277,7 @@ export default function TowerDefenseGame({ locale = 'en' }: TowerDefenseGameProp
     if (settings.spawnBosses && nextWave % 3 === 0) {
       setMessage(t('bossWarning'));
     } else {
-      setMessage(t('wave')Coming);
+      setMessage(t('waveComing'));
     }
     setTimeout(() => setMessage(''), 2000);
   }, [playLevelUp, spawnWave, t]);
@@ -638,7 +638,7 @@ export default function TowerDefenseGame({ locale = 'en' }: TowerDefenseGameProp
                     }`}
                   >
                     {diff === 'easy' ? '😊' : diff === 'medium' ? '😐' : '😈'}{' '}
-                    {t[diff]}
+                    {(t as any)(diff)}
                   </button>
                 ))}
               </div>
@@ -680,7 +680,7 @@ export default function TowerDefenseGame({ locale = 'en' }: TowerDefenseGameProp
                     }`}
                   >
                     <span>{cfg.emoji}</span>
-                    <span>{t[tw as keyof typeof t]}</span>
+                    <span>{(t as any)(tw)}</span>
                     <span className="text-xs text-gray-500">({idx + 1})</span>
                     <span className="text-xs text-yellow-600">{'💰'}{cfg.cost}</span>
                   </button>

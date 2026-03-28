@@ -515,7 +515,7 @@ export default function BrickBreakerGame({ locale = 'en' }: BrickBreakerGameProp
   }, [gameState]);
 
   // ─── Difficulty label for display ─────────────────────────
-  const difficultyLabel = difficulty ? t[difficulty] : '';
+  const difficultyLabel = difficulty ? (t as any)(difficulty) : '';
   const difficultyColor = difficulty === 'easy' ? '#22c55e' : difficulty === 'hard' ? '#ef4444' : '#eab308';
 
   return (

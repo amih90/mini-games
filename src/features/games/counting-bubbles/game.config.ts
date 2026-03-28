@@ -17,7 +17,7 @@ export const countingBubblesConfig: GameConfig = {
   categories: ['math', 'ages-3-5'],
   ageRange: { min: 3, max: 6 },
   icon: '🫧',
-  thumbnail: '/images/games/screenshots/counting-bubbles.png',
+  thumbnail: '/images/games/counting-bubbles.svg',
   engine: 'react',
   i18nNamespace: 'countingBubbles',
 };

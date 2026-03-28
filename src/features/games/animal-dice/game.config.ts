@@ -17,7 +17,7 @@ export const animalDiceConfig: GameConfig = {
   categories: ['math', 'ages-3-5'],
   ageRange: { min: 2, max: 5 },
   icon: '🎲',
-  thumbnail: '/images/games/screenshots/animal-dice.png',
+  thumbnail: '/images/games/animal-dice.svg',
   engine: 'r3f',
   i18nNamespace: 'animalDice',
 };

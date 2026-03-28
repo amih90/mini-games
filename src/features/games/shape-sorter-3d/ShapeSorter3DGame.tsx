@@ -507,7 +507,7 @@ export default function ShapeSorter3DGame() {
         <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none z-10">
           <div className="inline-block bg-black/60 rounded-xl px-4 py-2 text-white text-sm">
             {selectedId !== null
-              ? `✅ ${t[shapes.find(s => s.id === selectedId)?.type ?? 'box'] ?? '?'} — ${t('selectShape').split('!')[0]}`
+              ? `✅ ${(t as any)(shapes.find(s => s.id === selectedId)?.type ?? 'box') ?? '?'} — ${t('selectShape').split('!')[0]}`
               : t('selectShape')}
           </div>
         </div>
@@ -532,7 +532,7 @@ export default function ShapeSorter3DGame() {
                         'linear-gradient(135deg, #ef4444, #dc2626)',
                   }}
                 >
-                  {d === 'easy' ? '🟢' : d === 'medium' ? '🟡' : '🔴'} {t[d]}
+                  {d === 'easy' ? '🟢' : d === 'medium' ? '🟡' : '🔴'} {(t as any)(d)}
                 </button>
               ))}
             </div>

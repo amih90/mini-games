@@ -17,7 +17,7 @@ export const solarSystem3DConfig: GameConfig = {
   categories: ['science', 'ages-6-8'],
   ageRange: { min: 6, max: 10 },
   icon: '🪐',
-  thumbnail: '/images/games/screenshots/solar-system-3d.png',
+  thumbnail: '/images/games/solar-system-3d.svg',
   engine: 'r3f',
   i18nNamespace: 'solarSystem3D',
 };

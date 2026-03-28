@@ -17,7 +17,7 @@ export const oddOneOutConfig: GameConfig = {
   categories: ['patterns', 'ages-3-5'],
   ageRange: { min: 3, max: 6 },
   icon: '🔍',
-  thumbnail: '/images/games/screenshots/odd-one-out.png',
+  thumbnail: '/images/games/odd-one-out.svg',
   engine: 'react',
   i18nNamespace: 'oddOneOut',
 };
