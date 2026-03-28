@@ -6,6 +6,7 @@ import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import { useTranslations, useLocale } from 'next-intl';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { InstructionsModal } from '@/features/games/shared/InstructionsModal';
 import { GameWrapper } from '../shared/GameWrapper';
@@ -211,103 +212,7 @@ const ALL_PLANETS: PlanetData[] = [
 
 // ─── Translations ─────────────────────────────────────────────────────────────────────────────
 
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    title: 'Solar System Explorer', subtitle: 'Click any planet or star to explore!',
-    startExploring: 'Begin Exploring 🔭', exploreEarth: 'Explore Earth 🌍',
-    instructions: 'How to Explore', closePanel: 'Continue Exploring',
-    orbitDistance: 'Orbit', knownMoons: 'Moons', starType: 'Type',
-    distance: 'Distance', temperature: 'Temperature', constellation: 'Constellation',
-    starInfoClose: 'Amazing!', au: 'AU',
-  },
-  he: {
-    title: 'חוקר מערכת השמש', subtitle: 'לחץ על כוכב לכת או כוכב כדי לחקור!',
-    startExploring: 'התחל לחקור 🔭', exploreEarth: 'חקור כדור הארץ 🌍',
-    instructions: 'איך לחקור', closePanel: 'המשך לחקור',
-    orbitDistance: 'מסלול', knownMoons: 'ירחים', starType: 'סוג',
-    distance: 'מרחק', temperature: 'טמפרטורה', constellation: 'קבוצת כוכבים',
-    starInfoClose: 'מדהים!', au: 'AU',
-  },
-  zh: {
-    title: '太阳系探索者', subtitle: '点击任何行星或恒星来探索！',
-    startExploring: '开始探索 🔭', exploreEarth: '探索地球 🌍',
-    instructions: '如何探索', closePanel: '继续探索',
-    orbitDistance: '轨道', knownMoons: '卫星', starType: '类型',
-    distance: '距离', temperature: '温度', constellation: '星座',
-    starInfoClose: '太棒了！', au: 'AU',
-  },
-  es: {
-    title: 'Explorador del Sistema Solar', subtitle: '¡Haz clic en cualquier planeta o estrella!',
-    startExploring: 'Empezar a Explorar 🔭', exploreEarth: 'Explorar la Tierra 🌍',
-    instructions: 'Cómo Explorar', closePanel: 'Seguir Explorando',
-    orbitDistance: 'Órbita', knownMoons: 'Lunas', starType: 'Tipo',
-    distance: 'Distancia', temperature: 'Temperatura', constellation: 'Constelación',
-    starInfoClose: '¡Increíble!', au: 'UA',
-  },
-};
 
-const instructionsData: Record<string, {
-  instructions: { icon: string; title: string; description: string }[];
-  controls: { icon: string; description: string }[];
-  tip: string;
-}> = {
-  en: {
-    instructions: [
-      { icon: '🪐', title: 'Roam Freely', description: 'Drag to rotate the solar system. Scroll to zoom in and out. No time limit — explore at your own pace!' },
-      { icon: '🌟', title: 'Click Planets', description: 'Click any planet to focus the camera on it and read amazing facts. The camera will smoothly glide to it!' },
-      { icon: '⭐', title: 'Click Stars', description: "The bright stars in the background are real named stars! Click them to learn their distance, temperature, and story." },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Drag to rotate camera, scroll to zoom' },
-      { icon: '🪐', description: 'Click any planet to focus and learn' },
-      { icon: '⭐', description: 'Click distant stars to learn about them' },
-      { icon: '🌍', description: 'Tap "Explore Earth" for the Earth scene' },
-    ],
-    tip: 'Try clicking Saturn and zooming in — you can see its rings up close!',
-  },
-  he: {
-    instructions: [
-      { icon: '🪐', title: 'תנוע בחופשיות', description: 'גרור לסיבוב מערכת השמש. גלגל לזום פנימה והחוצה. ללא הגבלת זמן — חקור בקצב שלך!' },
-      { icon: '🌟', title: 'לחץ על כוכבי לכת', description: 'לחץ על כל כוכב לכת כדי למקד את המצלמה עליו ולקרוא עובדות מדהימות!' },
-      { icon: '⭐', title: 'לחץ על כוכבים', description: 'הכוכבים הבהירים ברקע הם כוכבים אמיתיים! לחץ עליהם ללמוד עליהם.' },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'גרור לסיבוב מצלמה, גלגל לזום' },
-      { icon: '🪐', description: 'לחץ על כוכב לכת למיקוד ולמידה' },
-      { icon: '⭐', description: 'לחץ על כוכבים רחוקים ללמוד עליהם' },
-      { icon: '🌍', description: 'הקש "חקור כדור הארץ" לזום' },
-    ],
-    tip: 'נסה ללחוץ על שבתאי ולהתקרב — תוכל לראות את טבעותיו מקרוב!',
-  },
-  zh: {
-    instructions: [
-      { icon: '🪐', title: '自由漫游', description: '拖动旋转太阳系。滚动缩放。没有时间限制——按自己的节奏探索！' },
-      { icon: '🌟', title: '点击行星', description: '点击任何行星将相机聚焦在它上面并阅读惊人的事实！' },
-      { icon: '⭐', title: '点击恒星', description: '背景中明亮的恒星都是真实的具名恒星！点击了解距离、温度和故事。' },
-    ],
-    controls: [
-      { icon: '🖱️', description: '拖动旋转相机，滚动缩放' },
-      { icon: '🪐', description: '点击任何行星聚焦并学习' },
-      { icon: '⭐', description: '点击遥远的恒星学习' },
-      { icon: '🌍', description: '点击"探索地球"进入地球场景' },
-    ],
-    tip: '尝试点击土星并放大——你可以近距离看到它的光环！',
-  },
-  es: {
-    instructions: [
-      { icon: '🪐', title: 'Explora Libremente', description: '¡Arrastra para rotar el sistema solar. Desplaza para ampliar. Sin límite de tiempo — explora a tu ritmo!' },
-      { icon: '🌟', title: 'Clic en Planetas', description: '¡Haz clic en cualquier planeta para enfocar la cámara y leer datos asombrosos!' },
-      { icon: '⭐', title: 'Clic en Estrellas', description: '¡Las estrellas del fondo son reales! Haz clic para aprender distancia, temperatura e historia.' },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Arrastra para rotar, rueda para zoom' },
-      { icon: '🪐', description: 'Clic en planetas para enfocar' },
-      { icon: '⭐', description: 'Clic en estrellas distantes' },
-      { icon: '🌍', description: 'Toca "Explorar la Tierra" para la escena de la Tierra' },
-    ],
-    tip: '¡Intenta hacer clic en Saturno y acercarte — puedes ver sus anillos de cerca!',
-  },
-};
 
 // ─── Milky Way Skybox ─────────────────────────────────────────────────────────────────────────────
 
@@ -592,14 +497,10 @@ function ExplorerScene({
 
 // ─── Main Component ───────────────────────────────────────────────────────────────────────────────────
 
-interface SolarSystem3DGameProps {
-  locale?: string;
-}
-
-export default function SolarSystem3DGame({ locale = 'en' }: SolarSystem3DGameProps) {
-  const t = translations[locale] || translations.en;
+export default function SolarSystem3DGame() {
+  const t = useTranslations('solarSystem3D');
+  const locale = useLocale();
   const isRtl = locale === 'he';
-  const instrData = instructionsData[locale] || instructionsData.en;
 
   const { playClick, playSuccess, playBeep } = useRetroSounds();
 
@@ -646,7 +547,7 @@ export default function SolarSystem3DGame({ locale = 'en' }: SolarSystem3DGamePr
   }
 
   return (
-    <GameWrapper title={t.title} onInstructionsClick={() => setShowInstructions(true)} fullHeight>
+    <GameWrapper title={t('title')} onInstructionsClick={() => setShowInstructions(true)} fullHeight>
       <div className="relative w-full h-full bg-black overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
 
         {/* 3D Scene */}
@@ -680,28 +581,28 @@ export default function SolarSystem3DGame({ locale = 'en' }: SolarSystem3DGamePr
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-950 to-black z-20">
             <div className="text-center px-6 max-w-md">
               <div className="text-8xl mb-4">🔭</div>
-              <h1 className="text-4xl font-bold text-white mb-2">{t.title}</h1>
-              <p className="text-indigo-300 mb-8 text-sm">{t.subtitle}</p>
+              <h1 className="text-4xl font-bold text-white mb-2">{t('title')}</h1>
+              <p className="text-indigo-300 mb-8 text-sm">{t('subtitle')}</p>
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => { setExploring(true); playClick(); }}
                   className="min-h-[56px] rounded-2xl font-bold text-xl text-white transition-transform hover:scale-105 active:scale-95 shadow-2xl"
                   style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
                 >
-                  {t.startExploring}
+                  {t('startExploring')}
                 </button>
                 <button
                   onClick={() => { setGameMode('earth-explorer'); playClick(); }}
                   className="min-h-[56px] rounded-2xl font-bold text-lg text-white transition-transform hover:scale-105 active:scale-95 shadow-lg"
                   style={{ background: 'linear-gradient(135deg, #0891b2, #0d9488)' }}
                 >
-                  {t.exploreEarth}
+                  {t('exploreEarth')}
                 </button>
                 <button
                   onClick={() => setShowInstructions(true)}
                   className="min-h-[44px] rounded-2xl font-bold text-sm text-indigo-300 border border-indigo-700 hover:border-indigo-400 transition-colors"
                 >
-                  ℹ️ {t.instructions}
+                  ℹ️ {t('instructions')}
                 </button>
               </div>
             </div>
@@ -715,7 +616,7 @@ export default function SolarSystem3DGame({ locale = 'en' }: SolarSystem3DGamePr
               onClick={() => { setGameMode('earth-explorer'); playClick(); }}
               className="min-h-[44px] px-4 py-2 rounded-2xl font-bold text-sm text-white bg-gradient-to-r from-teal-700 to-blue-700 hover:scale-105 active:scale-95 transition-transform shadow-lg"
             >
-              🌍 {t.exploreEarth}
+              🌍 {t('exploreEarth')}
             </button>
           </div>
         )}
@@ -723,7 +624,7 @@ export default function SolarSystem3DGame({ locale = 'en' }: SolarSystem3DGamePr
         {/* Hint when no panel open */}
         {exploring && !selectedPlanet && !selectedStar && (
           <div className="absolute bottom-16 left-0 right-0 flex justify-center pointer-events-none z-10">
-            <div className="bg-black/60 rounded-xl px-4 py-2 text-white text-xs">{t.subtitle}</div>
+            <div className="bg-black/60 rounded-xl px-4 py-2 text-white text-xs">{t('subtitle')}</div>
           </div>
         )}
 
@@ -737,8 +638,8 @@ export default function SolarSystem3DGame({ locale = 'en' }: SolarSystem3DGamePr
               <div className="text-6xl mb-3">{selectedPlanet.emoji}</div>
               <h3 className="text-3xl font-bold text-yellow-300 mb-1">{selectedPlanet.name}</h3>
               <div className="flex justify-center gap-4 text-xs text-indigo-300 mb-4 flex-wrap">
-                <span>🌀 {t.orbitDistance}: {selectedPlanet.orbitRadius} {t.au}</span>
-                <span>🌙 {t.knownMoons}: {selectedPlanet.moons}</span>
+                <span>🌀 {t('orbitDistance')}: {selectedPlanet.orbitRadius} {t('au')}</span>
+                <span>🌙 {t('knownMoons')}: {selectedPlanet.moons}</span>
               </div>
               <div className="space-y-3 mb-5">
                 {(selectedPlanet.facts[locale] ?? selectedPlanet.facts.en).map((fact, i) => (
@@ -747,7 +648,7 @@ export default function SolarSystem3DGame({ locale = 'en' }: SolarSystem3DGamePr
               </div>
               <button onClick={handleClosePlanetPanel}
                 className="min-h-[48px] px-8 rounded-2xl font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:scale-105 transition-transform">
-                {t.closePanel}
+                {t('closePanel')}
               </button>
             </div>
           </div>
@@ -765,19 +666,19 @@ export default function SolarSystem3DGame({ locale = 'en' }: SolarSystem3DGamePr
               <div className="text-gray-400 text-xs mb-3">{selectedStar.bayer} · {selectedStar.constellation}</div>
               <div className="grid grid-cols-2 gap-2 text-xs mb-4">
                 <div className="bg-white/5 rounded-lg px-3 py-2">
-                  <div className="text-gray-400">{t.distance}</div>
+                  <div className="text-gray-400">{t('distance')}</div>
                   <div className="text-cyan-300 font-bold">{selectedStar.distanceLY} ly</div>
                 </div>
                 <div className="bg-white/5 rounded-lg px-3 py-2">
-                  <div className="text-gray-400">{t.temperature}</div>
+                  <div className="text-gray-400">{t('temperature')}</div>
                   <div className="text-orange-300 font-bold">{selectedStar.temperatureK.toLocaleString()} K</div>
                 </div>
                 <div className="bg-white/5 rounded-lg px-3 py-2">
-                  <div className="text-gray-400">{t.starType}</div>
+                  <div className="text-gray-400">{t('starType')}</div>
                   <div className="text-yellow-300 font-bold">{selectedStar.spectralType}</div>
                 </div>
                 <div className="bg-white/5 rounded-lg px-3 py-2">
-                  <div className="text-gray-400">{t.constellation}</div>
+                  <div className="text-gray-400">{t('constellation')}</div>
                   <div className="text-purple-300 font-bold text-[11px]">{selectedStar.constellation}</div>
                 </div>
               </div>
@@ -786,7 +687,7 @@ export default function SolarSystem3DGame({ locale = 'en' }: SolarSystem3DGamePr
               </p>
               <button onClick={handleCloseStarPanel}
                 className="min-h-[44px] px-6 rounded-2xl font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:scale-105 transition-transform text-sm">
-                {t.starInfoClose}
+                {t('starInfoClose')}
               </button>
             </div>
           </div>
@@ -795,10 +696,19 @@ export default function SolarSystem3DGame({ locale = 'en' }: SolarSystem3DGamePr
         <InstructionsModal
           isOpen={showInstructions}
           onClose={() => { setShowInstructions(false); if (!exploring) setExploring(true); }}
-          title={t.title}
-          instructions={instrData.instructions}
-          controls={instrData.controls}
-          tip={instrData.tip}
+          title={t('title')}
+          instructions={[
+            { icon: t('step0Icon'), title: t('step0Title'), description: t('step0Desc') },
+            { icon: t('step1Icon'), title: t('step1Title'), description: t('step1Desc') },
+            { icon: t('step2Icon'), title: t('step2Title'), description: t('step2Desc') },
+          ]}
+          controls={[
+            { icon: t('ctrl0Icon'), description: t('ctrl0Desc') },
+            { icon: t('ctrl1Icon'), description: t('ctrl1Desc') },
+            { icon: t('ctrl2Icon'), description: t('ctrl2Desc') },
+            { icon: t('ctrl3Icon'), description: t('ctrl3Desc') },
+          ]}
+          tip={t('tip')}
           locale={locale}
         />
       </div>

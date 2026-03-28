@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GameWrapper } from '../shared/GameWrapper';
 import { WinModal } from '../shared/WinModal';
@@ -20,228 +21,9 @@ import {
 } from './useNascarGame';
 
 // ─── 4-locale translations ──────────────────────────────────
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    title: 'NASCAR Cars 3D',
-    position: 'Position',
-    lap: 'Lap',
-    speed: 'Speed',
-    gameOver: 'Race Over!',
-    youWin: 'Podium Finish!',
-    champion: 'Champion!',
-    playAgain: 'Race Again',
-    nextRace: 'Next Race',
-    backToCareer: 'Back to Career',
-    paused: 'Paused',
-    resume: 'Resume',
-    difficulty: 'Choose Difficulty',
-    easy: 'Easy',
-    medium: 'Medium',
-    hard: 'Hard',
-    career: 'Career Mode',
-    locked: 'Locked',
-    selectRace: 'Select Race',
-    tapToStart: 'Tap to Start',
-    steer: '← / → = Steer',
-    accelerate: '↑ / W = Accelerate',
-    brake: '↓ / S = Brake',
-    escPause: 'P / Esc = Pause',
-    touchSteer: 'Buttons = Steer',
-    autoAccel: 'Auto-accelerate on Easy!',
-    place1: '1st',
-    place2: '2nd',
-    place3: '3rd',
-    finished: 'Finished',
-    countdown3: '3',
-    countdown2: '2',
-    countdown1: '1',
-    go: 'GO!',
-    tires: 'Tires',
-    pit: 'PIT',
-    inPit: 'IN PIT',
-    pitStop: 'Press Space to Pit',
-    chooseCar: 'Choose Your Car',
-    pickColor: 'Pick Color',
-    pickType: 'Car Type',
-    camera: 'Camera',
-    cameraTv: 'TV View',
-    cameraCockpit: 'Cockpit',
-    startRace: 'Start Race!',
-    opponents: 'Opponents',
-  },
-  he: {
-    title: 'מכוניות נסקאר 3D',
-    position: 'מקום',
-    lap: 'הקפה',
-    speed: 'מהירות',
-    gameOver: '!המירוץ נגמר',
-    youWin: '!סיום על הפודיום',
-    champion: '!אלוף',
-    playAgain: 'מירוץ חוזר',
-    nextRace: 'מירוץ הבא',
-    backToCareer: 'חזרה לקריירה',
-    paused: 'מושהה',
-    resume: 'המשך',
-    difficulty: 'בחר רמת קושי',
-    easy: 'קל',
-    medium: 'בינוני',
-    hard: 'קשה',
-    career: 'מצב קריירה',
-    locked: 'נעול',
-    selectRace: 'בחר מירוץ',
-    tapToStart: 'לחצו להתחיל',
-    steer: '← / → = היגוי',
-    accelerate: '↑ / W = האצה',
-    brake: '↓ / S = בלימה',
-    escPause: 'P / Esc = השהה',
-    touchSteer: 'כפתורים = היגוי',
-    autoAccel: '!האצה אוטומטית בקל',
-    place1: '1',
-    place2: '2',
-    place3: '3',
-    finished: 'סיים',
-    countdown3: '3',
-    countdown2: '2',
-    countdown1: '1',
-    go: '!צא',
-    tires: 'צמיגים',
-    pit: 'פיט',
-    inPit: 'בפיט',
-    pitStop: 'לחצו רווח לפיט',
-    chooseCar: 'בחרו את המכונית',
-    pickColor: 'בחרו צבע',
-    pickType: 'סוג מכונית',
-    camera: 'מצלמה',
-    cameraTv: 'שידור TV',
-    cameraCockpit: 'תא טייס',
-    startRace: '!התחילו מירוץ',
-    opponents: 'מתחרים',
-  },
-  zh: {
-    title: '3D纳斯卡赛车',
-    position: '名次',
-    lap: '圈',
-    speed: '速度',
-    gameOver: '比赛结束！',
-    youWin: '登上领奖台！',
-    champion: '冠军！',
-    playAgain: '再次比赛',
-    nextRace: '下一场',
-    backToCareer: '返回职业模式',
-    paused: '已暂停',
-    resume: '继续',
-    difficulty: '选择难度',
-    easy: '简单',
-    medium: '中等',
-    hard: '困难',
-    career: '职业模式',
-    locked: '锁定',
-    selectRace: '选择比赛',
-    tapToStart: '点击开始',
-    steer: '← / → = 转向',
-    accelerate: '↑ / W = 加速',
-    brake: '↓ / S = 刹车',
-    escPause: 'P / Esc = 暂停',
-    touchSteer: '按钮 = 转向',
-    autoAccel: '简单模式自动加速！',
-    place1: '第1',
-    place2: '第2',
-    place3: '第3',
-    finished: '完成',
-    countdown3: '3',
-    countdown2: '2',
-    countdown1: '1',
-    go: '出发！',
-    tires: '轮胎',
-    pit: '进站',
-    inPit: '进站中',
-    pitStop: '按空格键进站',
-    chooseCar: '选择你的赛车',
-    pickColor: '选择颜色',
-    pickType: '车型',
-    camera: '摄像头',
-    cameraTv: '电视视角',
-    cameraCockpit: '驾驶舱',
-    startRace: '开始比赛！',
-    opponents: '对手',
-  },
-  es: {
-    title: 'NASCAR Cars 3D',
-    position: 'Posición',
-    lap: 'Vuelta',
-    speed: 'Velocidad',
-    gameOver: '¡Carrera terminada!',
-    youWin: '¡Podio!',
-    champion: '¡Campeón!',
-    playAgain: 'Correr de nuevo',
-    nextRace: 'Siguiente carrera',
-    backToCareer: 'Volver a carrera',
-    paused: 'Pausado',
-    resume: 'Continuar',
-    difficulty: 'Elige Dificultad',
-    easy: 'Fácil',
-    medium: 'Medio',
-    hard: 'Difícil',
-    career: 'Modo Carrera',
-    locked: 'Bloqueado',
-    selectRace: 'Elige Carrera',
-    tapToStart: 'Toca para empezar',
-    steer: '← / → = Girar',
-    accelerate: '↑ / W = Acelerar',
-    brake: '↓ / S = Frenar',
-    escPause: 'P / Esc = Pausa',
-    touchSteer: 'Botones = Girar',
-    autoAccel: '¡Aceleración automática en Fácil!',
-    place1: '1°',
-    place2: '2°',
-    place3: '3°',
-    finished: 'Terminado',
-    countdown3: '3',
-    countdown2: '2',
-    countdown1: '1',
-    go: '¡YA!',
-    tires: 'Neumáticos',
-    pit: 'PIT',
-    inPit: 'EN PIT',
-    pitStop: 'Espacio para Pit Stop',
-    chooseCar: 'Elige Tu Auto',
-    pickColor: 'Color',
-    pickType: 'Tipo de Auto',
-    camera: 'Cámara',
-    cameraTv: 'Vista TV',
-    cameraCockpit: 'Cabina',
-    startRace: '¡A Correr!',
-    opponents: 'Rivales',
-  },
-};
 
-// ─── Instructions ────────────────────────────────────────────
-function getInstructions(locale: string) {
-  const t = translations[locale] || translations.en;
-  return {
-    instructions: [
-      { icon: '🏎️', title: locale === 'he' ? 'נהגו במכונית' : locale === 'zh' ? '驾驶你的赛车' : locale === 'es' ? 'Conduce tu auto' : 'Drive Your Car', description: locale === 'he' ? 'השתמשו בחצים או בכפתורים כדי להגות ולהאיץ' : locale === 'zh' ? '使用方向键或按钮转向和加速' : locale === 'es' ? 'Usa las flechas o botones para girar y acelerar' : 'Use arrow keys or buttons to steer and accelerate' },
-      { icon: '🏁', title: locale === 'he' ? 'סיימו הקפות' : locale === 'zh' ? '完成圈数' : locale === 'es' ? 'Completa las vueltas' : 'Complete Laps', description: locale === 'he' ? 'סיימו את מספר ההקפות הנדרש כדי לסיים את המירוץ' : locale === 'zh' ? '完成所需圈数来结束比赛' : locale === 'es' ? 'Completa las vueltas requeridas para terminar' : 'Complete the required number of laps to finish the race' },
-      { icon: '🏆', title: locale === 'he' ? 'סיימו על הפודיום' : locale === 'zh' ? '登上领奖台' : locale === 'es' ? 'Llega al podio' : 'Finish on Podium', description: locale === 'he' ? 'סיימו במקום 1-3 כדי לפתוח את המירוץ הבא' : locale === 'zh' ? '在前3名完成以解锁下一场比赛' : locale === 'es' ? '¡Termina en el top 3 para desbloquear la siguiente!' : 'Finish in the top 3 to unlock the next race!' },
-      { icon: '⚡', title: locale === 'he' ? 'רמות קריירה' : locale === 'zh' ? '职业等级' : locale === 'es' ? 'Niveles de carrera' : 'Career Levels', description: locale === 'he' ? '5 רמות מאימון ועד אליפות - כל רמה קשה יותר!' : locale === 'zh' ? '从训练到锦标赛的5个级别 - 每级更难！' : locale === 'es' ? '5 niveles de entrenamiento a campeonato - ¡cada uno más difícil!' : '5 levels from training to championship — each one harder!' },
-      { icon: '🔧', title: locale === 'he' ? 'עצירת פיט' : locale === 'zh' ? '进站' : locale === 'es' ? 'Pit Stop' : 'Pit Stop', description: locale === 'he' ? 'לחצו רווח כדי לבקש עצירת פיט. הצמיגים נשחקים - החליפו אותם בזמן!' : locale === 'zh' ? '按空格键请求进站。轮胎会磨损——及时更换！' : locale === 'es' ? '¡Presiona Espacio para pedir pit stop. Los neumáticos se desgastan — cámbialos a tiempo!' : 'Press Space to request a pit stop. Tires wear out — change them in time!' },
-    ],
-    controls: [
-      { icon: '⬅️➡️', description: t.steer },
-      { icon: '⬆️', description: t.accelerate },
-      { icon: '⬇️', description: t.brake },
-      { icon: '⏸️', description: t.escPause },
-      { icon: '�', description: t.pitStop },
-      { icon: '�👆', description: t.touchSteer },
-    ],
-    tip: locale === 'he' ? 'ברמה קלה, המכונית מאיצה אוטומטית - רק תגיהו!' : locale === 'zh' ? '在简单模式下，汽车自动加速——只需转向！' : locale === 'es' ? '¡En fácil el auto acelera solo — solo gira!' : 'On Easy, the car auto-accelerates — just steer!',
-  };
-}
 
 // ─── Props ───────────────────────────────────────────────────
-interface NascarCarsGameProps {
-  locale?: string;
-}
 
 type GamePhase = 'menu' | 'career-select' | 'car-select' | 'intro' | 'racing' | 'paused' | 'race-complete';
 
@@ -258,11 +40,11 @@ function saveCareerProgress(level: number) {
 }
 
 // ─── Component ───────────────────────────────────────────────
-export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
-  const t = translations[locale] || translations.en;
+export default function NascarCarsGame() {
+  const t = useTranslations('nascarCars');
+  const locale = useLocale();
   const direction = useDirection();
   const isRtl = direction === TextDirection.RTL;
-  const instData = getInstructions(locale);
   const careerLevels = CAREER_LEVELS[locale] || CAREER_LEVELS.en;
 
   const [phase, setPhase] = useState<GamePhase>('menu');
@@ -412,7 +194,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
 
   return (
     <GameWrapper
-      title={t.title}
+      title={t('title')}
       showBackButton
       onInstructionsClick={() => setShowInstructions(true)}
     >
@@ -436,10 +218,10 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
               </motion.div>
 
               <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-500">
-                {t.title}
+                {t('title')}
               </h2>
 
-              <p className="text-lg text-slate-500">{t.difficulty}</p>
+              <p className="text-lg text-slate-500">{t('difficulty')}</p>
 
               <div className="flex gap-4 flex-wrap justify-center">
                 {difficultyOptions.map(({ key, emoji, color }) => (
@@ -457,7 +239,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                     <span className="text-2xl">{emoji}</span>
                     <span>{t[key]}</span>
                     {key === 'easy' && (
-                      <span className="text-xs opacity-80">{t.autoAccel}</span>
+                      <span className="text-xs opacity-80">{t('autoAccel')}</span>
                     )}
                   </motion.button>
                 ))}
@@ -476,8 +258,8 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
               exit={{ opacity: 0, y: -20 }}
               className="flex flex-col items-center py-6 gap-4"
             >
-              <h2 className="text-2xl font-bold text-slate-700">{t.career}</h2>
-              <p className="text-sm text-slate-400">{t.selectRace}</p>
+              <h2 className="text-2xl font-bold text-slate-700">{t('career')}</h2>
+              <p className="text-sm text-slate-400">{t('selectRace')}</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 w-full max-w-2xl px-4">
                 {careerLevels.map((level, i) => {
@@ -500,10 +282,10 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                         <span className="font-bold">{level.name}</span>
                       </div>
                       <div className="text-xs opacity-80">
-                        {level.laps} {t.lap}s • {level.opponents} {locale === 'he' ? 'מתחרים' : locale === 'zh' ? '对手' : locale === 'es' ? 'rivales' : 'opponents'}
+                        {level.laps} {t('lap')}s • {level.opponents} {t('opponents')}
                       </div>
                       {!unlocked && (
-                        <div className="text-xs mt-1">🔒 {t.locked}</div>
+                        <div className="text-xs mt-1">🔒 {t('locked')}</div>
                       )}
                     </motion.button>
                   );
@@ -532,11 +314,11 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
               exit={{ opacity: 0, y: -20 }}
               className="flex flex-col items-center py-6 gap-5 max-w-xl mx-auto"
             >
-              <h2 className="text-2xl font-bold text-slate-700">{t.chooseCar}</h2>
+              <h2 className="text-2xl font-bold text-slate-700">{t('chooseCar')}</h2>
 
               {/* Car type selector */}
               <div>
-                <p className="text-sm font-bold text-slate-500 mb-2 text-center">{t.pickType}</p>
+                <p className="text-sm font-bold text-slate-500 mb-2 text-center">{t('pickType')}</p>
                 <div className="flex gap-3 justify-center">
                   {(['stock', 'formula', 'muscle'] as CarType[]).map((type) => {
                     const typeLabels = CAR_TYPE_LABELS[locale] || CAR_TYPE_LABELS.en;
@@ -563,7 +345,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
 
               {/* Color picker */}
               <div>
-                <p className="text-sm font-bold text-slate-500 mb-2 text-center">{t.pickColor}</p>
+                <p className="text-sm font-bold text-slate-500 mb-2 text-center">{t('pickColor')}</p>
                 <div className="flex gap-2 flex-wrap justify-center">
                   {PLAYER_COLORS.map(({ hex }) => (
                     <motion.button
@@ -582,11 +364,11 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
 
               {/* Camera mode toggle */}
               <div>
-                <p className="text-sm font-bold text-slate-500 mb-2 text-center">{t.camera}</p>
+                <p className="text-sm font-bold text-slate-500 mb-2 text-center">{t('camera')}</p>
                 <div className="flex gap-3 justify-center">
                   {([
-                    { mode: 'tv' as CameraMode, emoji: '📺', label: t.cameraTv },
-                    { mode: 'cockpit' as CameraMode, emoji: '🪖', label: t.cameraCockpit },
+                    { mode: 'tv' as CameraMode, emoji: '📺', label: t('cameraTv') },
+                    { mode: 'cockpit' as CameraMode, emoji: '🪖', label: t('cameraCockpit') },
                   ]).map(({ mode, emoji, label }) => (
                     <motion.button
                       key={mode}
@@ -608,7 +390,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
 
               {/* Opponent count picker */}
               <div>
-                <p className="text-sm font-bold text-slate-500 mb-2 text-center">{t.opponents}: {numOpponents}</p>
+                <p className="text-sm font-bold text-slate-500 mb-2 text-center">{t('opponents')}: {numOpponents}</p>
                 <div className="flex items-center gap-3 justify-center">
                   <motion.button
                     whileHover={{ scale: 1.1 }}
@@ -653,7 +435,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                 onClick={startRace}
                 className="mt-2 px-10 py-4 bg-gradient-to-r from-green-400 to-green-600 text-white font-bold text-xl rounded-2xl shadow-xl"
               >
-                🏁 {t.startRace}
+                🏁 {t('startRace')}
               </motion.button>
 
               <motion.button
@@ -731,7 +513,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                     transition={{ duration: 4, times: [0, 0.5, 1] }}
                     className="text-white text-lg mt-2 font-bold"
                   >
-                    {numOpponents} {locale === 'he' ? 'מתחרים' : locale === 'zh' ? '对手' : locale === 'es' ? 'rivales' : 'opponents'} • {levelConfig.laps} {t.lap}s
+                    {numOpponents} {t('opponents')} • {levelConfig.laps} {t('lap')}s
                   </motion.p>
                 </motion.div>
               </div>
@@ -758,14 +540,14 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
             <div className="flex justify-between items-center px-4 py-2 mb-2">
               <div className="flex items-center gap-4">
                 <span className="text-lg font-bold">
-                  {positionEmoji} {t.position}: {playerPosition}
+                  {positionEmoji} {t('position')}: {playerPosition}
                 </span>
                 <span className="text-sm text-slate-500">
-                  {t.lap}: {Math.min(playerLap + 1, levelConfig.laps)}/{levelConfig.laps}
+                  {t('lap')}: {Math.min(playerLap + 1, levelConfig.laps)}/{levelConfig.laps}
                 </span>
                 {/* Speed bar */}
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-500">{t.speed}</span>
+                  <span className="text-xs font-bold text-slate-500">{t('speed')}</span>
                   <div className="w-24 h-3 rounded-full bg-slate-200 overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-100"
@@ -779,7 +561,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                 </div>
                 {/* Tire wear bar */}
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-500">{t.tires}</span>
+                  <span className="text-xs font-bold text-slate-500">{t('tires')}</span>
                   <div className="w-20 h-3 rounded-full bg-slate-200 overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-100"
@@ -790,13 +572,13 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                     />
                   </div>
                   {tireWear > 50 && (
-                    <span className="text-xs font-bold text-amber-500 animate-pulse">{t.pit}!</span>
+                    <span className="text-xs font-bold text-amber-500 animate-pulse">{t('pit')}!</span>
                   )}
                 </div>
                 {/* In-pit indicator */}
                 {inPit && (
                   <span className="text-xs font-bold text-blue-500 bg-blue-100 px-2 py-0.5 rounded-full animate-pulse">
-                    🔧 {t.inPit}
+                    🔧 {t('inPit')}
                   </span>
                 )}
               </div>
@@ -864,7 +646,7 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                 onTouchStart={() => { pitInput.current = true; }}
                 onTouchEnd={() => { pitInput.current = false; }}
               >
-                🔧 {t.pit}
+                🔧 {t('pit')}
               </button>
             </div>
 
@@ -882,14 +664,14 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
                     animate={{ scale: 1 }}
                     className="text-center"
                   >
-                    <p className="text-4xl font-bold text-white mb-4">{t.paused}</p>
+                    <p className="text-4xl font-bold text-white mb-4">{t('paused')}</p>
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setPhase('racing')}
                       className="px-8 py-3 bg-gradient-to-r from-yellow-400 to-red-500 text-white rounded-full font-bold text-lg"
                     >
-                      {t.resume}
+                      {t('resume')}
                     </motion.button>
                   </motion.div>
                 </motion.div>
@@ -909,10 +691,23 @@ export default function NascarCarsGame({ locale = 'en' }: NascarCarsGameProps) {
         <InstructionsModal
           isOpen={showInstructions}
           onClose={() => setShowInstructions(false)}
-          title={t.title}
-          instructions={instData.instructions}
-          controls={instData.controls}
-          tip={instData.tip}
+          title={t('title')}
+          instructions={[
+            { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+            { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+            { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+            { icon: t('instructions.step3Icon'), title: t('instructions.step3Title'), description: t('instructions.step3Desc') },
+            { icon: t('instructions.step4Icon'), title: t('instructions.step4Title'), description: t('instructions.step4Desc') },
+          ]}
+          controls={[
+            { icon: t('instructions.ctrl0Icon'), description: t('instructions.ctrl0Desc') },
+            { icon: t('instructions.ctrl1Icon'), description: t('instructions.ctrl1Desc') },
+            { icon: t('instructions.ctrl2Icon'), description: t('instructions.ctrl2Desc') },
+            { icon: t('instructions.ctrl3Icon'), description: t('instructions.ctrl3Desc') },
+            { icon: t('instructions.ctrl4Icon'), description: t('instructions.ctrl4Desc') },
+            { icon: t('instructions.ctrl5Icon'), description: t('instructions.ctrl5Desc') },
+          ]}
+          tip={t('instructions.tip')}
           locale={locale}
         />
       </div>
