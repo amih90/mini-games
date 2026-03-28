@@ -14,156 +14,6 @@ import { useReversiGame, Difficulty } from './useReversiGame';
 // ---------------------------------------------------------------------------
 // Feynman-style instructions in all 4 supported locales
 // ---------------------------------------------------------------------------
-const instructionsData: Record<
-  string,
-  {
-    instructions: { icon: string; title: string; description: string }[];
-    controls: { icon: string; description: string }[];
-    tip: string;
-  }
-> = {
-  en: {
-    instructions: [
-      {
-        icon: '🎯',
-        title: 'Goal',
-        description:
-          'Have more pieces than your opponent when the board is full. You play Black, the computer plays White.',
-      },
-      {
-        icon: '🔄',
-        title: 'How to Flip',
-        description:
-          "Place your piece so that one or more of your opponent's pieces are trapped between your new piece and another one of yours. All trapped pieces flip to your color! You can flip horizontally, vertically, or diagonally.",
-      },
-      {
-        icon: '⚡',
-        title: 'Valid Moves',
-        description:
-          'You can only place a piece where it flips at least one opponent piece. Green dots show where you can play. If you have no valid moves, your turn is skipped.',
-      },
-      {
-        icon: '🏆',
-        title: 'Winning',
-        description:
-          'The game ends when neither player can move or the board is full. Count the pieces — whoever has the most wins!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Click a green dot to place your piece' },
-      { icon: '⬆️', description: 'Arrow keys to move the cursor on the board' },
-      { icon: '↩️', description: 'Enter to place a piece at the cursor' },
-      { icon: '💡', description: 'Click Hint to see a suggested move' },
-    ],
-    tip: 'Corners are super powerful! Once you grab a corner, those pieces can never be flipped. Try to get corners early and avoid the squares right next to them.',
-  },
-  he: {
-    instructions: [
-      {
-        icon: '🎯',
-        title: 'מטרה',
-        description:
-          'שיהיו לך יותר כלים מהיריב כשהלוח מלא. אתה משחק בשחור, המחשב משחק בלבן.',
-      },
-      {
-        icon: '🔄',
-        title: 'איך להפוך',
-        description:
-          'הנח כלי כך שכלי היריב נלכדים בין הכלי החדש שלך לכלי אחר שלך. כל הכלים הלכודים מתהפכים לצבע שלך! אפשר להפוך בכל כיוון — אופקי, אנכי או אלכסוני.',
-      },
-      {
-        icon: '⚡',
-        title: 'מהלכים תקפים',
-        description:
-          'אפשר להניח כלי רק במקום שיהפוך לפחות כלי אחד של היריב. נקודות ירוקות מראות לך איפה אפשר לשחק. אם אין לך מהלכים, התור שלך נדלג.',
-      },
-      {
-        icon: '🏆',
-        title: 'ניצחון',
-        description:
-          'המשחק נגמר כשאף שחקן לא יכול לשחק או שהלוח מלא. ספור את הכלים — מי שיש לו הכי הרבה מנצח!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'לחץ על נקודה ירוקה כדי להניח כלי' },
-      { icon: '⬆️', description: 'מקשי חצים כדי להזיז את הסמן על הלוח' },
-      { icon: '↩️', description: 'אנטר כדי להניח כלי במיקום הסמן' },
-      { icon: '💡', description: 'לחץ על רמז כדי לראות מהלך מוצע' },
-    ],
-    tip: 'פינות הן סופר חזקות! ברגע שתופס פינה, הכלים האלה לעולם לא יתהפכו. נסה לתפוס פינות מוקדם והימנע מהמשבצות הסמוכות להן.',
-  },
-  zh: {
-    instructions: [
-      {
-        icon: '🎯',
-        title: '目标',
-        description:
-          '棋盘满时，你的棋子比对手多就赢了。你执黑，电脑执白。',
-      },
-      {
-        icon: '🔄',
-        title: '怎么翻转',
-        description:
-          '放置你的棋子，使对手的棋子被你的新棋子和另一个你的棋子夹住。所有被夹住的棋子都翻转成你的颜色！可以在任何方向翻转——水平、垂直或对角线。',
-      },
-      {
-        icon: '⚡',
-        title: '有效移动',
-        description:
-          '你只能在能翻转至少一个对手棋子的位置放置棋子。绿点显示你可以下的位置。如果没有有效移动，你的回合将被跳过。',
-      },
-      {
-        icon: '🏆',
-        title: '获胜',
-        description:
-          '当双方都无法移动或棋盘满时，游戏结束。数棋子——棋子多的赢！',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: '点击绿点放置棋子' },
-      { icon: '⬆️', description: '方向键移动光标' },
-      { icon: '↩️', description: '回车键在光标处放置棋子' },
-      { icon: '💡', description: '点击提示查看建议的移动' },
-    ],
-    tip: '角落超级强大！一旦占据角落，那些棋子永远不会被翻转。尽早抢占角落，避免紧挨角落的格子。',
-  },
-  es: {
-    instructions: [
-      {
-        icon: '🎯',
-        title: 'Objetivo',
-        description:
-          'Tener más piezas que tu oponente cuando el tablero esté lleno. Juegas con negras, la computadora juega con blancas.',
-      },
-      {
-        icon: '🔄',
-        title: 'Cómo voltear',
-        description:
-          'Coloca tu pieza de modo que las piezas del oponente queden atrapadas entre tu nueva pieza y otra tuya. ¡Todas las piezas atrapadas se voltean a tu color! Puedes voltear en cualquier dirección: horizontal, vertical o diagonal.',
-      },
-      {
-        icon: '⚡',
-        title: 'Movimientos válidos',
-        description:
-          'Solo puedes colocar una pieza donde voltee al menos una pieza del oponente. Los puntos verdes muestran dónde puedes jugar. Si no tienes movimientos válidos, se salta tu turno.',
-      },
-      {
-        icon: '🏆',
-        title: 'Ganar',
-        description:
-          'El juego termina cuando ningún jugador puede mover o el tablero está lleno. ¡Cuenta las piezas — el que tenga más gana!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Haz clic en un punto verde para colocar tu pieza' },
-      { icon: '⬆️', description: 'Teclas de flecha para mover el cursor en el tablero' },
-      { icon: '↩️', description: 'Enter para colocar una pieza en el cursor' },
-      { icon: '💡', description: 'Haz clic en Pista para ver un movimiento sugerido' },
-    ],
-    tip: '¡Las esquinas son súper poderosas! Una vez que capturas una esquina, esas piezas nunca se voltean. Intenta obtener esquinas pronto y evita las casillas junto a ellas.',
-  },
-};
-
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -293,7 +143,6 @@ export function ReversiGame() {
   }, [showInstructions, cursor, handleCellClick]);
 
   // ---- Derived data -------------------------------------------------------
-  const instrData = instructionsData[locale] || instructionsData.en;
 
   // ---- Event handlers with playClick for UI buttons -----------------------
   const handleDifficultyChange = useCallback(
@@ -512,9 +361,19 @@ export function ReversiGame() {
         isOpen={showInstructions}
         onClose={() => setShowInstructions(false)}
         title={t('title') || 'Reversi'}
-        instructions={instrData.instructions}
-        controls={instrData.controls}
-        tip={instrData.tip}
+        instructions={[
+            { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+            { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+            { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+            { icon: t('instructions.step3Icon'), title: t('instructions.step3Title'), description: t('instructions.step3Desc') }
+          ]}
+        controls={[
+            { icon: t('controls.control0Icon'), description: t('controls.control0Desc') },
+            { icon: t('controls.control1Icon'), description: t('controls.control1Desc') },
+            { icon: t('controls.control2Icon'), description: t('controls.control2Desc') },
+            { icon: t('controls.control3Icon'), description: t('controls.control3Desc') }
+          ]}
+        tip={t('tip')}
         locale={locale}
       />
     </GameWrapper>

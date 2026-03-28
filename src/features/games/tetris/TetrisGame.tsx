@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GameWrapper } from '../shared/GameWrapper';
 import { WinModal } from '../shared/WinModal';
@@ -69,292 +70,7 @@ const TETROMINOES: Record<string, Tetromino> = {
 
 const TETROMINO_KEYS = Object.keys(TETROMINOES);
 
-// ---------------------------------------------------------------------------
-// Translations (en / he / zh / es)
-// ---------------------------------------------------------------------------
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    title: 'Tetris',
-    start: 'Start Game',
-    score: 'Score',
-    level: 'Level',
-    lines: 'Lines',
-    next: 'Next',
-    highScore: 'Best',
-    gameOver: 'Game Over!',
-    playAgain: 'Play Again',
-    tapToStart: 'Click to Start',
-    paused: 'Paused',
-    resume: 'Resume',
-    selectDifficulty: 'Select Difficulty',
-    easy: '🟢 Easy',
-    medium: '🟡 Medium',
-    hard: '🔴 Hard',
-    easyDesc: 'Slow & relaxed',
-    mediumDesc: 'Balanced fun',
-    hardDesc: 'Fast & challenging',
-    moveLeft: '← Move',
-    moveRight: 'Move →',
-    rotate: '↑ Rotate',
-    softDrop: '↓ Soft Drop',
-    hardDrop: 'Space = Hard Drop',
-    clickRotate: '🖱️ Click = Rotate',
-    difficulty: 'Difficulty',
-    drop: 'Drop',
-  },
-  he: {
-    title: 'טטריס',
-    start: 'התחל לשחק',
-    score: 'ניקוד',
-    level: 'שלב',
-    lines: 'שורות',
-    next: 'הבא',
-    highScore: 'שיא',
-    gameOver: 'המשחק נגמר!',
-    playAgain: 'שחק שוב',
-    tapToStart: 'לחץ להתחלה',
-    paused: 'מושהה',
-    resume: 'המשך',
-    selectDifficulty: 'בחר רמת קושי',
-    easy: '🟢 קל',
-    medium: '🟡 בינוני',
-    hard: '🔴 קשה',
-    easyDesc: 'איטי ורגוע',
-    mediumDesc: 'כיף מאוזן',
-    hardDesc: 'מהיר ומאתגר',
-    moveLeft: '← הזז',
-    moveRight: 'הזז →',
-    rotate: '↑ סובב',
-    softDrop: '↓ הפלה איטית',
-    hardDrop: 'רווח = הפלה מיידית',
-    clickRotate: '🖱️ לחיצה = סובב',
-    difficulty: 'רמת קושי',
-    drop: 'הפל',
-  },
-  zh: {
-    title: '俄罗斯方块',
-    start: '开始游戏',
-    score: '得分',
-    level: '关卡',
-    lines: '行数',
-    next: '下一个',
-    highScore: '最佳',
-    gameOver: '游戏结束！',
-    playAgain: '再玩一次',
-    tapToStart: '点击开始',
-    paused: '已暂停',
-    resume: '继续',
-    selectDifficulty: '选择难度',
-    easy: '🟢 简单',
-    medium: '🟡 中等',
-    hard: '🔴 困难',
-    easyDesc: '慢速轻松',
-    mediumDesc: '平衡乐趣',
-    hardDesc: '快速挑战',
-    moveLeft: '← 移动',
-    moveRight: '移动 →',
-    rotate: '↑ 旋转',
-    softDrop: '↓ 慢速下落',
-    hardDrop: '空格 = 快速下落',
-    clickRotate: '🖱️ 点击 = 旋转',
-    difficulty: '难度',
-    drop: '下落',
-  },
-  es: {
-    title: 'Tetris',
-    start: 'Iniciar Juego',
-    score: 'Puntos',
-    level: 'Nivel',
-    lines: 'Líneas',
-    next: 'Siguiente',
-    highScore: 'Mejor',
-    gameOver: '¡Fin del juego!',
-    playAgain: 'Jugar de nuevo',
-    tapToStart: 'Clic para empezar',
-    paused: 'Pausado',
-    resume: 'Continuar',
-    selectDifficulty: 'Elegir dificultad',
-    easy: '🟢 Fácil',
-    medium: '🟡 Medio',
-    hard: '🔴 Difícil',
-    easyDesc: 'Lento y relajado',
-    mediumDesc: 'Diversión equilibrada',
-    hardDesc: 'Rápido y desafiante',
-    moveLeft: '← Mover',
-    moveRight: 'Mover →',
-    rotate: '↑ Girar',
-    softDrop: '↓ Caída suave',
-    hardDrop: 'Espacio = Caída rápida',
-    clickRotate: '🖱️ Clic = Girar',
-    difficulty: 'Dificultad',
-    drop: 'Soltar',
-  },
-};
 
-// ---------------------------------------------------------------------------
-// Instructions data (4 locales – Feynman-style)
-// ---------------------------------------------------------------------------
-const instructionsData: Record<
-  string,
-  {
-    instructions: { icon: string; title: string; description: string }[];
-    controls: { icon: string; description: string }[];
-    tip: string;
-  }
-> = {
-  en: {
-    instructions: [
-      {
-        icon: '🎯',
-        title: 'Stack Blocks',
-        description:
-          'Blocks fall from the top. Use arrow keys to move them left, right, and down. Press up arrow or click to rotate!',
-      },
-      {
-        icon: '✨',
-        title: 'Complete Lines',
-        description:
-          'When you fill a complete row with no gaps, it disappears and you earn points! Clear more lines at once for bigger scores!',
-      },
-      {
-        icon: '⭐',
-        title: 'Level Up',
-        description:
-          'Clear 10 lines to level up! Each level makes blocks fall faster. Can you reach level 10?',
-      },
-      {
-        icon: '🏆',
-        title: 'Win the Game',
-        description:
-          'Reach 1000 points to win! One line = 100, two = 300, three = 500, four (Tetris!) = 800 points!',
-      },
-    ],
-    controls: [
-      { icon: '⬅️', description: 'Left Arrow / A — Move Left' },
-      { icon: '➡️', description: 'Right Arrow / D — Move Right' },
-      { icon: '⬇️', description: 'Down Arrow / S — Soft Drop' },
-      { icon: '⬆️', description: 'Up Arrow / W — Rotate' },
-      { icon: '␣', description: 'Space — Hard Drop' },
-      { icon: '🖱️', description: 'Click / Tap — Rotate' },
-      { icon: '👆', description: 'Swipe — Move & Drop on mobile' },
-    ],
-    tip: 'Pro tip: Use Space to hard-drop instantly. Clear 4 lines at once (a "Tetris") for maximum points!',
-  },
-  he: {
-    instructions: [
-      {
-        icon: '🎯',
-        title: 'סדרו בלוקים',
-        description:
-          'בלוקים נופלים מלמעלה. השתמשו בחצים כדי להזיז אותם. לחצו חץ למעלה או על המסך כדי לסובב!',
-      },
-      {
-        icon: '✨',
-        title: 'מלאו שורות',
-        description:
-          'כשתמלאו שורה שלמה ללא פערים, השורה נעלמת ואתם מקבלים נקודות! נקו שורות רבות בבת אחת לניקוד גדול יותר!',
-      },
-      {
-        icon: '⭐',
-        title: 'עלו רמות',
-        description:
-          'כל 10 שורות = רמה חדשה! כל רמה מוסיפה מהירות. האם תגיעו לרמה 10?',
-      },
-      {
-        icon: '🏆',
-        title: 'נצחו',
-        description:
-          'הגיעו ל-1000 נקודות כדי לנצח! שורה = 100, שתיים = 300, שלוש = 500, ארבע (טטריס!) = 800!',
-      },
-    ],
-    controls: [
-      { icon: '⬅️', description: 'חץ שמאלה / A — הזז שמאלה' },
-      { icon: '➡️', description: 'חץ ימינה / D — הזז ימינה' },
-      { icon: '⬇️', description: 'חץ למטה / S — הפלה איטית' },
-      { icon: '⬆️', description: 'חץ למעלה / W — סובב' },
-      { icon: '␣', description: 'רווח — הפלה מיידית' },
-      { icon: '🖱️', description: 'לחיצה / נגיעה — סובב' },
-      { icon: '👆', description: 'החלקה — הזז והפל בנייד' },
-    ],
-    tip: 'טיפ: השתמשו ברווח להפלה מיידית. נקו 4 שורות בבת אחת (טטריס!) לניקוד מקסימלי!',
-  },
-  zh: {
-    instructions: [
-      {
-        icon: '🎯',
-        title: '堆叠方块',
-        description:
-          '方块从顶部掉落。用方向键左右移动，按上键或点击旋转！',
-      },
-      {
-        icon: '✨',
-        title: '消除行',
-        description:
-          '填满一整行后它会消失并得分！一次消除更多行获得更高分数！',
-      },
-      {
-        icon: '⭐',
-        title: '升级',
-        description:
-          '每消除10行升一级！每级方块掉落更快。你能到达10级吗？',
-      },
-      {
-        icon: '🏆',
-        title: '赢得游戏',
-        description:
-          '达到1000分即可获胜！一行=100分，两行=300分，三行=500分，四行（俄罗斯方块！）=800分！',
-      },
-    ],
-    controls: [
-      { icon: '⬅️', description: '左方向键 / A — 向左移动' },
-      { icon: '➡️', description: '右方向键 / D — 向右移动' },
-      { icon: '⬇️', description: '下方向键 / S — 慢速下落' },
-      { icon: '⬆️', description: '上方向键 / W — 旋转' },
-      { icon: '␣', description: '空格 — 快速下落' },
-      { icon: '🖱️', description: '点击 / 触摸 — 旋转' },
-      { icon: '👆', description: '滑动 — 移动和下落' },
-    ],
-    tip: '技巧：用空格键快速下落。一次消除4行（俄罗斯方块！）获得最高分！',
-  },
-  es: {
-    instructions: [
-      {
-        icon: '🎯',
-        title: 'Apila los bloques',
-        description:
-          'Los bloques caen desde arriba. Usa las flechas para moverlos. ¡Presiona arriba o haz clic para girar!',
-      },
-      {
-        icon: '✨',
-        title: 'Completa líneas',
-        description:
-          'Cuando llenas una fila completa, ¡desaparece y ganas puntos! ¡Elimina más líneas a la vez para más puntos!',
-      },
-      {
-        icon: '⭐',
-        title: 'Sube de nivel',
-        description:
-          '¡Cada 10 líneas subes de nivel! Cada nivel aumenta la velocidad. ¿Puedes llegar al nivel 10?',
-      },
-      {
-        icon: '🏆',
-        title: 'Gana el juego',
-        description:
-          '¡Alcanza 1000 puntos para ganar! Una línea = 100, dos = 300, tres = 500, ¡cuatro (Tetris!) = 800!',
-      },
-    ],
-    controls: [
-      { icon: '⬅️', description: 'Flecha izquierda / A — Mover izquierda' },
-      { icon: '➡️', description: 'Flecha derecha / D — Mover derecha' },
-      { icon: '⬇️', description: 'Flecha abajo / S — Caída suave' },
-      { icon: '⬆️', description: 'Flecha arriba / W — Girar' },
-      { icon: '␣', description: 'Espacio — Caída rápida' },
-      { icon: '🖱️', description: 'Clic / Tocar — Girar' },
-      { icon: '👆', description: 'Deslizar — Mover y soltar' },
-    ],
-    tip: 'Consejo: Usa Espacio para dejar caer al instante. ¡Elimina 4 líneas a la vez (un "Tetris") para máximos puntos!',
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Helpers (outside component – no hook dependencies)
@@ -416,10 +132,9 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
 
   const { playClick, playSuccess, playLevelUp, playGameOver, playHit, playPowerUp, playWin, playMove, playWhoosh } = useRetroSounds();
 
-  const t = translations[locale] || translations.en;
+  const t = useTranslations('tetris');
   const direction = useDirection();
   const isRtl = direction === TextDirection.RTL;
-  const instrData = instructionsData[locale] || instructionsData.en;
   const settings = difficulty ? DIFFICULTY_SETTINGS[difficulty] : DIFFICULTY_SETTINGS.medium;
   const previewCount = settings.previewCount;
   const previewCanvasHeight = previewCount * 4 * PREVIEW_CELL_SIZE;
@@ -1073,10 +788,7 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
   if (gameState === 'menu') {
     return (
       <GameWrapper
-        title={t.title}
-        onInstructionsClick={() => setShowInstructions(true)}
-      >
-        <div className="flex flex-col items-center justify-center py-12">
+        title={t('title')}
           <motion.div
             animate={{ rotate: [0, 10, -10, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
@@ -1085,29 +797,29 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
             🧱
           </motion.div>
           <h2 className="text-3xl font-bold text-slate-800 mb-2">
-            {t.title}
+            {t('title')}
           </h2>
-          <p className="text-slate-500 mb-8">{t.selectDifficulty}</p>
+          <p className="text-slate-500 mb-8">{t('selectDifficulty')}</p>
 
           <div className="flex flex-col sm:flex-row gap-4">
             {(
               [
                 {
                   key: 'easy' as Difficulty,
-                  label: t.easy,
-                  desc: t.easyDesc,
+                  label: t('easy'),
+                  desc: t('easyDesc'),
                   gradient: 'from-green-400 to-green-600',
                 },
                 {
                   key: 'medium' as Difficulty,
-                  label: t.medium,
-                  desc: t.mediumDesc,
+                  label: t('medium'),
+                  desc: t('mediumDesc'),
                   gradient: 'from-yellow-400 to-yellow-600',
                 },
                 {
                   key: 'hard' as Difficulty,
-                  label: t.hard,
-                  desc: t.hardDesc,
+                  label: t('hard'),
+                  desc: t('hardDesc'),
                   gradient: 'from-red-400 to-red-600',
                 },
               ] as const
@@ -1129,7 +841,7 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
 
           {highScore > 0 && (
             <div className="mt-6 text-slate-500 text-sm">
-              {t.highScore}:{' '}
+              {t('highScore')}:{' '}
               <span className="font-bold text-[#ec4399]">{highScore}</span>
             </div>
           )}
@@ -1138,10 +850,23 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
         <InstructionsModal
           isOpen={showInstructions}
           onClose={() => setShowInstructions(false)}
-          title={t.title}
-          instructions={instrData.instructions}
-          controls={instrData.controls}
-          tip={instrData.tip}
+          title={t('title')}
+          instructions={[
+            { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+            { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+            { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+            { icon: t('instructions.step3Icon'), title: t('instructions.step3Title'), description: t('instructions.step3Desc') },
+          ]}
+          controls={[
+            { icon: t('instructions.control0Icon'), description: t('instructions.control0Desc') },
+            { icon: t('instructions.control1Icon'), description: t('instructions.control1Desc') },
+            { icon: t('instructions.control2Icon'), description: t('instructions.control2Desc') },
+            { icon: t('instructions.control3Icon'), description: t('instructions.control3Desc') },
+            { icon: t('instructions.control4Icon'), description: t('instructions.control4Desc') },
+            { icon: t('instructions.control5Icon'), description: t('instructions.control5Desc') },
+            { icon: t('instructions.control6Icon'), description: t('instructions.control6Desc') },
+          ]}
+          tip={t('instructions.tip')}
           locale={locale}
         />
       </GameWrapper>
@@ -1153,14 +878,14 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
   // --------------------------------------------------------------------------
   const difficultyLabel =
     difficulty === 'easy'
-      ? t.easy
+      ? t('easy')
       : difficulty === 'hard'
-        ? t.hard
-        : t.medium;
+        ? t('hard')
+        : t('medium');
 
   return (
     <GameWrapper
-      title={t.title}
+      title={t('title')}
       onInstructionsClick={() => setShowInstructions(true)}
     >
       <div
@@ -1195,10 +920,10 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
                     🧱
                   </motion.div>
                   <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">
-                    {t.title}
+                    {t('title')}
                   </h2>
                   <div className="text-white/70 text-sm mb-4">
-                    {t.difficulty}: {difficultyLabel}
+                    {t('difficulty')}: {difficultyLabel}
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1206,7 +931,7 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
                     onClick={startGame}
                     className="px-8 py-3 bg-[#a855f7] hover:bg-[#9333ea] text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                   >
-                    {t.tapToStart}
+                    {t('tapToStart')}
                   </motion.button>
                 </motion.div>
               )}
@@ -1219,7 +944,7 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
                   className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 rounded-xl"
                 >
                   <h2 className="text-3xl font-bold text-white mb-4">
-                    ⏸️ {t.paused}
+                    ⏸️ {t('paused')}
                   </h2>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1227,7 +952,7 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
                     onClick={() => setGameState('playing')}
                     className="px-8 py-3 bg-[#6cbe45] hover:bg-[#5aa838] text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                   >
-                    ▶️ {t.resume}
+                    ▶️ {t('resume')}
                   </motion.button>
                 </motion.div>
               )}
@@ -1242,17 +967,17 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
                   <div className="bg-white rounded-3xl p-6 text-center shadow-2xl">
                     <div className="text-4xl mb-3">💥</div>
                     <h2 className="text-xl font-bold text-slate-800 mb-3">
-                      {t.gameOver}
+                      {t('gameOver')}
                     </h2>
                     <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                       <div>
-                        <div className="text-slate-500">{t.score}</div>
+                        <div className="text-slate-500">{t('score')}</div>
                         <div className="text-xl font-bold text-[#00a4e4]">
                           {score}
                         </div>
                       </div>
                       <div>
-                        <div className="text-slate-500">{t.highScore}</div>
+                        <div className="text-slate-500">{t('highScore')}</div>
                         <div className="text-xl font-bold text-[#ec4399]">
                           {highScore}
                         </div>
@@ -1265,7 +990,7 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
                         onClick={restartGame}
                         className="px-5 py-2 bg-[#6cbe45] hover:bg-[#5aa838] text-white font-bold rounded-full shadow-lg min-h-[48px]"
                       >
-                        {t.playAgain}
+                        {t('playAgain')}
                       </motion.button>
                       <motion.button
                         whileHover={{ scale: 1.05 }}
@@ -1289,7 +1014,7 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
             {/* Next piece(s) */}
             <div className="bg-white/90 rounded-2xl p-4 shadow-lg">
               <div className="text-sm text-slate-500 font-medium mb-2 text-center">
-                {t.next}
+                {t('next')}
               </div>
               <canvas
                 ref={previewCanvasRef}
@@ -1302,7 +1027,7 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
             {/* Score */}
             <div className="bg-white/90 rounded-2xl px-5 py-3 shadow-lg text-center">
               <div className="text-sm text-slate-500 font-medium">
-                {t.score}
+                {t('score')}
               </div>
               <div className="text-2xl font-bold text-[#00a4e4]">{score}</div>
             </div>
@@ -1310,7 +1035,7 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
             {/* Lines */}
             <div className="bg-white/90 rounded-2xl px-5 py-3 shadow-lg text-center">
               <div className="text-sm text-slate-500 font-medium">
-                {t.lines}
+                {t('lines')}
               </div>
               <div className="text-2xl font-bold text-[#6cbe45]">{lines}</div>
             </div>
@@ -1319,7 +1044,7 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
             {highScore > 0 && (
               <div className="bg-white/90 rounded-2xl px-5 py-3 shadow-lg text-center">
                 <div className="text-sm text-slate-500 font-medium">
-                  {t.highScore}
+                  {t('highScore')}
                 </div>
                 <div className="text-2xl font-bold text-[#ec4399]">
                   {highScore}
@@ -1332,22 +1057,22 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
         {/* ---- Keyboard controls hint (desktop) ---- */}
         <div className="hidden sm:flex flex-wrap justify-center gap-3 mt-6 text-slate-600 text-sm">
           <span className="px-3 py-1 bg-white/80 rounded-full">
-            {t.moveLeft}
+            {t('moveLeft')}
           </span>
           <span className="px-3 py-1 bg-white/80 rounded-full">
-            {t.rotate}
+            {t('rotate')}
           </span>
           <span className="px-3 py-1 bg-white/80 rounded-full">
-            {t.moveRight}
+            {t('moveRight')}
           </span>
           <span className="px-3 py-1 bg-white/80 rounded-full">
-            {t.softDrop}
+            {t('softDrop')}
           </span>
           <span className="px-3 py-1 bg-white/80 rounded-full">
-            {t.hardDrop}
+            {t('hardDrop')}
           </span>
           <span className="px-3 py-1 bg-white/80 rounded-full">
-            {t.clickRotate}
+            {t('clickRotate')}
           </span>
         </div>
 
@@ -1417,7 +1142,7 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
             className="min-h-[48px] min-w-[140px] bg-[#ef4444] text-white text-lg font-bold rounded-2xl shadow-lg flex items-center justify-center gap-2 active:bg-[#dc2626]"
             aria-label="Hard Drop"
           >
-            ⤓ {t.drop}
+            ⤓ {t('drop')}
           </motion.button>
         </div>
       </div>
@@ -1437,10 +1162,23 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
       <InstructionsModal
         isOpen={showInstructions}
         onClose={() => setShowInstructions(false)}
-        title={t.title}
-        instructions={instrData.instructions}
-        controls={instrData.controls}
-        tip={instrData.tip}
+        title={t('title')}
+        instructions={[
+          { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+          { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+          { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+          { icon: t('instructions.step3Icon'), title: t('instructions.step3Title'), description: t('instructions.step3Desc') },
+        ]}
+        controls={[
+          { icon: t('instructions.control0Icon'), description: t('instructions.control0Desc') },
+          { icon: t('instructions.control1Icon'), description: t('instructions.control1Desc') },
+          { icon: t('instructions.control2Icon'), description: t('instructions.control2Desc') },
+          { icon: t('instructions.control3Icon'), description: t('instructions.control3Desc') },
+          { icon: t('instructions.control4Icon'), description: t('instructions.control4Desc') },
+          { icon: t('instructions.control5Icon'), description: t('instructions.control5Desc') },
+          { icon: t('instructions.control6Icon'), description: t('instructions.control6Desc') },
+        ]}
+        tip={t('instructions.tip')}
         locale={locale}
       />
     </GameWrapper>

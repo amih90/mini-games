@@ -8,6 +8,7 @@ import { InstructionsModal } from '../shared/InstructionsModal';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { useDirection } from '@/hooks/useDirection';
 import { TextDirection } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -104,264 +105,15 @@ const PLAYER_COLORS = [
   { hex: '#00bcd4', label: '🩵' },
 ];
 
-// ---------------------------------------------------------------------------
-// Translations
-// ---------------------------------------------------------------------------
-
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    title: 'Sprint Race',
-    time: 'Time',
-    best: 'Best',
-    position: 'Position',
-    tapFast: 'TAP FAST!',
-    ready: 'Ready...',
-    set: 'Set...',
-    go: 'GO!',
-    winner: 'You Won!',
-    youLost: 'Race Over',
-    tryAgain: 'Race Again',
-    tapToStart: 'Start Race',
-    selectDifficulty: 'Choose Difficulty',
-    easy: 'Easy (50 m)',
-    medium: 'Medium (100 m)',
-    hard: 'Hard (200 m)',
-    newBest: '🌟 New Best Time!',
-    clickFast: '🖱️ Click Fast!',
-    keyboard: '⌨️ Space / Enter / Arrows',
-    tapRapidly: '📱 Tap Rapidly!',
-    meters: 'm',
-    race: 'race',
-    you: 'YOU',
-    sprint: 'Sprint!',
-    difficulty: 'Difficulty',
-    playerColor: 'Your Color',
-    opponents: 'Opponents',
-  },
-  he: {
-    title: 'מרוץ ספרינט',
-    time: 'זמן',
-    best: 'שיא',
-    position: 'מיקום',
-    tapFast: '!לחץ מהר',
-    ready: '...מוכנים',
-    set: '...היכון',
-    go: '!צא',
-    winner: '!ניצחת',
-    youLost: 'המרוץ נגמר',
-    tryAgain: 'שוב',
-    tapToStart: 'התחל מרוץ',
-    selectDifficulty: 'בחר רמת קושי',
-    easy: 'קל (50 מ׳)',
-    medium: 'בינוני (100 מ׳)',
-    hard: 'קשה (200 מ׳)',
-    newBest: '🌟 !שיא חדש',
-    clickFast: '🖱️ !לחץ מהר',
-    keyboard: '⌨️ רווח / אנטר / חצים',
-    tapRapidly: '📱 !הקש מהר',
-    meters: 'מ׳',
-    race: 'מרוץ',
-    you: 'את/ה',
-    sprint: '!רוץ',
-    difficulty: 'קושי',
-    playerColor: 'הצבע שלך',
-    opponents: 'מתחרים',
-  },
-  zh: {
-    title: '短跑比赛',
-    time: '时间',
-    best: '最佳',
-    position: '名次',
-    tapFast: '快速点击！',
-    ready: '准备...',
-    set: '预备...',
-    go: '跑！',
-    winner: '你赢了！',
-    youLost: '比赛结束',
-    tryAgain: '再来一次',
-    tapToStart: '开始比赛',
-    selectDifficulty: '选择难度',
-    easy: '简单 (50米)',
-    medium: '中等 (100米)',
-    hard: '困难 (200米)',
-    newBest: '🌟 新纪录！',
-    clickFast: '🖱️ 快速点击！',
-    keyboard: '⌨️ 空格 / 回车 / 方向键',
-    tapRapidly: '📱 快速点击！',
-    meters: '米',
-    race: '比赛',
-    you: '你',
-    sprint: '冲刺！',
-    difficulty: '难度',
-    playerColor: '你的颜色',
-    opponents: '对手',
-  },
-  es: {
-    title: 'Carrera de Velocidad',
-    time: 'Tiempo',
-    best: 'Mejor',
-    position: 'Posición',
-    tapFast: '¡TOCA RÁPIDO!',
-    ready: 'Listos...',
-    set: 'Preparados...',
-    go: '¡YA!',
-    winner: '¡Ganaste!',
-    youLost: 'Carrera terminada',
-    tryAgain: 'Otra vez',
-    tapToStart: 'Iniciar carrera',
-    selectDifficulty: 'Elige dificultad',
-    easy: 'Fácil (50 m)',
-    medium: 'Medio (100 m)',
-    hard: 'Difícil (200 m)',
-    newBest: '🌟 ¡Nuevo récord!',
-    clickFast: '🖱️ ¡Clic rápido!',
-    keyboard: '⌨️ Espacio / Enter / Flechas',
-    tapRapidly: '📱 ¡Toca rápido!',
-    meters: 'm',
-    race: 'carrera',
-    you: 'TÚ',
-    sprint: '¡Sprint!',
-    difficulty: 'Dificultad',
-    playerColor: 'Tu Color',
-    opponents: 'Rivales',
-  },
-};
-
-// ---------------------------------------------------------------------------
-// Instructions data (Feynman-style, 4 languages)
-// ---------------------------------------------------------------------------
-
-const instructionsData: Record<
-  string,
-  {
-    instructions: { icon: string; title: string; description: string }[];
-    controls: { icon: string; description: string }[];
-    tip: string;
-  }
-> = {
-  en: {
-    instructions: [
-      {
-        icon: '🏁',
-        title: 'Goal',
-        description:
-          'Race against 3 computer runners! Be the first to cross the finish line. Think of it like drumming your fingers as fast as you can on a table — the faster you tap, the faster you run!',
-      },
-      {
-        icon: '👆',
-        title: 'How to Sprint',
-        description:
-          'After the 3-2-1-GO countdown, tap the screen, click the mouse, or mash the Space bar as fast as you can. Each tap gives your runner a burst of speed. Stop tapping and you slow down!',
-      },
-      {
-        icon: '🏆',
-        title: 'Winning',
-        description:
-          'Cross the finish line before all opponents. Your best time is saved so you can try to beat your own record!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Click anywhere rapidly' },
-      { icon: '⌨️', description: 'Space, Enter, or Arrow keys' },
-      { icon: '📱', description: 'Tap the big Sprint button' },
-    ],
-    tip: 'Find a steady fast rhythm instead of random mashing — consistent speed beats wild clicking!',
-  },
-  he: {
-    instructions: [
-      {
-        icon: '🏁',
-        title: 'מטרה',
-        description:
-          'רוץ נגד 3 רצים של המחשב! היה הראשון לחצות את קו הסיום. חשוב על זה כמו תיפוף של האצבעות על השולחן — ככל שאתה מקיש מהר יותר, כך אתה רץ מהר יותר!',
-      },
-      {
-        icon: '👆',
-        title: 'איך לרוץ',
-        description:
-          'אחרי ספירה לאחור 3-2-1-צא!, הקש על המסך, לחץ על העכבר, או לחץ על מקש הרווח כמה שיותר מהר. כל הקשה נותנת לרץ שלך דחיפת מהירות!',
-      },
-      {
-        icon: '🏆',
-        title: 'ניצחון',
-        description:
-          'חצה את קו הסיום לפני כל המתחרים. הזמן הטוב ביותר שלך נשמר כדי שתוכל לנסות לשבור את השיא שלך!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'לחץ בכל מקום במהירות' },
-      { icon: '⌨️', description: 'רווח, אנטר, או חצים' },
-      { icon: '📱', description: 'הקש על כפתור הריצה' },
-    ],
-    tip: 'מצא קצב מהיר ויציב במקום ללחוץ בפראות — מהירות עקבית מנצחת לחיצות אקראיות!',
-  },
-  zh: {
-    instructions: [
-      {
-        icon: '🏁',
-        title: '目标',
-        description:
-          '与3个电脑跑步者比赛！第一个冲过终点线就赢了。想象你在桌子上快速敲手指 — 敲得越快，跑得越快！',
-      },
-      {
-        icon: '👆',
-        title: '如何冲刺',
-        description:
-          '3-2-1-跑！倒计时结束后，尽可能快地点击屏幕、鼠标或按空格键。每次点击都会让你的跑步者加速。停止点击就会减速！',
-      },
-      {
-        icon: '🏆',
-        title: '获胜',
-        description:
-          '在所有对手之前冲过终点线。你的最佳时间会被保存，这样你可以尝试打破自己的记录！',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: '快速点击任意位置' },
-      { icon: '⌨️', description: '空格、回车或方向键' },
-      { icon: '📱', description: '点击大冲刺按钮' },
-    ],
-    tip: '找到稳定的快速节奏，而不是随意乱点 — 稳定的速度胜过疯狂点击！',
-  },
-  es: {
-    instructions: [
-      {
-        icon: '🏁',
-        title: 'Objetivo',
-        description:
-          '¡Compite contra 3 corredores de la computadora! Sé el primero en cruzar la línea de meta. ¡Imagina que estás tamborileando los dedos en una mesa — cuanto más rápido toques, más rápido corres!',
-      },
-      {
-        icon: '👆',
-        title: 'Cómo Esprintar',
-        description:
-          'Después de la cuenta 3-2-1-¡YA!, toca la pantalla, haz clic o presiona la barra espaciadora lo más rápido posible. ¡Cada toque le da un impulso a tu corredor!',
-      },
-      {
-        icon: '🏆',
-        title: 'Ganar',
-        description:
-          'Cruza la meta antes que todos los oponentes. ¡Tu mejor tiempo se guarda para que puedas intentar batir tu propio récord!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Clic rápido en cualquier lugar' },
-      { icon: '⌨️', description: 'Espacio, Enter o flechas' },
-      { icon: '📱', description: 'Toca el botón de Sprint' },
-    ],
-    tip: 'Encuentra un ritmo rápido y constante en lugar de tocar al azar — ¡la velocidad constante gana!',
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
 export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
-  const t = translations[locale] || translations.en;
   const direction = useDirection();
+  const t = useTranslations('sprintRace');
   const isRtl = direction === TextDirection.RTL;
-  const instrData = instructionsData[locale] || instructionsData.en;
 
   // ---- Refs ----
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -446,7 +198,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
           maxSpeed: 5.2,
           frame: 0,
           isPlayer: true,
-          name: t.you,
+          name: t('you'),
           color,
           finished: false,
           finishTime: 0,
@@ -470,7 +222,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
       }
       runnersRef.current = runners;
     },
-    [t.you],
+    [t],
   );
 
   // ---- Start race (countdown) ----
@@ -636,11 +388,11 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
       ctx.fillStyle = '#fff';
       ctx.font = 'bold 10px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText(runner.isPlayer ? t.you : runner.name, 15, -6);
+      ctx.fillText(runner.isPlayer ? t('you') : runner.name, 15, -6);
 
       ctx.restore();
     },
-    [t.you],
+    [t],
   );
 
   // ---- Main game loop ----
@@ -814,7 +566,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
       ctx.fillStyle = 'rgba(255,255,255,0.6)';
       ctx.textAlign = 'center';
       const trackLen = FINISH - START_X;
-      const meterLabel = (translations[locale] || translations.en).meters;
+      const meterLabel = t('meters');
       for (
         let m = 0;
         m <= settings.trackMeters;
@@ -870,12 +622,11 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
         ctx.font = 'bold 90px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        const cdT = translations[locale] || translations.en;
         const cdText =
           countdown === 3
-            ? cdT.ready
+            ? t('ready')
             : countdown === 2
-              ? cdT.set
+              ? t('set')
               : countdown === 1
                 ? '1'
                 : cdT.go;
@@ -924,7 +675,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
         ctx.font = 'bold 13px Arial';
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
-        const tapLabel = (translations[locale] || translations.en).tapFast;
+        const tapLabel = t('tapFast');
         ctx.fillText(tapLabel, CANVAS_WIDTH / 2, barY - 6);
 
         // Mini progress bar at top
@@ -975,39 +726,39 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
   const player = runnersRef.current.find((r) => r.isPlayer);
   const diffSettings = DIFFICULTY_SETTINGS[difficulty];
   const difficultyLabels: Record<Difficulty, string> = {
-    easy: t.easy,
-    medium: t.medium,
-    hard: t.hard,
+    easy: t('easy'),
+    medium: t('medium'),
+    hard: t('hard'),
   };
 
   return (
-    <GameWrapper title={t.title} onInstructionsClick={() => setShowInstructions(true)}>
+    <GameWrapper title={t('title')} onInstructionsClick={() => setShowInstructions(true)}>
       <div className="flex flex-col items-center gap-4" dir={direction}>
         {/* Stats bar */}
         <div className="flex flex-wrap justify-center gap-3 mb-1">
           <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center min-w-[90px]">
-            <div className="text-xs text-slate-500 font-medium">{t.time}</div>
+            <div className="text-xs text-slate-500 font-medium">{t('time')}</div>
             <div className="text-xl font-bold text-[#d32f2f] font-mono">
               {raceTime.toFixed(2)}s
             </div>
           </div>
           <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center min-w-[90px]">
-            <div className="text-xs text-slate-500 font-medium">{t.position}</div>
+            <div className="text-xs text-slate-500 font-medium">{t('position')}</div>
             <div className="text-xl font-bold text-[#4caf50]">
               {playerPosition > 0 ? `${playerPosition}/${totalLanes}` : '-'}
             </div>
           </div>
           <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center min-w-[90px]">
-            <div className="text-xs text-slate-500 font-medium">{t.best}</div>
+            <div className="text-xs text-slate-500 font-medium">{t('best')}</div>
             <div className="text-xl font-bold text-[#ff9800] font-mono">
               {bestTime < 99 ? `${bestTime.toFixed(2)}s` : '-'}
             </div>
           </div>
           {gamePhase === 'racing' && (
             <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center min-w-[90px]">
-              <div className="text-xs text-slate-500 font-medium">{t.difficulty}</div>
+              <div className="text-xs text-slate-500 font-medium">{t('difficulty')}</div>
               <div className="text-xl font-bold" style={{ color: diffSettings.color }}>
-                {diffSettings.emoji} {diffSettings.trackMeters}{t.meters}
+                {diffSettings.emoji} {diffSettings.trackMeters}{t('meters')}
               </div>
             </div>
           )}
@@ -1040,12 +791,12 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
                   🏃
                 </motion.div>
                 <h2 className="text-2xl font-bold text-white mb-1 drop-shadow-lg">
-                  {t.title}
+                  {t('title')}
                 </h2>
-                <p className="text-white/80 text-sm mb-4">{t.selectDifficulty}</p>
+                <p className="text-white/80 text-sm mb-4">{t('selectDifficulty')}</p>
 
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <span className="text-white/80 text-sm font-medium">{t.opponents}:</span>
+                  <span className="text-white/80 text-sm font-medium">{t('opponents')}:</span>
                   {Array.from({ length: MAX_OPPONENTS - MIN_OPPONENTS + 1 }, (_, i) => i + MIN_OPPONENTS).map((n) => (
                     <button
                       key={n}
@@ -1062,7 +813,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
                 </div>
 
                 <div className="flex items-center justify-center gap-2 mb-3">
-                  <span className="text-white/80 text-sm font-medium">{t.playerColor}:</span>
+                  <span className="text-white/80 text-sm font-medium">{t('playerColor')}:</span>
                   {PLAYER_COLORS.map((c) => (
                     <button
                       key={c.hex}
@@ -1121,10 +872,10 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
                           : '🏃'}
                   </div>
                   <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                    {playerWon ? t.winner : t.youLost}
+                    {playerWon ? t('winner') : t('youLost')}
                   </h2>
                   <div className="text-lg text-slate-500 mb-1">
-                    {t.position}: {playerPosition}/{totalLanes}
+                    {t('position')}: {playerPosition}/{totalLanes}
                   </div>
                   <div className="text-3xl font-bold text-[#d32f2f] mb-2 font-mono">
                     {player?.finishTime
@@ -1135,7 +886,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
                     player.finishTime > 0 &&
                     player.finishTime <= bestTime && (
                       <div className="text-base text-[#ff9800] font-bold mb-3">
-                        {t.newBest}
+                        {t('newBest')}
                       </div>
                     )}
                   <motion.button
@@ -1147,7 +898,7 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
                     }}
                     className="px-8 py-3 bg-[#d32f2f] hover:bg-[#b71c1c] text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                   >
-                    {t.tryAgain}
+                    {t('tryAgain')}
                   </motion.button>
                 </div>
               </motion.div>
@@ -1166,15 +917,15 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
             className="w-full max-w-[400px] py-6 bg-[#d32f2f] hover:bg-[#c62828] text-white text-2xl font-bold rounded-2xl shadow-xl active:shadow-md transition-shadow select-none min-h-[64px]"
             style={{ touchAction: 'none' }}
           >
-            {t.sprint} 🏃💨
+            {t('sprint')} 🏃💨
           </motion.button>
         )}
 
         {/* Control hints */}
         <div className="flex flex-wrap justify-center gap-3 text-slate-600 text-sm">
-          <span className="px-3 py-1 bg-white/80 rounded-full">{t.clickFast}</span>
-          <span className="px-3 py-1 bg-white/80 rounded-full">{t.keyboard}</span>
-          <span className="px-3 py-1 bg-white/80 rounded-full">{t.tapRapidly}</span>
+          <span className="px-3 py-1 bg-white/80 rounded-full">{t('clickFast')}</span>
+          <span className="px-3 py-1 bg-white/80 rounded-full">{t('keyboard')}</span>
+          <span className="px-3 py-1 bg-white/80 rounded-full">{t('tapRapidly')}</span>
         </div>
       </div>
 
@@ -1193,10 +944,18 @@ export default function SprintRaceGame({ locale = 'en' }: SprintRaceGameProps) {
       <InstructionsModal
         isOpen={showInstructions}
         onClose={() => setShowInstructions(false)}
-        title={t.title}
-        instructions={instrData.instructions}
-        controls={instrData.controls}
-        tip={instrData.tip}
+        title={t('title')}
+        instructions={[
+          { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+          { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+          { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+        ]}
+        controls={[
+          { icon: t('instructions.control0Icon'), description: t('instructions.control0Desc') },
+          { icon: t('instructions.control1Icon'), description: t('instructions.control1Desc') },
+          { icon: t('instructions.control2Icon'), description: t('instructions.control2Desc') },
+        ]}
+        tip={t('instructions.tip')}
         locale={locale}
       />
     </GameWrapper>

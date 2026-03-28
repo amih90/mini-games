@@ -8,6 +8,7 @@ import { LevelDisplay } from '../shared/LevelDisplay';
 import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { useDirection } from '@/hooks/useDirection';
+import { useTranslations } from 'next-intl';
 import { TextDirection } from '@/i18n/routing';
 
 // ---------------------------------------------------------------------------
@@ -168,298 +169,7 @@ const DINO_COLORS: DinoColor[] = [
 
 const DEFAULT_DINO_COLOR = DINO_COLORS[0];
 
-// ---------------------------------------------------------------------------
-// Translations
-// ---------------------------------------------------------------------------
 
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    title: 'Dino Run',
-    score: 'Score',
-    highScore: 'Best',
-    gameOver: 'Game Over!',
-    playAgain: 'Play Again',
-    newHighScore: '🏆 New High Score!',
-    tapToStart: 'Press Space or Click to Jump',
-    duck: 'Duck',
-    selectDifficulty: 'Select Difficulty',
-    easy: '🟢 Easy',
-    medium: '🟡 Medium',
-    hard: '🔴 Hard',
-    easyDesc: 'Slower pace, great for beginners',
-    mediumDesc: 'Balanced challenge',
-    hardDesc: 'Fast & intense!',
-    jumpBtn: 'Jump',
-    duckBtn: 'Duck',
-    milestone: 'Nice! +500!',
-    level: 'Level',
-    speed: 'Speed',
-    pickColor: 'Pick your dino color',
-    coins: 'Coins',
-    shield: '🛡️ Shield!',
-    slowMo: '🐌 Slow Mo!',
-    combo: 'Combo x',
-  },
-  he: {
-    title: 'דינו רץ',
-    score: 'ניקוד',
-    highScore: 'שיא',
-    gameOver: '!המשחק נגמר',
-    playAgain: 'שחק שוב',
-    newHighScore: '🏆 !שיא חדש',
-    tapToStart: 'לחץ רווח או לחץ כדי לקפוץ',
-    duck: 'התכופף',
-    selectDifficulty: 'בחר רמת קושי',
-    easy: '🟢 קל',
-    medium: '🟡 בינוני',
-    hard: '🔴 קשה',
-    easyDesc: 'קצב איטי, מצוין למתחילים',
-    mediumDesc: 'אתגר מאוזן',
-    hardDesc: '!מהיר ואינטנסיבי',
-    jumpBtn: 'קפוץ',
-    duckBtn: 'התכופף',
-    milestone: '!יפה! 500+',
-    level: 'שלב',
-    speed: 'מהירות',
-    pickColor: 'בחר צבע לדינו',
-    coins: 'מטבעות',
-    shield: '🛡️ !מגן',
-    slowMo: '🐌 !הילוך איטי',
-    combo: 'קומבו x',
-  },
-  zh: {
-    title: '恐龙快跑',
-    score: '得分',
-    highScore: '最高分',
-    gameOver: '游戏结束！',
-    playAgain: '再玩一次',
-    newHighScore: '🏆 新纪录！',
-    tapToStart: '按空格键或点击跳跃',
-    duck: '蹲下',
-    selectDifficulty: '选择难度',
-    easy: '🟢 简单',
-    medium: '🟡 中等',
-    hard: '🔴 困难',
-    easyDesc: '节奏较慢，适合初学者',
-    mediumDesc: '平衡的挑战',
-    hardDesc: '快速且激烈！',
-    jumpBtn: '跳',
-    duckBtn: '蹲',
-    milestone: '不错！+500！',
-    level: '关卡',
-    speed: '速度',
-    pickColor: '选择恐龙颜色',
-    coins: '金币',
-    shield: '🛡️ 护盾！',
-    slowMo: '🐌 慢动作！',
-    combo: '连击 x',
-  },
-  es: {
-    title: 'Dino Run',
-    score: 'Puntuación',
-    highScore: 'Récord',
-    gameOver: '¡Fin del juego!',
-    playAgain: 'Jugar de nuevo',
-    newHighScore: '🏆 ¡Nuevo récord!',
-    tapToStart: 'Presiona Espacio o Haz clic para saltar',
-    duck: 'Agacharse',
-    selectDifficulty: 'Selecciona dificultad',
-    easy: '🟢 Fácil',
-    medium: '🟡 Medio',
-    hard: '🔴 Difícil',
-    easyDesc: 'Más lento, ideal para principiantes',
-    mediumDesc: 'Desafío equilibrado',
-    hardDesc: '¡Rápido e intenso!',
-    jumpBtn: 'Saltar',
-    duckBtn: 'Agachar',
-    milestone: '¡Bien! +500!',
-    level: 'Nivel',
-    speed: 'Velocidad',
-    pickColor: 'Elige el color de tu dino',
-    coins: 'Monedas',
-    shield: '🛡️ ¡Escudo!',
-    slowMo: '🐌 ¡Cámara lenta!',
-    combo: 'Combo x',
-  },
-};
-
-// ---------------------------------------------------------------------------
-// Instructions data (Feynman style)
-// ---------------------------------------------------------------------------
-
-const instructionsData: Record<
-  string,
-  {
-    instructions: { icon: string; title: string; description: string }[];
-    controls: { icon: string; description: string }[];
-    tip: string;
-  }
-> = {
-  en: {
-    instructions: [
-      {
-        icon: '🦖',
-        title: 'Run!',
-        description:
-          'You are a little dinosaur running through the desert. The ground scrolls automatically — you just need to survive!',
-      },
-      {
-        icon: '🌵',
-        title: 'Avoid Obstacles',
-        description:
-          'Cacti, rocks, meteors, and flying birds will try to stop you. Jump over ground obstacles and duck under birds!',
-      },
-      {
-        icon: '⚡',
-        title: 'It Gets Harder',
-        description:
-          'The longer you survive, the faster things move. New obstacle types appear as your score grows — watch out for falling meteors!',
-      },
-      {
-        icon: '🪙',
-        title: 'Coins & Power-Ups',
-        description:
-          'Collect floating coins for bonus points! Grab shields for invincibility or slow-mo to freeze time. Chain coins for combo bonuses!',
-      },
-      {
-        icon: '🌙',
-        title: 'Day & Night',
-        description:
-          'The world shifts between day and night as you run. Stay focused — obstacles are the same in the dark!',
-      },
-    ],
-    controls: [
-      { icon: '⬆️', description: 'Space / Arrow Up / W — Jump' },
-      { icon: '⬇️', description: 'Arrow Down / S — Duck' },
-      { icon: '🖱️', description: 'Click or Tap — Jump' },
-      { icon: '📱', description: 'Use on-screen buttons on mobile' },
-    ],
-    tip: 'Ducking only helps avoid birds — you still need to jump over cacti and rocks!',
-  },
-  he: {
-    instructions: [
-      {
-        icon: '🦖',
-        title: '!רוץ',
-        description:
-          'אתה דינוזאור קטן שרץ במדבר. הקרקע זזה אוטומטית — אתה רק צריך לשרוד!',
-      },
-      {
-        icon: '🌵',
-        title: 'הימנע ממכשולים',
-        description:
-          'קקטוסים, סלעים, מטאורים וציפורים מעופפות ינסו לעצור אותך. קפוץ מעל מכשולים והתכופף מתחת לציפורים!',
-      },
-      {
-        icon: '⚡',
-        title: 'זה נהיה קשה יותר',
-        description:
-          'ככל ששורד יותר זמן, הכל זז מהר יותר. סוגי מכשולים חדשים מופיעים ככל שהניקוד עולה — היזהר ממטאורים!',
-      },
-      {
-        icon: '🪙',
-        title: 'מטבעות וכוחות מיוחדים',
-        description:
-          'אסוף מטבעות מרחפים לנקודות בונוס! תפוס מגנים לחוסן או הילוך איטי. שרשר מטבעות לבונוס קומבו!',
-      },
-      {
-        icon: '🌙',
-        title: 'יום ולילה',
-        description:
-          'העולם מתחלף בין יום ללילה בזמן הריצה. הישאר ממוקד — המכשולים זהים גם בחושך!',
-      },
-    ],
-    controls: [
-      { icon: '⬆️', description: 'רווח / חץ למעלה / W — קפיצה' },
-      { icon: '⬇️', description: 'חץ למטה / S — התכופפות' },
-      { icon: '🖱️', description: 'לחיצה או נגיעה — קפיצה' },
-      { icon: '📱', description: 'השתמש בכפתורים על המסך בנייד' },
-    ],
-    tip: 'התכופפות עוזרת רק נגד ציפורים — עדיין צריך לקפוץ מעל קקטוסים וסלעים!',
-  },
-  zh: {
-    instructions: [
-      {
-        icon: '🦖',
-        title: '快跑！',
-        description:
-          '你是一只在沙漠中奔跑的小恐龙。地面会自动滚动——你只需要活下来！',
-      },
-      {
-        icon: '🌵',
-        title: '避开障碍物',
-        description:
-          '仙人掌、石头、陨石和飞鸟会挡住你的路。跳过地面障碍物，蹲下躲过飞鸟！',
-      },
-      {
-        icon: '⚡',
-        title: '越来越难',
-        description:
-          '你存活的时间越长，速度就越快。随着分数增长会出现新的障碍物类型——小心落下的陨石！',
-      },
-      {
-        icon: '🪙',
-        title: '金币与道具',
-        description:
-          '收集浮动金币获得额外分数！抓住护盾获得无敌，或慢动作冻结时间。连续收集金币获得连击奖励！',
-      },
-      {
-        icon: '🌙',
-        title: '昼夜交替',
-        description:
-          '奔跑时世界在白天和黑夜之间切换。保持专注——黑暗中障碍物不会消失！',
-      },
-    ],
-    controls: [
-      { icon: '⬆️', description: '空格键 / 上箭头 / W — 跳跃' },
-      { icon: '⬇️', description: '下箭头 / S — 蹲下' },
-      { icon: '🖱️', description: '点击或触摸 — 跳跃' },
-      { icon: '📱', description: '在手机上使用屏幕按钮' },
-    ],
-    tip: '蹲下只能躲避飞鸟——仙人掌和石头还是需要跳过去！',
-  },
-  es: {
-    instructions: [
-      {
-        icon: '🦖',
-        title: '¡Corre!',
-        description:
-          'Eres un pequeño dinosaurio corriendo por el desierto. El suelo se desplaza automáticamente — ¡solo necesitas sobrevivir!',
-      },
-      {
-        icon: '🌵',
-        title: 'Evita Obstáculos',
-        description:
-          'Cactus, rocas, meteoritos y pájaros intentarán detenerte. ¡Salta sobre los obstáculos del suelo y agáchate bajo los pájaros!',
-      },
-      {
-        icon: '⚡',
-        title: 'Cada Vez Más Difícil',
-        description:
-          'Cuanto más sobrevivas, más rápido se mueve todo. ¡Nuevos obstáculos aparecen al subir tu puntuación — cuidado con los meteoritos!',
-      },
-      {
-        icon: '🪙',
-        title: 'Monedas y Poderes',
-        description:
-          '¡Recoge monedas flotantes para puntos extra! Agarra escudos para ser invencible o cámara lenta. ¡Encadena monedas para combo!',
-      },
-      {
-        icon: '🌙',
-        title: 'Día y Noche',
-        description:
-          'El mundo cambia entre día y noche mientras corres. ¡Los obstáculos son iguales en la oscuridad!',
-      },
-    ],
-    controls: [
-      { icon: '⬆️', description: 'Espacio / Flecha Arriba / W — Saltar' },
-      { icon: '⬇️', description: 'Flecha Abajo / S — Agacharse' },
-      { icon: '🖱️', description: 'Clic o Toque — Saltar' },
-      { icon: '📱', description: 'Usa los botones en pantalla en móvil' },
-    ],
-    tip: '¡Agacharse solo ayuda contra los pájaros — aún necesitas saltar sobre cactus y rocas!',
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Drawing helpers
@@ -972,10 +682,9 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameLoopRef = useRef<number | null>(null);
 
-  const t = translations[locale] || translations.en;
+  const t = useTranslations('dinoRun');
   const direction = useDirection();
   const isRtl = direction === TextDirection.RTL;
-  const instrData = instructionsData[locale] || instructionsData.en;
 
   const {
     playClick,
@@ -1518,13 +1227,13 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
           playPowerUp();
           if (pu.type === 'shield') {
             shieldTimerRef.current = SHIELD_DURATION;
-            setPowerUpLabel(t.shield);
+            setPowerUpLabel(t('shield'));
           } else {
             slowMoTimerRef.current = SLOWMO_DURATION;
             if (savedSpeedRef.current === 0) {
               savedSpeedRef.current = gameSpeedRef.current;
             }
-            setPowerUpLabel(t.slowMo);
+            setPowerUpLabel(t('slowMo'));
           }
           setTimeout(() => setPowerUpLabel(''), 1500);
         }
@@ -1660,12 +1369,12 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
         comboRef.current,
         shieldTimerRef.current,
         slowMoTimerRef.current,
-        t.score,
-        t.highScore,
-        t.coins,
-        t.combo,
-        t.shield,
-        t.slowMo,
+        t('score'),
+        t('highScore'),
+        t('coins'),
+        t('combo'),
+        t('shield'),
+        t('slowMo'),
         isRtl,
         isNight,
       );
@@ -1683,7 +1392,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
         gameLoopRef.current = null;
       }
     };
-  }, [gameState, spawnObstacle, spawnCoin, spawnPowerUp, t.score, t.highScore, t.coins, t.combo, t.shield, t.slowMo, isRtl, playHit, playGameOver, playSuccess, playLevelUp, playMatch, playPowerUp, playWhoosh]);
+  }, [gameState, spawnObstacle, spawnCoin, spawnPowerUp, t('score'), t('highScore'), t('coins'), t('combo'), t('shield'), t('slowMo'), isRtl, playHit, playGameOver, playSuccess, playLevelUp, playMatch, playPowerUp, playWhoosh]);
 
   // -----------------------------------------------------------------------
   // Static screen draw (menu / gameover)
@@ -1725,24 +1434,24 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
   // Render
   // -----------------------------------------------------------------------
   return (
-    <GameWrapper title={t.title} onInstructionsClick={() => setShowInstructions(true)}>
+    <GameWrapper title={t('title')} onInstructionsClick={() => setShowInstructions(true)}>
       <div className="flex flex-col items-center gap-4" dir={direction}>
         {/* Score + Level + Coins bar */}
         <div className="flex flex-wrap items-center justify-center gap-4 mb-2">
           <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center">
-            <div className="text-sm text-slate-500 font-medium">{t.score}</div>
+            <div className="text-sm text-slate-500 font-medium">{t('score')}</div>
             <div className="text-2xl font-bold text-[#22c55e] font-mono">
               {String(score).padStart(5, '0')}
             </div>
           </div>
           <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center">
-            <div className="text-sm text-slate-500 font-medium">{t.highScore}</div>
+            <div className="text-sm text-slate-500 font-medium">{t('highScore')}</div>
             <div className="text-2xl font-bold text-[#f97316] font-mono">
               {String(highScore).padStart(5, '0')}
             </div>
           </div>
           <div className="bg-white/90 rounded-2xl px-5 py-2 shadow-lg text-center">
-            <div className="text-sm text-slate-500 font-medium">🪙 {t.coins}</div>
+            <div className="text-sm text-slate-500 font-medium">🪙 {t('coins')}</div>
             <div className="text-2xl font-bold text-[#fbbf24] font-mono">{coinCount}</div>
           </div>
           {gameState === 'playing' && (
@@ -1769,7 +1478,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                 exit={{ opacity: 0, y: -20 }}
                 className="absolute top-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-yellow-400 text-slate-900 font-bold rounded-full shadow-lg text-lg"
               >
-                {t.milestone}
+                {t('milestone')}
               </motion.div>
             )}
           </AnimatePresence>
@@ -1798,7 +1507,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                 exit={{ opacity: 0 }}
                 className="absolute top-20 left-1/2 -translate-x-1/2 px-4 py-1 bg-amber-400/90 text-slate-900 font-bold rounded-full shadow text-sm"
               >
-                {t.combo}{comboCount} 🔥
+                {t('combo')}{comboCount} 🔥
               </motion.div>
             )}
           </AnimatePresence>
@@ -1819,9 +1528,9 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                 >
                   🦖
                 </motion.div>
-                <h2 className="text-2xl font-bold text-white mb-1 drop-shadow-lg">{t.title}</h2>
+                <h2 className="text-2xl font-bold text-white mb-1 drop-shadow-lg">{t('title')}</h2>
 
-                <p className="text-white/70 text-xs mb-1">{t.pickColor}</p>
+                <p className="text-white/70 text-xs mb-1">{t('pickColor')}</p>
                 <div className="flex gap-2 mb-3">
                   {DINO_COLORS.map((c) => (
                     <motion.button
@@ -1844,7 +1553,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                   ))}
                 </div>
 
-                <p className="text-white/80 text-sm mb-4">{t.selectDifficulty}</p>
+                <p className="text-white/80 text-sm mb-4">{t('selectDifficulty')}</p>
 
                 <div className="flex flex-col sm:flex-row gap-3">
                   <motion.button
@@ -1853,8 +1562,8 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                     onClick={() => handleSelectDifficulty('easy')}
                     className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-full shadow-lg min-h-[48px] min-w-[48px] flex flex-col items-center"
                   >
-                    <span className="text-base">{t.easy}</span>
-                    <span className="text-xs font-normal opacity-80">{t.easyDesc}</span>
+                    <span className="text-base">{t('easy')}</span>
+                    <span className="text-xs font-normal opacity-80">{t('easy')Desc}</span>
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1862,8 +1571,8 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                     onClick={() => handleSelectDifficulty('medium')}
                     className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-full shadow-lg min-h-[48px] min-w-[48px] flex flex-col items-center"
                   >
-                    <span className="text-base">{t.medium}</span>
-                    <span className="text-xs font-normal opacity-80">{t.mediumDesc}</span>
+                    <span className="text-base">{t('medium')}</span>
+                    <span className="text-xs font-normal opacity-80">{t('medium')Desc}</span>
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1871,8 +1580,8 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                     onClick={() => handleSelectDifficulty('hard')}
                     className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-full shadow-lg min-h-[48px] min-w-[48px] flex flex-col items-center"
                   >
-                    <span className="text-base">{t.hard}</span>
-                    <span className="text-xs font-normal opacity-80">{t.hardDesc}</span>
+                    <span className="text-base">{t('hard')}</span>
+                    <span className="text-xs font-normal opacity-80">{t('hard')Desc}</span>
                   </motion.button>
                 </div>
               </motion.div>
@@ -1890,13 +1599,13 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
               >
                 <div className="bg-white rounded-3xl p-6 sm:p-8 text-center shadow-2xl max-w-xs w-full mx-4">
                   <div className="text-5xl mb-3">💥</div>
-                  <h2 className="text-2xl font-bold text-slate-800 mb-2">{t.gameOver}</h2>
+                  <h2 className="text-2xl font-bold text-slate-800 mb-2">{t('gameOver')}</h2>
                   <div className="text-4xl font-bold mb-1 font-mono" style={{ color: dinoColor.primary }}>{score}</div>
                   {score >= highScore && score > 0 && (
-                    <div className="text-base text-[#f97316] font-bold mb-2">{t.newHighScore}</div>
+                    <div className="text-base text-[#f97316] font-bold mb-2">{t('newHighScore')}</div>
                   )}
                   <div className="text-sm text-slate-600 mb-3">
-                    🪙 {t.coins}: {coinCount}
+                    🪙 {t('coins')}: {coinCount}
                   </div>
                   <div className="flex flex-col gap-2 mt-4">
                     <motion.button
@@ -1906,7 +1615,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                       className="px-8 py-3 text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                       style={{ backgroundColor: dinoColor.primary }}
                     >
-                      {t.playAgain}
+                      {t('playAgain')}
                     </motion.button>
                     <motion.button
                       whileHover={{ scale: 1.05 }}
@@ -1917,7 +1626,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                       }}
                       className="px-8 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-bold rounded-full shadow min-h-[48px]"
                     >
-                      {t.selectDifficulty}
+                      {t('selectDifficulty')}
                     </motion.button>
                   </div>
                 </div>
@@ -1937,7 +1646,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
               }}
               className="px-8 py-4 bg-[#22c55e] hover:bg-[#16a34a] text-white text-lg font-bold rounded-2xl shadow-lg min-h-[56px] min-w-[56px] active:bg-[#16a34a] select-none"
             >
-              ⬆️ {t.jumpBtn}
+              ⬆️ {t('jumpBtn')}
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.85 }}
@@ -1951,16 +1660,16 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
               }}
               className="px-8 py-4 bg-[#f97316] hover:bg-[#ea580c] text-white text-lg font-bold rounded-2xl shadow-lg min-h-[56px] min-w-[56px] active:bg-[#ea580c] select-none"
             >
-              ⬇️ {t.duckBtn}
+              ⬇️ {t('duck')Btn}
             </motion.button>
           </div>
         )}
 
         {/* Control hints */}
         <div className="flex flex-wrap justify-center gap-2 text-slate-600 text-sm">
-          <span className="px-3 py-1 bg-white/80 rounded-full">🖱️ Click = {t.jumpBtn}</span>
-          <span className="px-3 py-1 bg-white/80 rounded-full">Space/↑/W = {t.jumpBtn}</span>
-          <span className="px-3 py-1 bg-white/80 rounded-full">↓/S = {t.duckBtn}</span>
+          <span className="px-3 py-1 bg-white/80 rounded-full">🖱️ Click = {t('jumpBtn')}</span>
+          <span className="px-3 py-1 bg-white/80 rounded-full">Space/↑/W = {t('jumpBtn')}</span>
+          <span className="px-3 py-1 bg-white/80 rounded-full">↓/S = {t('duck')Btn}</span>
         </div>
       </div>
 
@@ -1968,10 +1677,21 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
       <InstructionsModal
         isOpen={showInstructions}
         onClose={closeInstructions}
-        title={t.title}
-        instructions={instrData.instructions}
-        controls={instrData.controls}
-        tip={instrData.tip}
+        title={t('title')}
+        instructions={[
+          { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+          { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+          { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+          { icon: t('instructions.step3Icon'), title: t('instructions.step3Title'), description: t('instructions.step3Desc') },
+          { icon: t('instructions.step4Icon'), title: t('instructions.step4Title'), description: t('instructions.step4Desc') },
+        ]}
+        controls={[
+          { icon: t('instructions.control0Icon'), description: t('instructions.control0Desc') },
+          { icon: t('instructions.control1Icon'), description: t('instructions.control1Desc') },
+          { icon: t('instructions.control2Icon'), description: t('instructions.control2Desc') },
+          { icon: t('instructions.control3Icon'), description: t('instructions.control3Desc') },
+        ]}
+        tip={t('instructions.tip')}
         locale={locale}
       />
     </GameWrapper>

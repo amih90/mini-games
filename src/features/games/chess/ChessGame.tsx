@@ -35,156 +35,6 @@ const pieceSymbols: Record<string, string> = {
 /*  Feynman-style instructions — all 4 locales                        */
 /* ------------------------------------------------------------------ */
 
-const instructionsData: Record<
-  string,
-  {
-    instructions: { icon: string; title: string; description: string }[];
-    controls: { icon: string; description: string }[];
-    tip: string;
-  }
-> = {
-  en: {
-    instructions: [
-      {
-        icon: '♚',
-        title: 'The Goal',
-        description:
-          'Trap the opponent\'s King so it can\'t escape — that\'s called "checkmate"! Think of it like a game of tag where the King can\'t run away.',
-      },
-      {
-        icon: '♟',
-        title: 'Your Army',
-        description:
-          'You have 16 pieces. Pawns march forward one step (two on first move). Rooks slide straight. Knights jump in an "L" over others! Bishops slide diagonally. The Queen goes anywhere — she\'s the strongest. The King moves one step any direction.',
-      },
-      {
-        icon: '⚔️',
-        title: 'Capturing',
-        description:
-          'Land on a square with an opponent\'s piece to capture it and remove it from the board. Be careful — they can capture yours too!',
-      },
-      {
-        icon: '🏆',
-        title: 'Winning',
-        description:
-          'When you attack the King and it has no way to escape, block, or capture the attacker — that\'s checkmate! You win!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Click a piece to select it, then click where to move' },
-      { icon: '⌨️', description: 'Arrow keys to move cursor, Enter to select/place' },
-      { icon: '⇥', description: 'Tab to jump between your pieces' },
-      { icon: '💡', description: 'Click "Show Hint" for help' },
-    ],
-    tip: 'Control the center of the board! Pieces in the middle can reach more squares.',
-  },
-  he: {
-    instructions: [
-      {
-        icon: '♚',
-        title: 'המטרה',
-        description:
-          'לכוד את המלך של היריב כך שלא יוכל לברוח — זה נקרא "מט"! חשוב על זה כמו משחק תפיסה שבו המלך לא יכול לברוח.',
-      },
-      {
-        icon: '♟',
-        title: 'הצבא שלך',
-        description:
-          'יש לך 16 כלים. רגלים צועדים קדימה צעד אחד (שניים בתור הראשון). צריחים מחליקים ישר. פרשים קופצים ב-"L" מעל אחרים! רצים מחליקים באלכסון. המלכה הולכת לכל מקום — היא הכי חזקה. המלך זז צעד אחד בכל כיוון.',
-      },
-      {
-        icon: '⚔️',
-        title: 'לכידה',
-        description:
-          'נחת על משבצת עם כלי של היריב כדי ללכוד אותו ולהוציא אותו מהלוח. אבל היזהר — גם הם יכולים ללכוד את שלך!',
-      },
-      {
-        icon: '🏆',
-        title: 'ניצחון',
-        description:
-          'כשאתה תוקף את המלך ואין לו דרך לברוח, לחסום, או ללכוד את התוקף — זה מט! ניצחת!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'לחץ על כלי לבחירה, ואז לחץ לאן להזיז' },
-      { icon: '⌨️', description: 'מקשי חצים להזזת הסמן, Enter לבחירה/הנחה' },
-      { icon: '⇥', description: 'Tab לדילוג בין הכלים שלך' },
-      { icon: '💡', description: 'לחץ "הצג רמז" לעזרה' },
-    ],
-    tip: 'שלוט במרכז הלוח! כלים במרכז יכולים להגיע ליותר משבצות.',
-  },
-  zh: {
-    instructions: [
-      {
-        icon: '♚',
-        title: '目标',
-        description:
-          '困住对手的国王让它无处可逃——这叫"将杀"！把它想象成一个抓人游戏，国王无法逃跑。',
-      },
-      {
-        icon: '♟',
-        title: '你的军队',
-        description:
-          '你有16个棋子。兵向前走一步（第一步可走两步）。车沿直线走。马跳"L"形可越子！象沿对角线走。后可以去任何方向——她最强。王每次走一步。',
-      },
-      {
-        icon: '⚔️',
-        title: '吃子',
-        description:
-          '走到对手棋子的格子上就能吃掉它。但小心——对手也能吃你的棋子！',
-      },
-      {
-        icon: '🏆',
-        title: '获胜',
-        description:
-          '当你攻击国王且它无法逃脱、阻挡或吃掉攻击者——这就是将杀！你赢了！',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: '点击棋子选择，再点击目标位置移动' },
-      { icon: '⌨️', description: '方向键移动光标，回车选择/放置' },
-      { icon: '⇥', description: 'Tab在你的棋子间切换' },
-      { icon: '💡', description: '点击"显示提示"获取帮助' },
-    ],
-    tip: '控制棋盘中心！中间的棋子能到达更多格子。',
-  },
-  es: {
-    instructions: [
-      {
-        icon: '♚',
-        title: 'El Objetivo',
-        description:
-          'Atrapa al Rey del oponente para que no pueda escapar — eso se llama "jaque mate". Piénsalo como un juego donde el Rey no puede huir.',
-      },
-      {
-        icon: '♟',
-        title: 'Tu Ejército',
-        description:
-          'Tienes 16 piezas. Peones avanzan un paso (dos en el primero). Torres van recto. Caballos saltan en "L" sobre otros. Alfiles van diagonal. La Reina va a cualquier lado — es la más fuerte. El Rey se mueve un paso.',
-      },
-      {
-        icon: '⚔️',
-        title: 'Capturar',
-        description:
-          'Aterriza en una casilla con pieza del oponente para capturarla. Pero cuidado — ellos pueden capturar las tuyas.',
-      },
-      {
-        icon: '🏆',
-        title: 'Ganar',
-        description:
-          'Cuando atacas al Rey y no puede escapar, bloquear o capturar al atacante — eso es jaque mate. Ganas.',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Clic en pieza para seleccionar, luego clic donde mover' },
-      { icon: '⌨️', description: 'Flechas para mover cursor, Enter para seleccionar/colocar' },
-      { icon: '⇥', description: 'Tab para saltar entre tus piezas' },
-      { icon: '💡', description: 'Clic en "Mostrar pista" para ayuda' },
-    ],
-    tip: 'Controla el centro del tablero. Las piezas en el medio alcanzan más casillas.',
-  },
-};
-
 /* ------------------------------------------------------------------ */
 /*  Check detection utility                                            */
 /* ------------------------------------------------------------------ */
@@ -549,7 +399,6 @@ export function ChessGame() {
   }, []);
 
   /* ---- derived data ---------------------------------------------- */
-  const instrData = instructionsData[locale] || instructionsData.en;
   const lossLabel = lossLabels[locale] || lossLabels.en;
   const inCheck =
     !gameOver && isKingInCheck(board, currentPlayer)
@@ -821,9 +670,19 @@ export function ChessGame() {
         isOpen={showInstructions}
         onClose={() => setShowInstructions(false)}
         title={t('title') || 'Chess'}
-        instructions={instrData.instructions}
-        controls={instrData.controls}
-        tip={instrData.tip}
+        instructions={[
+            { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+            { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+            { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+            { icon: t('instructions.step3Icon'), title: t('instructions.step3Title'), description: t('instructions.step3Desc') }
+          ]}
+        controls={[
+            { icon: t('controls.control0Icon'), description: t('controls.control0Desc') },
+            { icon: t('controls.control1Icon'), description: t('controls.control1Desc') },
+            { icon: t('controls.control2Icon'), description: t('controls.control2Desc') },
+            { icon: t('controls.control3Icon'), description: t('controls.control3Desc') }
+          ]}
+        tip={t('tip')}
         locale={locale}
       />
     </GameWrapper>

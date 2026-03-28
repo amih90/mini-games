@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GameWrapper } from '../shared/GameWrapper';
 import { WinModal } from '../shared/WinModal';
@@ -44,265 +45,7 @@ const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
   hard:   { initialSpeed: 100, minSpeed: 40,  obstacleMul: 1.5, gridSize: 20, cellSize: 24, speedIncrease: 5, winScore: 250, maxLevel: 5 },
 };
 
-// ---------------------------------------------------------------------------
-// 4-locale translations
-// ---------------------------------------------------------------------------
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    title: 'Snake',
-    instructions: 'Arrows/WASD to move, Mouse to steer',
-    score: 'Score',
-    highScore: 'Best',
-    length: 'Length',
-    level: 'Level',
-    gameOver: 'Game Over!',
-    playAgain: 'Play Again',
-    tapToStart: 'Click to Start',
-    paused: 'Paused',
-    levelUp: 'Level Up!',
-    resume: 'Resume',
-    difficulty: 'Choose Difficulty',
-    learn: 'Learn',
-    learnDesc: 'Big & slow, perfect for little kids!',
-    easy: 'Easy',
-    medium: 'Medium',
-    hard: 'Hard',
-    easyDesc: 'Slower speed, fewer obstacles',
-    mediumDesc: 'Balanced challenge',
-    hardDesc: 'Fast speed, more obstacles',
-    controlsKeyboard: 'WASD / Arrows',
-    controlsMouse: 'Mouse = Steer',
-    controlsSwipe: 'Swipe = Move',
-    controlsPause: 'P/Esc = Pause',
-    howToPlay: 'How to Play Snake',
-  },
-  he: {
-    title: 'נחש',
-    instructions: 'חצים/WASD להזיז, עכבר לכוון',
-    score: 'ניקוד',
-    highScore: 'שיא',
-    length: 'אורך',
-    level: 'שלב',
-    gameOver: 'המשחק נגמר!',
-    playAgain: 'שחק שוב',
-    tapToStart: 'לחץ להתחלה',
-    paused: 'מושהה',
-    levelUp: 'שלב חדש!',
-    resume: 'המשך',
-    difficulty: 'בחרו רמת קושי',
-    learn: 'למידה',
-    learnDesc: 'גדול ואיטי, מושלם לילדים קטנים!',
-    easy: 'קל',
-    medium: 'בינוני',
-    hard: 'קשה',
-    easyDesc: 'מהירות איטית, פחות מכשולים',
-    mediumDesc: 'אתגר מאוזן',
-    hardDesc: 'מהירות גבוהה, יותר מכשולים',
-    controlsKeyboard: 'WASD / חצים',
-    controlsMouse: 'עכבר = כיוון',
-    controlsSwipe: 'החלקה = תזוזה',
-    controlsPause: 'P/Esc = השהיה',
-    howToPlay: 'איך לשחק בנחש',
-  },
-  zh: {
-    title: '贪吃蛇',
-    instructions: '方向键/WASD 移动，鼠标控制方向',
-    score: '得分',
-    highScore: '最高分',
-    length: '长度',
-    level: '关卡',
-    gameOver: '游戏结束！',
-    playAgain: '再玩一次',
-    tapToStart: '点击开始',
-    paused: '已暂停',
-    levelUp: '升级！',
-    resume: '继续',
-    difficulty: '选择难度',
-    learn: '学习',
-    learnDesc: '大而慢，非常适合小朋友！',
-    easy: '简单',
-    medium: '中等',
-    hard: '困难',
-    easyDesc: '速度较慢，障碍较少',
-    mediumDesc: '平衡挑战',
-    hardDesc: '速度快，障碍多',
-    controlsKeyboard: 'WASD / 方向键',
-    controlsMouse: '鼠标 = 转向',
-    controlsSwipe: '滑动 = 移动',
-    controlsPause: 'P/Esc = 暂停',
-    howToPlay: '如何玩贪吃蛇',
-  },
-  es: {
-    title: 'Serpiente',
-    instructions: 'Flechas/WASD para mover, Ratón para dirigir',
-    score: 'Puntuación',
-    highScore: 'Récord',
-    length: 'Longitud',
-    level: 'Nivel',
-    gameOver: '¡Fin del juego!',
-    playAgain: 'Jugar de nuevo',
-    tapToStart: 'Clic para empezar',
-    paused: 'Pausado',
-    levelUp: '¡Nuevo nivel!',
-    resume: 'Continuar',
-    difficulty: 'Elige la dificultad',
-    learn: 'Aprender',
-    learnDesc: 'Grande y lento, ¡perfecto para los más pequeños!',
-    easy: 'Fácil',
-    medium: 'Medio',
-    hard: 'Difícil',
-    easyDesc: 'Velocidad lenta, menos obstáculos',
-    mediumDesc: 'Desafío equilibrado',
-    hardDesc: 'Velocidad rápida, más obstáculos',
-    controlsKeyboard: 'WASD / Flechas',
-    controlsMouse: 'Ratón = Dirigir',
-    controlsSwipe: 'Deslizar = Mover',
-    controlsPause: 'P/Esc = Pausa',
-    howToPlay: 'Cómo jugar a Serpiente',
-  },
-};
 
-// ---------------------------------------------------------------------------
-// 4-locale instructions data
-// ---------------------------------------------------------------------------
-const instructionsData: Record<string, {
-  instructions: { icon: string; title: string; description: string }[];
-  controls: { icon: string; description: string }[];
-  tip: string;
-}> = {
-  en: {
-    instructions: [
-      {
-        icon: '🍎',
-        title: 'Eat Fruits',
-        description: 'Use arrow keys or WASD to move the snake. Eat red fruits to grow and score points!',
-      },
-      {
-        icon: '🚫',
-        title: 'Avoid Obstacles',
-        description: "As you level up, gray obstacles appear. Don't hit them or yourself!",
-      },
-      {
-        icon: '⭐',
-        title: 'Level Up',
-        description: 'Collect 50 points each level to advance. Each level adds speed and obstacles!',
-      },
-      {
-        icon: '🏆',
-        title: 'Win',
-        description: 'Reach level 5 and 250 points to win the game!',
-      },
-    ],
-    controls: [
-      { icon: '⬆️', description: 'Arrow Up / W' },
-      { icon: '⬇️', description: 'Arrow Down / S' },
-      { icon: '⬅️', description: 'Arrow Left / A' },
-      { icon: '➡️', description: 'Arrow Right / D' },
-      { icon: '🖱️', description: 'Click to steer' },
-      { icon: '␣', description: 'Space to pause' },
-    ],
-    tip: "Pro tip: Plan your path ahead! Don't just focus on the next fruit - think about where your tail will be.",
-  },
-  he: {
-    instructions: [
-      {
-        icon: '🍎',
-        title: 'אכלו פירות',
-        description: 'השתמשו בחצים או WASD כדי להזיז את הנחש. אכלו פירות אדומים כדי לגדול ולקבל נקודות!',
-      },
-      {
-        icon: '🚫',
-        title: 'היזהרו ממכשולים',
-        description: 'ככל שתעלו רמה, יופיעו מכשולים אפורים. אל תפגעו בהם או בעצמכם!',
-      },
-      {
-        icon: '⭐',
-        title: 'עלו רמות',
-        description: 'אספו 50 נקודות בכל רמה כדי לעבור לרמה הבאה. כל רמה מוסיפה מהירות ומכשולים!',
-      },
-      {
-        icon: '🏆',
-        title: 'נצחו',
-        description: 'הגיעו ל-5 רמות ו-250 נקודות כדי לנצח במשחק!',
-      },
-    ],
-    controls: [
-      { icon: '⬆️', description: 'חץ למעלה / W' },
-      { icon: '⬇️', description: 'חץ למטה / S' },
-      { icon: '⬅️', description: 'חץ שמאלה / A' },
-      { icon: '➡️', description: 'חץ ימינה / D' },
-      { icon: '🖱️', description: 'לחיצה לשינוי כיוון' },
-      { icon: '␣', description: 'רווח להשהיה' },
-    ],
-    tip: 'טיפ למומחים: תכננו את המסלול שלכם מראש! אל תתמקדו רק בפרי הבא - חשבו איפה הזנב שלכם יהיה.',
-  },
-  zh: {
-    instructions: [
-      {
-        icon: '🍎',
-        title: '吃水果',
-        description: '使用方向键或 WASD 移动蛇。吃红色水果来成长并获得分数！',
-      },
-      {
-        icon: '🚫',
-        title: '避开障碍',
-        description: '随着等级提升，灰色障碍物会出现。不要撞到它们或自己！',
-      },
-      {
-        icon: '⭐',
-        title: '升级',
-        description: '每关收集 50 分即可升级。每一关都会增加速度和障碍！',
-      },
-      {
-        icon: '🏆',
-        title: '获胜',
-        description: '达到第 5 关并获得 250 分即可赢得游戏！',
-      },
-    ],
-    controls: [
-      { icon: '⬆️', description: '上箭头 / W' },
-      { icon: '⬇️', description: '下箭头 / S' },
-      { icon: '⬅️', description: '左箭头 / A' },
-      { icon: '➡️', description: '右箭头 / D' },
-      { icon: '🖱️', description: '点击控制方向' },
-      { icon: '␣', description: '空格暂停' },
-    ],
-    tip: '小技巧：提前规划路线！不要只盯着下一个水果——想想你的尾巴会在哪里。',
-  },
-  es: {
-    instructions: [
-      {
-        icon: '🍎',
-        title: 'Come frutas',
-        description: 'Usa las flechas o WASD para mover la serpiente. ¡Come frutas rojas para crecer y ganar puntos!',
-      },
-      {
-        icon: '🚫',
-        title: 'Evita obstáculos',
-        description: 'Al subir de nivel, aparecen obstáculos grises. ¡No choques con ellos ni contigo mismo!',
-      },
-      {
-        icon: '⭐',
-        title: 'Sube de nivel',
-        description: '¡Recoge 50 puntos en cada nivel para avanzar. Cada nivel añade velocidad y obstáculos!',
-      },
-      {
-        icon: '🏆',
-        title: 'Gana',
-        description: '¡Llega al nivel 5 y 250 puntos para ganar el juego!',
-      },
-    ],
-    controls: [
-      { icon: '⬆️', description: 'Flecha arriba / W' },
-      { icon: '⬇️', description: 'Flecha abajo / S' },
-      { icon: '⬅️', description: 'Flecha izquierda / A' },
-      { icon: '➡️', description: 'Flecha derecha / D' },
-      { icon: '🖱️', description: 'Clic para dirigir' },
-      { icon: '␣', description: 'Espacio para pausar' },
-    ],
-    tip: 'Consejo: ¡Planifica tu ruta con antelación! No te fijes solo en la siguiente fruta — piensa dónde estará tu cola.',
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Component
@@ -342,10 +85,9 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
   const { playClick, playLevelUp, playGameOver, playHit, playPowerUp, playWin } = useRetroSounds();
 
   // Resolve locale strings
-  const t = translations[locale] || translations.en;
+  const t = useTranslations('snake');
   const direction = useDirection();
   const isRtl = direction === TextDirection.RTL;
-  const instrData = instructionsData[locale] || instructionsData.en;
 
   // ------------------------------------------------------------------
   // Difficulty helpers
@@ -1023,7 +765,7 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
   // Difficulty label with emoji
   // ------------------------------------------------------------------
   const difficultyLabel = difficulty
-    ? `${difficulty === 'learn' ? '🌟' : difficulty === 'easy' ? '🟢' : difficulty === 'medium' ? '🟡' : '🔴'} ${t[difficulty]}`
+    ? `${difficulty === 'learn' ? '🌟' : difficulty === 'easy' ? '🟢' : difficulty === 'medium' ? '🟡' : '🔴'} ${t(difficulty)}`
     : '';
 
   // ------------------------------------------------------------------
@@ -1031,10 +773,7 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
   // ------------------------------------------------------------------
   return (
     <GameWrapper
-      title={t.title}
-      onInstructionsClick={() => setShowInstructions(true)}
-    >
-      <div className="flex flex-col md:flex-row items-start justify-center gap-6">
+      title={t('title')}
         {/* Game Board */}
         <div className="relative">
           <canvas
@@ -1063,18 +802,17 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
                   🐍
                 </motion.div>
                 <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">
-                  {t.title}
+                  {t('title')}
                 </h2>
-                <p className="text-white/80 text-sm mb-4">{t.difficulty}</p>
-                <div className="flex flex-col gap-3 w-56">
+                <p className="text-white/80 text-sm mb-4">{t('difficulty')}</p>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => startWithDifficulty('learn')}
                     className="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-full shadow-lg text-lg min-h-[48px]"
                   >
-                    🌟 {t.learn}
-                    <span className="block text-xs font-normal opacity-80">{t.learnDesc}</span>
+                    🌟 {t('learn')}
+                    <span className="block text-xs font-normal opacity-80">{t('learnDesc')}</span>
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1082,8 +820,8 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
                     onClick={() => startWithDifficulty('easy')}
                     className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-full shadow-lg text-lg min-h-[48px]"
                   >
-                    🟢 {t.easy}
-                    <span className="block text-xs font-normal opacity-80">{t.easyDesc}</span>
+                    🟢 {t('easy')}
+                    <span className="block text-xs font-normal opacity-80">{t('easyDesc')}</span>
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1091,8 +829,8 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
                     onClick={() => startWithDifficulty('medium')}
                     className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-full shadow-lg text-lg min-h-[48px]"
                   >
-                    🟡 {t.medium}
-                    <span className="block text-xs font-normal opacity-80">{t.mediumDesc}</span>
+                    🟡 {t('medium')}
+                    <span className="block text-xs font-normal opacity-80">{t('mediumDesc')}</span>
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1100,8 +838,8 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
                     onClick={() => startWithDifficulty('hard')}
                     className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-full shadow-lg text-lg min-h-[48px]"
                   >
-                    🔴 {t.hard}
-                    <span className="block text-xs font-normal opacity-80">{t.hardDesc}</span>
+                    🔴 {t('hard')}
+                    <span className="block text-xs font-normal opacity-80">{t('hardDesc')}</span>
                   </motion.button>
                 </div>
               </motion.div>
@@ -1123,7 +861,7 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
                   🐍
                 </motion.div>
                 <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">
-                  {t.title}
+                  {t('title')}
                 </h2>
                 <p className="text-white/70 text-sm mb-4">{difficultyLabel}</p>
                 <motion.button
@@ -1132,7 +870,7 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
                   onClick={startGame}
                   className="px-8 py-3 bg-[#22c55e] hover:bg-[#16a34a] text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                 >
-                  {t.tapToStart}
+                  {t('tapToStart')}
                 </motion.button>
               </motion.div>
             )}
@@ -1145,14 +883,14 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
                 exit={{ opacity: 0 }}
                 className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 rounded-xl"
               >
-                <h2 className="text-3xl font-bold text-white mb-4">⏸️ {t.paused}</h2>
+                <h2 className="text-3xl font-bold text-white mb-4">⏸️ {t('paused')}</h2>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setGameState('playing')}
                   className="px-8 py-3 bg-[#22c55e] hover:bg-[#16a34a] text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                 >
-                  ▶️ {t.resume}
+                  ▶️ {t('resume')}
                 </motion.button>
               </motion.div>
             )}
@@ -1167,14 +905,14 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
               >
                 <div className="bg-white rounded-3xl p-6 text-center shadow-2xl">
                   <div className="text-4xl mb-3">💀</div>
-                  <h2 className="text-xl font-bold text-slate-800 mb-3">{t.gameOver}</h2>
+                  <h2 className="text-xl font-bold text-slate-800 mb-3">{t('gameOver')}</h2>
                   <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                    <div>
-                      <div className="text-slate-500">{t.score}</div>
+                     <div>
+                       <div className="text-slate-500">{t('score')}</div>
                       <div className="text-xl font-bold text-[#22c55e]">{score}</div>
                     </div>
                     <div>
-                      <div className="text-slate-500">{t.highScore}</div>
+                      <div className="text-slate-500">{t('highScore')}</div>
                       <div className="text-xl font-bold text-[#ec4399]">{highScore}</div>
                     </div>
                   </div>
@@ -1184,7 +922,7 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
                     onClick={restartGame}
                     className="px-6 py-2 bg-[#22c55e] hover:bg-[#16a34a] text-white font-bold rounded-full shadow-lg min-h-[48px]"
                   >
-                    {t.playAgain}
+                    {t('playAgain')}
                   </motion.button>
                 </div>
               </motion.div>
@@ -1198,23 +936,23 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
 
           {difficulty && (
             <div className="bg-white/90 rounded-2xl px-5 py-3 shadow-lg text-center">
-              <div className="text-sm text-slate-500 font-medium">{t.difficulty}</div>
+              <div className="text-sm text-slate-500 font-medium">{t('difficulty')}</div>
               <div className="text-lg font-bold text-slate-700">{difficultyLabel}</div>
             </div>
           )}
 
           <div className="bg-white/90 rounded-2xl px-5 py-3 shadow-lg text-center">
-            <div className="text-sm text-slate-500 font-medium">{t.score}</div>
+            <div className="text-sm text-slate-500 font-medium">{t('score')}</div>
             <div className="text-2xl font-bold text-[#22c55e]">{score}</div>
           </div>
 
           <div className="bg-white/90 rounded-2xl px-5 py-3 shadow-lg text-center">
-            <div className="text-sm text-slate-500 font-medium">{t.length}</div>
+            <div className="text-sm text-slate-500 font-medium">{t('length')}</div>
             <div className="text-2xl font-bold text-[#00a4e4]">{snakeLength}</div>
           </div>
 
           <div className="bg-white/90 rounded-2xl px-5 py-3 shadow-lg text-center">
-            <div className="text-sm text-slate-500 font-medium">{t.highScore}</div>
+            <div className="text-sm text-slate-500 font-medium">{t('highScore')}</div>
             <div className="text-2xl font-bold text-[#ec4399]">{highScore}</div>
           </div>
         </div>
@@ -1269,10 +1007,10 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
 
       {/* Controls hint */}
       <div className="flex flex-wrap justify-center gap-3 mt-4 text-slate-600 text-sm">
-        <span className="px-3 py-1 bg-white/80 rounded-full">⌨️ {t.controlsKeyboard}</span>
-        <span className="px-3 py-1 bg-white/80 rounded-full">🖱️ {t.controlsMouse}</span>
-        <span className="px-3 py-1 bg-white/80 rounded-full">📱 {t.controlsSwipe}</span>
-        <span className="px-3 py-1 bg-white/80 rounded-full">{t.controlsPause}</span>
+        <span className="px-3 py-1 bg-white/80 rounded-full">⌨️ {t('controlsKeyboard')}</span>
+        <span className="px-3 py-1 bg-white/80 rounded-full">🖱️ {t('controlsMouse')}</span>
+        <span className="px-3 py-1 bg-white/80 rounded-full">📱 {t('controlsSwipe')}</span>
+        <span className="px-3 py-1 bg-white/80 rounded-full">{t('controlsPause')}</span>
       </div>
 
       {/* Win Modal */}
@@ -1290,10 +1028,22 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
       <InstructionsModal
         isOpen={showInstructions}
         onClose={() => setShowInstructions(false)}
-        title={t.howToPlay}
-        instructions={instrData.instructions}
-        controls={instrData.controls}
-        tip={instrData.tip}
+        title={t('howToPlay')}
+        instructions={[
+          { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+          { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+          { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+          { icon: t('instructions.step3Icon'), title: t('instructions.step3Title'), description: t('instructions.step3Desc') },
+        ]}
+        controls={[
+          { icon: t('instructions.control0Icon'), description: t('instructions.control0Desc') },
+          { icon: t('instructions.control1Icon'), description: t('instructions.control1Desc') },
+          { icon: t('instructions.control2Icon'), description: t('instructions.control2Desc') },
+          { icon: t('instructions.control3Icon'), description: t('instructions.control3Desc') },
+          { icon: t('instructions.control4Icon'), description: t('instructions.control4Desc') },
+          { icon: t('instructions.control5Icon'), description: t('instructions.control5Desc') },
+        ]}
+        tip={t('instructions.tip')}
         locale={locale}
       />
     </GameWrapper>

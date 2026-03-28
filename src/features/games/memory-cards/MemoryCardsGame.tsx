@@ -79,127 +79,7 @@ const LS_KEY = 'memory-cards-highscore';
 // Instructions data (Feynman-style, 4 locales)
 // ---------------------------------------------------------------------------
 
-const instructionsData: Record<
-  string,
-  {
-    instructions: { icon: string; title: string; description: string }[];
-    controls: { icon: string; description: string }[];
-    tip: string;
-  }
-> = {
-  en: {
-    instructions: [
-      {
-        icon: '🃏',
-        title: 'Goal',
-        description:
-          'All the cards are face-down. Your job is to find every matching pair by flipping just two cards at a time.',
-      },
-      {
-        icon: '👀',
-        title: 'How it works',
-        description:
-          'Flip two cards. If they show the same picture — great, they stay face-up! If not, they flip back. Try to remember where each picture was.',
-      },
-      {
-        icon: '🧠',
-        title: 'Use your memory',
-        description:
-          'The fewer moves you use, the better your score. Pay attention and use your brain like a camera!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Click or tap a card to flip it' },
-      { icon: '⬆️', description: 'Arrow keys to move between cards' },
-      { icon: '⏎', description: 'Enter or Space to flip selected card' },
-    ],
-    tip: 'Start by flipping cards in order — it helps you build a mental map of where things are!',
-  },
-  he: {
-    instructions: [
-      {
-        icon: '🃏',
-        title: 'מטרה',
-        description:
-          'כל הקלפים הפוכים. המשימה שלכם היא למצוא את כל הזוגות על ידי הפיכת שני קלפים בכל פעם.',
-      },
-      {
-        icon: '👀',
-        title: 'איך זה עובד',
-        description:
-          'הפכו שני קלפים. אם הם מראים את אותה תמונה — מעולה, הם נשארים גלויים! אם לא, הם חוזרים. נסו לזכור איפה כל תמונה הייתה.',
-      },
-      {
-        icon: '🧠',
-        title: 'השתמשו בזיכרון',
-        description:
-          'ככל שתשתמשו בפחות מהלכים, הניקוד שלכם יהיה טוב יותר. שימו לב והשתמשו במוח כמו מצלמה!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'לחצו או הקישו על קלף כדי להפוך אותו' },
-      { icon: '⬆️', description: 'חצים לנווט בין הקלפים' },
-      { icon: '⏎', description: 'אנטר או רווח להפיכת הקלף הנבחר' },
-    ],
-    tip: 'התחילו בהפיכת קלפים לפי סדר — זה עוזר לבנות מפה מנטלית של המיקומים!',
-  },
-  zh: {
-    instructions: [
-      {
-        icon: '🃏',
-        title: '目标',
-        description:
-          '所有卡牌都是背面朝上的。你的任务是每次翻两张牌，找到所有匹配的对。',
-      },
-      {
-        icon: '👀',
-        title: '怎么玩',
-        description:
-          '翻开两张牌。如果它们显示相同的图案——太好了，它们会保持正面朝上！如果不同，它们会翻回去。试着记住每张图案的位置。',
-      },
-      {
-        icon: '🧠',
-        title: '用你的记忆力',
-        description:
-          '你使用的步数越少，得分就越好。集中注意力，把你的大脑当成照相机！',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: '点击或触摸卡牌来翻转' },
-      { icon: '⬆️', description: '方向键在卡牌之间移动' },
-      { icon: '⏎', description: '回车或空格翻转选中的卡牌' },
-    ],
-    tip: '从按顺序翻牌开始——这有助于你建立位置的心理地图！',
-  },
-  es: {
-    instructions: [
-      {
-        icon: '🃏',
-        title: 'Objetivo',
-        description:
-          'Todas las cartas están boca abajo. Tu misión es encontrar cada par volteando solo dos cartas a la vez.',
-      },
-      {
-        icon: '👀',
-        title: 'Cómo funciona',
-        description:
-          'Voltea dos cartas. Si muestran la misma imagen, ¡genial, se quedan boca arriba! Si no, se voltean de nuevo. Intenta recordar dónde estaba cada imagen.',
-      },
-      {
-        icon: '🧠',
-        title: 'Usa tu memoria',
-        description:
-          'Cuantos menos movimientos uses, mejor será tu puntuación. ¡Presta atención y usa tu cerebro como una cámara!',
-      },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Haz clic o toca una carta para voltearla' },
-      { icon: '⬆️', description: 'Flechas para moverte entre cartas' },
-      { icon: '⏎', description: 'Enter o Espacio para voltear la carta seleccionada' },
-    ],
-    tip: '¡Empieza volteando cartas en orden — te ayuda a construir un mapa mental de dónde están!',
-  },
-};
+
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -450,7 +330,7 @@ export function MemoryCardsGame() {
   }, [difficulty]);
 
   // ---- Instruction helpers ----
-  const instrLocale = instructionsData[locale] || instructionsData.en;
+
 
   // ---- Render: Difficulty selector ----
   if (!difficulty) {
@@ -515,9 +395,17 @@ export function MemoryCardsGame() {
           isOpen={showInstructions}
           onClose={() => setShowInstructions(false)}
           title={t('title')}
-          instructions={instrLocale.instructions}
-          controls={instrLocale.controls}
-          tip={instrLocale.tip}
+          instructions={[
+            { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+            { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+            { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+          ]}
+          controls={[
+            { icon: t('instructions.control0Icon'), description: t('instructions.control0Desc') },
+            { icon: t('instructions.control1Icon'), description: t('instructions.control1Desc') },
+            { icon: t('instructions.control2Icon'), description: t('instructions.control2Desc') },
+          ]}
+          tip={t('instructions.tip')}
           locale={locale}
         />
       </GameWrapper>
@@ -628,9 +516,17 @@ export function MemoryCardsGame() {
         isOpen={showInstructions}
         onClose={() => setShowInstructions(false)}
         title={t('title')}
-        instructions={instrLocale.instructions}
-        controls={instrLocale.controls}
-        tip={instrLocale.tip}
+        instructions={[
+          { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+          { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+          { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+        ]}
+        controls={[
+          { icon: t('instructions.control0Icon'), description: t('instructions.control0Desc') },
+          { icon: t('instructions.control1Icon'), description: t('instructions.control1Desc') },
+          { icon: t('instructions.control2Icon'), description: t('instructions.control2Desc') },
+        ]}
+        tip={t('instructions.tip')}
         locale={locale}
       />
     </GameWrapper>

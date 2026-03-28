@@ -10,6 +10,7 @@ import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { useDirection } from '@/hooks/useDirection';
 import { TextDirection } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -78,256 +79,7 @@ const DIFFICULTY_SETTINGS: Record<Difficulty, DifficultySettings> = {
 
 const HIGHSCORE_KEY = 'flappy-bird-highscore';
 
-// ---------------------------------------------------------------------------
-// Translations (en / he / zh / es)
-// ---------------------------------------------------------------------------
 
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    title: 'Flappy Bird',
-    description: 'Fly through the pipes!',
-    instructions: 'Press SPACE, click mouse, or tap to fly',
-    start: 'Start Game',
-    score: 'Score',
-    highScore: 'Best',
-    level: 'Level',
-    gameOver: 'Game Over!',
-    playAgain: 'Play Again',
-    tapToStart: 'Tap to Start',
-    chooseDifficulty: 'Choose Difficulty',
-    easy: '🟢 Easy',
-    medium: '🟡 Medium',
-    hard: '🔴 Hard',
-    easyDesc: 'Big gaps, slow pipes',
-    mediumDesc: 'Normal gaps & speed',
-    hardDesc: 'Tiny gaps, fast pipes',
-    controlsHintKbd: 'Space / ↑ / W',
-    controlsHintMouse: 'Click',
-    controlsHintTouch: 'Tap',
-    newBest: 'New Best!',
-  },
-  he: {
-    title: 'ציפור מעופפת',
-    description: 'עופו בין הצינורות!',
-    instructions: 'לחצו רווח, לחצו עכבר, או הקישו על המסך כדי לעוף',
-    start: 'התחל לשחק',
-    score: 'ניקוד',
-    highScore: 'שיא',
-    level: 'שלב',
-    gameOver: 'המשחק נגמר!',
-    playAgain: 'שחק שוב',
-    tapToStart: 'הקש להתחלה',
-    chooseDifficulty: 'בחר רמת קושי',
-    easy: '🟢 קל',
-    medium: '🟡 בינוני',
-    hard: '🔴 קשה',
-    easyDesc: 'פערים גדולים, צינורות איטיים',
-    mediumDesc: 'פערים ומהירות רגילים',
-    hardDesc: 'פערים קטנים, צינורות מהירים',
-    controlsHintKbd: 'רווח / ↑ / W',
-    controlsHintMouse: 'לחיצה',
-    controlsHintTouch: 'הקשה',
-    newBest: '!שיא חדש',
-  },
-  zh: {
-    title: '像素小鸟',
-    description: '飞越管道！',
-    instructions: '按空格键、点击鼠标或触摸屏幕来飞翔',
-    start: '开始游戏',
-    score: '得分',
-    highScore: '最高分',
-    level: '关卡',
-    gameOver: '游戏结束！',
-    playAgain: '再玩一次',
-    tapToStart: '点击开始',
-    chooseDifficulty: '选择难度',
-    easy: '🟢 简单',
-    medium: '🟡 普通',
-    hard: '🔴 困难',
-    easyDesc: '大间隙，管道慢',
-    mediumDesc: '正常间隙和速度',
-    hardDesc: '小间隙，管道快',
-    controlsHintKbd: '空格 / ↑ / W',
-    controlsHintMouse: '点击',
-    controlsHintTouch: '触摸',
-    newBest: '新纪录！',
-  },
-  es: {
-    title: 'Flappy Bird',
-    description: '¡Vuela entre las tuberías!',
-    instructions: 'Pulsa ESPACIO, haz clic o toca para volar',
-    start: 'Iniciar Juego',
-    score: 'Puntos',
-    highScore: 'Récord',
-    level: 'Nivel',
-    gameOver: '¡Fin del juego!',
-    playAgain: 'Jugar de nuevo',
-    tapToStart: 'Toca para empezar',
-    chooseDifficulty: 'Elige dificultad',
-    easy: '🟢 Fácil',
-    medium: '🟡 Normal',
-    hard: '🔴 Difícil',
-    easyDesc: 'Huecos grandes, tubos lentos',
-    mediumDesc: 'Huecos y velocidad normal',
-    hardDesc: 'Huecos pequeños, tubos rápidos',
-    controlsHintKbd: 'Espacio / ↑ / W',
-    controlsHintMouse: 'Clic',
-    controlsHintTouch: 'Tocar',
-    newBest: '¡Nuevo récord!',
-  },
-};
-
-// ---------------------------------------------------------------------------
-// Instructions data (4 locales)
-// ---------------------------------------------------------------------------
-
-const instructionsData: Record<
-  string,
-  {
-    title: string;
-    instructions: { icon: string; title: string; description: string }[];
-    controls: { icon: string; description: string }[];
-    tip: string;
-  }
-> = {
-  en: {
-    title: 'How to Play Flappy Bird',
-    instructions: [
-      {
-        icon: '🐦',
-        title: 'Fly High',
-        description:
-          'Tap the screen, click mouse, or press Space to make the bird fly up. When you stop, the bird falls down!',
-      },
-      {
-        icon: '🚫',
-        title: 'Avoid Pipes',
-        description:
-          "Don't hit the green pipes or the ground. Fly through the gaps between pipes to score points!",
-      },
-      {
-        icon: '⭐',
-        title: 'Level Up',
-        description:
-          'Every 5 pipes you pass, advance to the next level! Pipes move faster and gaps get smaller!',
-      },
-      {
-        icon: '🏆',
-        title: 'Win',
-        description: 'Reach the target score to win the game!',
-      },
-    ],
-    controls: [
-      { icon: '␣', description: 'Space - Fly' },
-      { icon: '🖱️', description: 'Mouse Click - Fly' },
-      { icon: '📱', description: 'Screen Tap - Fly' },
-      { icon: '⬆️', description: 'Arrow Up / W - Fly' },
-    ],
-    tip: "Pro tip: Don't tap too hard! Gentle, quick taps help you maintain steady height.",
-  },
-  he: {
-    title: 'איך לשחק בציפור מעופפת',
-    instructions: [
-      {
-        icon: '🐦',
-        title: 'תעופו גבוה',
-        description:
-          'לחצו על המסך, העכבר או רווח כדי לגרום לציפור לעוף למעלה. כשאתם מפסיקים ללחוץ, הציפור נופלת למטה!',
-      },
-      {
-        icon: '🚫',
-        title: 'היזהרו מצינורות',
-        description:
-          'הימנעו מפגיעה בצינורות ירוקים או בקרקע. עופו דרך הפערים בין הצינורות כדי לקבל נקודות!',
-      },
-      {
-        icon: '⭐',
-        title: 'עלו רמות',
-        description:
-          'כל 5 צינורות שעוברים, מתקדמים לרמה הבאה! הצינורות נעים מהר יותר והפערים קטנים יותר!',
-      },
-      {
-        icon: '🏆',
-        title: 'נצחו',
-        description: 'הגיעו לניקוד היעד כדי לנצח במשחק!',
-      },
-    ],
-    controls: [
-      { icon: '␣', description: 'רווח - עוף' },
-      { icon: '🖱️', description: 'לחיצת עכבר - עוף' },
-      { icon: '📱', description: 'הקשה על מסך - עוף' },
-      { icon: '⬆️', description: 'חץ למעלה / W - עוף' },
-    ],
-    tip: 'טיפ למומחים: אל תלחצו חזק מדי! לחיצות קלות וקצרות עוזרות לשמור על גובה יציב.',
-  },
-  zh: {
-    title: '如何玩像素小鸟',
-    instructions: [
-      {
-        icon: '🐦',
-        title: '飞高',
-        description: '点击屏幕、鼠标点击或按空格键让小鸟飞起来。松手后小鸟会下落！',
-      },
-      {
-        icon: '🚫',
-        title: '避开管道',
-        description: '不要撞到绿色管道或地面。穿过管道之间的间隙来得分！',
-      },
-      {
-        icon: '⭐',
-        title: '升级',
-        description: '每通过5个管道就升一级！管道会更快，间隙会更小！',
-      },
-      {
-        icon: '🏆',
-        title: '胜利',
-        description: '达到目标分数即可赢得游戏！',
-      },
-    ],
-    controls: [
-      { icon: '␣', description: '空格键 - 飞翔' },
-      { icon: '🖱️', description: '鼠标点击 - 飞翔' },
-      { icon: '📱', description: '触摸屏幕 - 飞翔' },
-      { icon: '⬆️', description: '上箭头 / W - 飞翔' },
-    ],
-    tip: '小技巧：不要按太重！轻柔、快速的点击有助于保持稳定的高度。',
-  },
-  es: {
-    title: 'Cómo jugar a Flappy Bird',
-    instructions: [
-      {
-        icon: '🐦',
-        title: 'Vuela alto',
-        description:
-          'Toca la pantalla, haz clic o pulsa Espacio para que el pájaro vuele. ¡Cuando dejas de tocar, el pájaro cae!',
-      },
-      {
-        icon: '🚫',
-        title: 'Evita las tuberías',
-        description:
-          'No choques con las tuberías verdes ni con el suelo. ¡Vuela a través de los huecos para ganar puntos!',
-      },
-      {
-        icon: '⭐',
-        title: 'Sube de nivel',
-        description:
-          '¡Cada 5 tuberías que pases, subes de nivel! ¡Las tuberías se mueven más rápido y los huecos se hacen más pequeños!',
-      },
-      {
-        icon: '🏆',
-        title: 'Gana',
-        description: '¡Alcanza la puntuación objetivo para ganar el juego!',
-      },
-    ],
-    controls: [
-      { icon: '␣', description: 'Espacio - Volar' },
-      { icon: '🖱️', description: 'Clic del ratón - Volar' },
-      { icon: '📱', description: 'Tocar pantalla - Volar' },
-      { icon: '⬆️', description: 'Flecha arriba / W - Volar' },
-    ],
-    tip: 'Consejo: ¡No toques demasiado fuerte! Toques suaves y rápidos te ayudan a mantener una altura estable.',
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Component
@@ -377,8 +129,7 @@ export default function FlappyBirdGame({ locale = 'en' }: FlappyBirdGameProps) {
 
   const direction = useDirection();
   const isRtl = direction === TextDirection.RTL;
-  const t = translations[locale] || translations.en;
-  const instrData = instructionsData[locale] || instructionsData.en;
+  const t = useTranslations('flappyBird');
   const settings = DIFFICULTY_SETTINGS[difficulty];
 
   // -----------------------------------------------------------------------
@@ -795,10 +546,10 @@ export default function FlappyBirdGame({ locale = 'en' }: FlappyBirdGameProps) {
   // -----------------------------------------------------------------------
 
   const difficultyLabel =
-    difficulty === 'easy' ? t.easy : difficulty === 'hard' ? t.hard : t.medium;
+    difficulty === 'easy' ? t('easy') : difficulty === 'hard' ? t('hard') : t('medium');
 
   return (
-    <GameWrapper title={t.title} onInstructionsClick={() => setShowInstructions(true)}>
+    <GameWrapper title={t('title')} onInstructionsClick={() => setShowInstructions(true)}>
       <div className="flex flex-col items-center gap-6" dir={direction}>
         {/* ---- Difficulty Selection Screen ---- */}
         {gameState === 'menu' && (
@@ -808,11 +559,11 @@ export default function FlappyBirdGame({ locale = 'en' }: FlappyBirdGameProps) {
             className="flex flex-col items-center gap-6 py-8"
           >
             <div className="text-6xl">🐤</div>
-            <h2 className="text-3xl font-bold text-slate-800">{t.title}</h2>
-            <p className="text-slate-600">{t.description}</p>
+            <h2 className="text-3xl font-bold text-slate-800">{t('title')}</h2>
+            <p className="text-slate-600">{t('description')}</p>
 
             <div className="flex flex-col gap-3 w-full max-w-xs">
-              <p className="text-center font-semibold text-slate-700">{t.chooseDifficulty}</p>
+              <p className="text-center font-semibold text-slate-700">{t('chooseDifficulty')}</p>
 
               {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => {
                 const colors: Record<Difficulty, string> = {
@@ -820,8 +571,8 @@ export default function FlappyBirdGame({ locale = 'en' }: FlappyBirdGameProps) {
                   medium: 'bg-yellow-500 hover:bg-yellow-600',
                   hard: 'bg-red-500 hover:bg-red-600',
                 };
-                const label = d === 'easy' ? t.easy : d === 'hard' ? t.hard : t.medium;
-                const desc = d === 'easy' ? t.easyDesc : d === 'hard' ? t.hardDesc : t.mediumDesc;
+                const label = d === 'easy' ? t('easy') : d === 'hard' ? t('hard') : t('medium');
+                const desc = d === 'easy' ? t('easyDesc') : d === 'hard' ? t('hardDesc') : t('mediumDesc');
 
                 return (
                   <motion.button
@@ -840,7 +591,7 @@ export default function FlappyBirdGame({ locale = 'en' }: FlappyBirdGameProps) {
 
             {highScore > 0 && (
               <div className="text-slate-500 text-sm">
-                {t.highScore}: {highScore}
+                {t('highScore')}: {highScore}
               </div>
             )}
           </motion.div>
@@ -854,11 +605,11 @@ export default function FlappyBirdGame({ locale = 'en' }: FlappyBirdGameProps) {
               <LevelDisplay level={level} />
 
               <div className="bg-white/90 rounded-2xl px-6 py-3 shadow-lg">
-                <div className="text-sm text-slate-500 font-medium">{t.score}</div>
+                <div className="text-sm text-slate-500 font-medium">{t('score')}</div>
                 <div className="text-3xl font-bold text-[#00a4e4]">{score}</div>
               </div>
               <div className="bg-white/90 rounded-2xl px-6 py-3 shadow-lg">
-                <div className="text-sm text-slate-500 font-medium">{t.highScore}</div>
+                <div className="text-sm text-slate-500 font-medium">{t('highScore')}</div>
                 <div className="text-3xl font-bold text-[#ec4399]">{highScore}</div>
               </div>
               <div className="bg-white/90 rounded-2xl px-4 py-3 shadow-lg">
@@ -899,9 +650,9 @@ export default function FlappyBirdGame({ locale = 'en' }: FlappyBirdGameProps) {
                       whileTap={{ scale: 0.95 }}
                       className="px-8 py-4 bg-[#ffdd00] hover:bg-[#ffee44] text-slate-800 text-xl font-bold rounded-full shadow-lg min-h-[48px]"
                     >
-                      {t.tapToStart}
+                      {t('tapToStart')}
                     </motion.button>
-                    <p className="mt-4 text-white/90 text-sm">{t.instructions}</p>
+                    <p className="mt-4 text-white/90 text-sm">{t('instructions')}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -921,19 +672,19 @@ export default function FlappyBirdGame({ locale = 'en' }: FlappyBirdGameProps) {
                       className="bg-white rounded-3xl p-8 text-center shadow-2xl mx-4"
                     >
                       <div className="text-5xl mb-4">😵</div>
-                      <h2 className="text-2xl font-bold text-slate-800 mb-4">{t.gameOver}</h2>
+                      <h2 className="text-2xl font-bold text-slate-800 mb-4">{t('gameOver')}</h2>
                       <div className="flex gap-6 justify-center mb-6">
                         <div>
-                          <div className="text-sm text-slate-500">{t.score}</div>
+                          <div className="text-sm text-slate-500">{t('score')}</div>
                           <div className="text-3xl font-bold text-[#00a4e4]">{score}</div>
                         </div>
                         <div>
-                          <div className="text-sm text-slate-500">{t.highScore}</div>
+                          <div className="text-sm text-slate-500">{t('highScore')}</div>
                           <div className="text-3xl font-bold text-[#ec4399]">{highScore}</div>
                         </div>
                       </div>
                       {score >= highScore && score > 0 && (
-                        <p className="text-[#ec4399] font-bold mb-4">{t.newBest}</p>
+                        <p className="text-[#ec4399] font-bold mb-4">{t('newBest')}</p>
                       )}
                       <div className="flex flex-col gap-3">
                         <motion.button
@@ -942,7 +693,7 @@ export default function FlappyBirdGame({ locale = 'en' }: FlappyBirdGameProps) {
                           onClick={restartGame}
                           className="px-8 py-3 bg-[#6cbe45] hover:bg-[#5aa838] text-white text-lg font-bold rounded-full shadow-lg min-h-[48px]"
                         >
-                          {t.playAgain}
+                          {t('playAgain')}
                         </motion.button>
                         <motion.button
                           whileHover={{ scale: 1.05 }}
@@ -950,7 +701,7 @@ export default function FlappyBirdGame({ locale = 'en' }: FlappyBirdGameProps) {
                           onClick={goToMenu}
                           className="px-8 py-3 bg-slate-500 hover:bg-slate-600 text-white text-sm font-bold rounded-full shadow-lg min-h-[48px]"
                         >
-                          {t.chooseDifficulty}
+                          {t('chooseDifficulty')}
                         </motion.button>
                       </div>
                     </motion.div>
@@ -962,13 +713,13 @@ export default function FlappyBirdGame({ locale = 'en' }: FlappyBirdGameProps) {
             {/* Controls hint */}
             <div className="flex gap-4 text-slate-600 text-sm flex-wrap justify-center">
               <span className="px-3 py-1 bg-white/80 rounded-full">
-                ⌨️ {t.controlsHintKbd}
+                ⌨️ {t('controlsHintKbd')}
               </span>
               <span className="px-3 py-1 bg-white/80 rounded-full">
-                🖱️ {t.controlsHintMouse}
+                🖱️ {t('controlsHintMouse')}
               </span>
               <span className="px-3 py-1 bg-white/80 rounded-full">
-                👆 {t.controlsHintTouch}
+                👆 {t('controlsHintTouch')}
               </span>
             </div>
           </>
@@ -990,10 +741,20 @@ export default function FlappyBirdGame({ locale = 'en' }: FlappyBirdGameProps) {
       <InstructionsModal
         isOpen={showInstructions}
         onClose={() => setShowInstructions(false)}
-        title={instrData.title}
-        instructions={instrData.instructions}
-        controls={instrData.controls}
-        tip={instrData.tip}
+        title={t('title')}
+        instructions={[
+          { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+          { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+          { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+          { icon: t('instructions.step3Icon'), title: t('instructions.step3Title'), description: t('instructions.step3Desc') },
+        ]}
+        controls={[
+          { icon: t('instructions.control0Icon'), description: t('instructions.control0Desc') },
+          { icon: t('instructions.control1Icon'), description: t('instructions.control1Desc') },
+          { icon: t('instructions.control2Icon'), description: t('instructions.control2Desc') },
+          { icon: t('instructions.control3Icon'), description: t('instructions.control3Desc') },
+        ]}
+        tip={t('instructions.tip')}
         locale={locale}
       />
     </GameWrapper>

@@ -4,6 +4,7 @@ import { Suspense, useRef, useState, useCallback, useEffect } from 'react';
 import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
 import { Stars, Text, Html, Float } from '@react-three/drei';
 import * as THREE from 'three';
+import { useTranslations, useLocale } from 'next-intl';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { InstructionsModal } from '@/features/games/shared/InstructionsModal';
 import { GameWrapper } from '../shared/GameWrapper';
@@ -53,48 +54,6 @@ const SHAPE_COLORS: Record<ShapeType, string> = {
   octahedron:   '#14b8a6',
 };
 
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    title: '3D Shape Sorter', score: 'Score', lives: 'Lives', time: 'Time',
-    gameOver: 'Game Over!', youWin: 'You Win!', playAgain: 'Play Again',
-    easy: 'Easy', medium: 'Medium', hard: 'Hard',
-    chooseDifficulty: 'Choose Difficulty',
-    box: 'Cube', sphere: 'Sphere', cylinder: 'Cylinder', cone: 'Cone',
-    torus: 'Ring', dodecahedron: 'Dodecahedron', octahedron: 'Octahedron',
-    selectShape: 'Click a shape, then click its matching slot!',
-    round: 'Round',
-  },
-  he: {
-    title: 'מיון צורות תלת-ממד', score: 'ניקוד', lives: 'חיים', time: 'זמן',
-    gameOver: '!המשחק נגמר', youWin: '!ניצחת', playAgain: 'שחק שוב',
-    easy: 'קל', medium: 'בינוני', hard: 'קשה',
-    chooseDifficulty: 'בחר רמת קושי',
-    box: 'קובייה', sphere: 'כדור', cylinder: 'גליל', cone: 'חרוט',
-    torus: 'טבעת', dodecahedron: 'דודקאהדרון', octahedron: 'אוקטאהדרון',
-    selectShape: '!לחץ על צורה, ואז על החריץ המתאים',
-    round: 'סיבוב',
-  },
-  zh: {
-    title: '3D形状分类器', score: '得分', lives: '生命', time: '时间',
-    gameOver: '游戏结束！', youWin: '你赢了！', playAgain: '再玩一次',
-    easy: '容易', medium: '中等', hard: '困难',
-    chooseDifficulty: '选择难度',
-    box: '立方体', sphere: '球体', cylinder: '圆柱体', cone: '圆锥体',
-    torus: '圆环', dodecahedron: '十二面体', octahedron: '八面体',
-    selectShape: '点击一个形状，然后点击匹配的槽！',
-    round: '轮次',
-  },
-  es: {
-    title: 'Clasificador 3D', score: 'Puntuación', lives: 'Vidas', time: 'Tiempo',
-    gameOver: '¡Fin del juego!', youWin: '¡Ganaste!', playAgain: 'Jugar de nuevo',
-    easy: 'Fácil', medium: 'Medio', hard: 'Difícil',
-    chooseDifficulty: 'Elige dificultad',
-    box: 'Cubo', sphere: 'Esfera', cylinder: 'Cilindro', cone: 'Cono',
-    torus: 'Toro', dodecahedron: 'Dodecaedro', octahedron: 'Octaedro',
-    selectShape: '¡Haz clic en una forma y luego en su ranura correcta!',
-    round: 'Ronda',
-  },
-};
 
 // ─── 3D Shape Component ───────────────────────────────────────────────────────
 
@@ -255,7 +214,7 @@ interface GameSceneProps {
   selectedId: number | null;
   rotationSpeed: number;
   locale: string;
-  t: Record<string, string>;
+  t: (key: string) => string;
   matchedPositions: [number, number, number][];
   onShapeClick: (id: number) => void;
   onTargetClick: (shapeType: ShapeType) => void;
@@ -288,7 +247,7 @@ function GameScene({
           slot={slot}
           index={i}
           isHighlighted={selectedId !== null}
-          label={t[slot.shapeType] || slot.shapeType}
+          label={t(slot.shapeType)}
           onTargetClick={onTargetClick}
         />
       ))}
@@ -333,75 +292,13 @@ function buildRound(difficulty: Difficulty): { shapes: ShapeItem[]; targets: Tar
 
 // ─── Instructions data ────────────────────────────────────────────────────────
 
-const instructionsData: Record<string, {
-  instructions: { icon: string; title: string; description: string }[];
-  controls: { icon: string; description: string }[];
-  tip: string;
-}> = {
-  en: {
-    instructions: [
-      { icon: '🔷', title: 'Look at the shapes', description: 'Colorful 3D shapes are floating in space — cube, sphere, cylinder, and more!' },
-      { icon: '🎯', title: 'Find the slots', description: 'At the bottom you see labeled slots. Each slot is waiting for one specific shape.' },
-      { icon: '✅', title: 'Match them!', description: 'Click a shape, then click the slot with the same name. Score points for every correct match!' },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Click a shape, then click its matching slot' },
-      { icon: '⌨️', description: 'Tab to cycle shapes, Enter to select, arrow keys for slots' },
-      { icon: '👆', description: 'Tap on mobile devices' },
-    ],
-    tip: 'Look at the shape carefully before picking — a cone is pointy at the top, a cylinder has flat circles on both ends!',
-  },
-  he: {
-    instructions: [
-      { icon: '🔷', title: 'הסתכלו על הצורות', description: 'צורות תלת-ממד צבעוניות מרחפות בחלל — קובייה, כדור, גליל ועוד!' },
-      { icon: '🎯', title: 'מצאו את החריצים', description: 'בתחתית יש חריצים עם שמות. כל חריץ מחכה לצורה מסוימת אחת.' },
-      { icon: '✅', title: 'התאימו אותם!', description: 'לחצו על צורה, ואז על החריץ עם אותו שם. קבלו נקודות על כל התאמה נכונה!' },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'לחצו על צורה, ואז על החריץ המתאים' },
-      { icon: '⌨️', description: 'Tab למעבר בין צורות, Enter לבחירה' },
-      { icon: '👆', description: 'הקישו במכשיר נייד' },
-    ],
-    tip: '!הסתכלו על הצורה בעיון לפני שבוחרים — לחרוט יש קצה מחודד בחלק העליון',
-  },
-  zh: {
-    instructions: [
-      { icon: '🔷', title: '观察形状', description: '彩色的3D形状漂浮在太空中——立方体、球体、圆柱体等！' },
-      { icon: '🎯', title: '找到插槽', description: '底部有标有名称的插槽。每个插槽都在等待一个特定的形状。' },
-      { icon: '✅', title: '配对它们！', description: '点击一个形状，然后点击同名的插槽。每次正确匹配得分！' },
-    ],
-    controls: [
-      { icon: '🖱️', description: '点击形状，然后点击匹配的插槽' },
-      { icon: '⌨️', description: 'Tab切换形状，Enter选择，方向键切换插槽' },
-      { icon: '👆', description: '在移动设备上点击' },
-    ],
-    tip: '仔细看形状再选择——圆锥体顶部是尖的，圆柱体两端是平的！',
-  },
-  es: {
-    instructions: [
-      { icon: '🔷', title: 'Mira las formas', description: '¡Formas 3D coloridas flotan en el espacio — cubo, esfera, cilindro y más!' },
-      { icon: '🎯', title: 'Encuentra las ranuras', description: 'En la parte inferior hay ranuras etiquetadas. ¡Cada ranura espera una forma específica!' },
-      { icon: '✅', title: '¡Hazlos coincidir!', description: 'Haz clic en una forma, luego en la ranura con el mismo nombre. ¡Gana puntos por cada coincidencia!' },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Haz clic en una forma, luego en su ranura' },
-      { icon: '⌨️', description: 'Tab para ciclar formas, Enter para seleccionar' },
-      { icon: '👆', description: 'Toca en dispositivos móviles' },
-    ],
-    tip: '¡Mira bien la forma antes de elegir — un cono tiene la punta arriba, un cilindro tiene círculos planos en ambos extremos!',
-  },
-};
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-interface ShapeSorter3DGameProps {
-  locale?: string;
-}
-
-export default function ShapeSorter3DGame({ locale = 'en' }: ShapeSorter3DGameProps) {
-  const t = translations[locale] || translations.en;
+export default function ShapeSorter3DGame() {
+  const t = useTranslations('shapeSorter3D');
+  const locale = useLocale();
   const isRtl = locale === 'he';
-  const instrData = instructionsData[locale] || instructionsData.en;
 
   const { playClick, playSuccess, playHit, playLevelUp, playGameOver, playWin } = useRetroSounds();
 
@@ -569,7 +466,7 @@ export default function ShapeSorter3DGame({ locale = 'en' }: ShapeSorter3DGamePr
   const cfg = DIFFICULTY_SETTINGS[difficulty];
 
   return (
-    <GameWrapper title={t.title} onInstructionsClick={() => setShowInstructions(true)} fullHeight>
+    <GameWrapper title={t('title')} onInstructionsClick={() => setShowInstructions(true)} fullHeight>
     <div className="relative w-full h-full bg-black overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* 3D Canvas */}
       {(phase === 'playing' || phase === 'win' || phase === 'gameover') && (
@@ -594,13 +491,13 @@ export default function ShapeSorter3DGame({ locale = 'en' }: ShapeSorter3DGamePr
       {phase === 'playing' && (
         <div className="absolute top-4 left-0 right-0 flex justify-between items-start px-4 pointer-events-none z-10">
           <div className="bg-black/60 rounded-2xl px-4 py-2 text-white text-sm font-bold space-y-1">
-            <div>⭐ {t.score}: {score}</div>
-            <div>❤️ {t.lives}: {'❤️'.repeat(lives)}</div>
+            <div>⭐ {t('score')}: {score}</div>
+            <div>❤️ {t('lives')}: {'❤️'.repeat(lives)}</div>
             <div>🏆 {highScore > 0 ? `Best: ${highScore}` : ''}</div>
           </div>
           <div className="bg-black/60 rounded-2xl px-4 py-2 text-white text-center font-bold">
             <div className="text-2xl">{timeLeft}s</div>
-            <div className="text-xs">{t.round} {round}/3</div>
+            <div className="text-xs">{t('round')} {round}/3</div>
           </div>
         </div>
       )}
@@ -610,8 +507,8 @@ export default function ShapeSorter3DGame({ locale = 'en' }: ShapeSorter3DGamePr
         <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none z-10">
           <div className="inline-block bg-black/60 rounded-xl px-4 py-2 text-white text-sm">
             {selectedId !== null
-              ? `✅ ${t[shapes.find(s => s.id === selectedId)?.type ?? 'box'] ?? '?'} — ${t.selectShape.split('!')[0]}`
-              : t.selectShape}
+              ? `✅ ${t[shapes.find(s => s.id === selectedId)?.type ?? 'box'] ?? '?'} — ${t('selectShape').split('!')[0]}`
+              : t('selectShape')}
           </div>
         </div>
       )}
@@ -621,8 +518,8 @@ export default function ShapeSorter3DGame({ locale = 'en' }: ShapeSorter3DGamePr
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-black z-20">
           <div className="text-center px-6 max-w-md">
             <div className="text-7xl mb-4">🔷</div>
-            <h1 className="text-4xl font-bold text-white mb-2">{t.title}</h1>
-            <p className="text-purple-300 mb-8">{t.chooseDifficulty}</p>
+            <h1 className="text-4xl font-bold text-white mb-2">{t('title')}</h1>
+            <p className="text-purple-300 mb-8">{t('chooseDifficulty')}</p>
             <div className="flex flex-col gap-4">
               {(['easy', 'medium', 'hard'] as Difficulty[]).map(d => (
                 <button
@@ -648,13 +545,13 @@ export default function ShapeSorter3DGame({ locale = 'en' }: ShapeSorter3DGamePr
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-20">
           <div className="text-center">
             <div className="text-7xl mb-4">💀</div>
-            <h2 className="text-4xl font-bold text-white mb-2">{t.gameOver}</h2>
-            <p className="text-2xl text-yellow-400 mb-8">{t.score}: {score}</p>
+            <h2 className="text-4xl font-bold text-white mb-2">{t('gameOver')}</h2>
+            <p className="text-2xl text-yellow-400 mb-8">{t('score')}: {score}</p>
             <button
               onClick={() => setPhase('difficulty')}
               className="min-h-[56px] px-8 rounded-2xl font-bold text-xl text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:scale-105 transition-transform"
             >
-              {t.playAgain}
+              {t('playAgain')}
             </button>
           </div>
         </div>
@@ -665,13 +562,13 @@ export default function ShapeSorter3DGame({ locale = 'en' }: ShapeSorter3DGamePr
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-20">
           <div className="text-center">
             <div className="text-7xl mb-4">🎉</div>
-            <h2 className="text-4xl font-bold text-yellow-400 mb-2">{t.youWin}</h2>
-            <p className="text-2xl text-white mb-8">{t.score}: {score}</p>
+            <h2 className="text-4xl font-bold text-yellow-400 mb-2">{t('youWin')}</h2>
+            <p className="text-2xl text-white mb-8">{t('score')}: {score}</p>
             <button
               onClick={() => setPhase('difficulty')}
               className="min-h-[56px] px-8 rounded-2xl font-bold text-xl text-white bg-gradient-to-r from-yellow-500 to-orange-500 hover:scale-105 transition-transform"
             >
-              {t.playAgain}
+              {t('playAgain')}
             </button>
           </div>
         </div>
@@ -681,10 +578,18 @@ export default function ShapeSorter3DGame({ locale = 'en' }: ShapeSorter3DGamePr
       <InstructionsModal
         isOpen={showInstructions}
         onClose={startPlaying}
-        title={t.title}
-        instructions={instrData.instructions}
-        controls={instrData.controls}
-        tip={instrData.tip}
+        title={t('title')}
+        instructions={[
+            { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+            { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+            { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+          ]}
+          controls={[
+            { icon: t('instructions.ctrl0Icon'), description: t('instructions.ctrl0Desc') },
+            { icon: t('instructions.ctrl1Icon'), description: t('instructions.ctrl1Desc') },
+            { icon: t('instructions.ctrl2Icon'), description: t('instructions.ctrl2Desc') },
+          ]}
+          tip={t('instructions.tip')}
         locale={locale}
       />
     </div>

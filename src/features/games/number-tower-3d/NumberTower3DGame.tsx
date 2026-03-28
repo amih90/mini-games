@@ -4,6 +4,7 @@ import { Suspense, useRef, useState, useCallback, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Text, Stars, Float } from '@react-three/drei';
 import * as THREE from 'three';
+import { useTranslations, useLocale } from 'next-intl';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { InstructionsModal } from '@/features/games/shared/InstructionsModal';
 import { GameWrapper } from '../shared/GameWrapper';
@@ -51,95 +52,7 @@ const BLOCK_COLORS = [
   '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16',
 ];
 
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    title: '3D Number Tower', score: 'Score', lives: 'Lives', time: 'Time',
-    gameOver: 'Game Over!', youWin: '🎉 Tower Complete!', playAgain: 'Play Again',
-    easy: 'Easy', medium: 'Medium', hard: 'Hard', chooseDifficulty: 'Choose Difficulty',
-    target: 'Target', sum: 'Sum', catchBlock: 'Catch numbered blocks to build your tower!',
-    tooHigh: 'Too high! Tower collapsed!', perfect: 'Perfect match!', clickCatch: 'Click / Press Space to catch!',
-  },
-  he: {
-    title: 'מגדל מספרים תלת-ממד', score: 'ניקוד', lives: 'חיים', time: 'זמן',
-    gameOver: '!המשחק נגמר', youWin: '!המגדל הושלם', playAgain: 'שחק שוב',
-    easy: 'קל', medium: 'בינוני', hard: 'קשה', chooseDifficulty: 'בחר רמת קושי',
-    target: 'מטרה', sum: 'סכום', catchBlock: '!תפסו קוביות ממוספרות לבניית המגדל',
-    tooHigh: '!גבוה מדי! המגדל קרס', perfect: '!התאמה מושלמת', clickCatch: '!לחצו / לחצו Space לתפיסה',
-  },
-  zh: {
-    title: '3D数字塔', score: '得分', lives: '生命', time: '时间',
-    gameOver: '游戏结束！', youWin: '塔楼完成！', playAgain: '再玩一次',
-    easy: '容易', medium: '中等', hard: '困难', chooseDifficulty: '选择难度',
-    target: '目标', sum: '总和', catchBlock: '接住数字方块建造你的塔！',
-    tooHigh: '太高了！塔倒塌了！', perfect: '完美匹配！', clickCatch: '点击/按空格键接住！',
-  },
-  es: {
-    title: 'Torre de Números 3D', score: 'Puntuación', lives: 'Vidas', time: 'Tiempo',
-    gameOver: '¡Fin del juego!', youWin: '¡Torre completa!', playAgain: 'Jugar de nuevo',
-    easy: 'Fácil', medium: 'Medio', hard: 'Difícil', chooseDifficulty: 'Elige dificultad',
-    target: 'Objetivo', sum: 'Suma', catchBlock: '¡Atrapa bloques numerados para construir tu torre!',
-    tooHigh: '¡Demasiado alto! ¡La torre colapsó!', perfect: '¡Combinación perfecta!', clickCatch: '¡Clic / Barra espaciadora para atrapar!',
-  },
-};
 
-const instructionsData: Record<string, {
-  instructions: { icon: string; title: string; description: string }[];
-  controls: { icon: string; description: string }[];
-  tip: string;
-}> = {
-  en: {
-    instructions: [
-      { icon: '🔢', title: 'See the target', description: 'A target number appears at the top. You need to build a tower whose blocks add up to exactly that number!' },
-      { icon: '🧱', title: 'Catch falling blocks', description: 'Number blocks fall from the sky. Click a block or press Space to catch it and add it to your tower.' },
-      { icon: '🎯', title: 'Hit the target exactly', description: 'If your tower sum equals the target — you win the round! Stack too high and the tower falls!' },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Click a falling block to catch it' },
-      { icon: '⌨️', description: 'Space bar or Enter to catch the highlighted block' },
-      { icon: '👆', description: 'Tap on mobile devices' },
-    ],
-    tip: 'Think before you catch — if the target is 7 and you already have 5, only catch a block with value 2!',
-  },
-  he: {
-    instructions: [
-      { icon: '🔢', title: 'ראו את המטרה', description: '!מספר מטרה מופיע בחלק העליון. עליכם לבנות מגדל שהקוביות שלו מסתכמות בדיוק במספר זה' },
-      { icon: '🧱', title: 'תפסו קוביות נופלות', description: 'קוביות מספרים נופלות מהשמים. לחצו על קובייה או לחצו על Space כדי לתפוס אותה ולהוסיף אותה למגדל.' },
-      { icon: '🎯', title: 'פגעו במטרה בדיוק', description: '!אם סכום המגדל שלכם שווה למטרה — ניצחתם בסיבוב! אם תגיעו גבוה מדי, המגדל יקרוס' },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'לחצו על קובייה נופלת לתפיסה' },
-      { icon: '⌨️', description: 'Space או Enter לתפיסת הקובייה המודגשת' },
-      { icon: '👆', description: 'הקישו במכשיר נייד' },
-    ],
-    tip: '!חשבו לפני שתופסים — אם המטרה היא 7 וכבר יש לכם 5, תפסו רק קובייה עם ערך 2',
-  },
-  zh: {
-    instructions: [
-      { icon: '🔢', title: '看目标', description: '顶部出现一个目标数字。你需要建造一个方块总和恰好等于该数字的塔！' },
-      { icon: '🧱', title: '接住落下的方块', description: '数字方块从天空落下。点击方块或按空格键来接住它并加入你的塔。' },
-      { icon: '🎯', title: '精确达到目标', description: '如果你的塔的总和等于目标——你赢得这一轮！叠得太高，塔就会倒塌！' },
-    ],
-    controls: [
-      { icon: '🖱️', description: '点击落下的方块接住它' },
-      { icon: '⌨️', description: '空格键或Enter接住高亮的方块' },
-      { icon: '👆', description: '在移动设备上点击' },
-    ],
-    tip: '接住之前先想想——如果目标是7，你已经有5了，只接2的方块！',
-  },
-  es: {
-    instructions: [
-      { icon: '🔢', title: 'Ve el objetivo', description: '¡Aparece un número objetivo en la parte superior. Necesitas construir una torre cuyos bloques sumen exactamente ese número!' },
-      { icon: '🧱', title: 'Atrapa bloques cayendo', description: 'Bloques numerados caen del cielo. Haz clic en un bloque o presiona Espacio para atraparlo y añadirlo a tu torre.' },
-      { icon: '🎯', title: 'Alcanza el objetivo exacto', description: '¡Si la suma de tu torre es igual al objetivo — ganas la ronda! ¡Apila demasiado alto y la torre cae!' },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Haz clic en un bloque cayendo para atraparlo' },
-      { icon: '⌨️', description: 'Barra espaciadora o Enter para atrapar el bloque resaltado' },
-      { icon: '👆', description: 'Toca en dispositivos móviles' },
-    ],
-    tip: '¡Piensa antes de atrapar — si el objetivo es 7 y ya tienes 5, solo atrapa un bloque con valor 2!',
-  },
-};
 
 // ─── Falling Block 3D ────────────────────────────────────────────────────────
 
@@ -270,10 +183,6 @@ function TowerScene({ fallingBlocks, fallingYPositions, stackedBlocks, highlight
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-interface NumberTower3DGameProps {
-  locale?: string;
-}
-
 let blockIdCounter = 0;
 
 function generateBlock(cfg: DifficultyConfig): FallingBlock {
@@ -292,10 +201,10 @@ function generateBlock(cfg: DifficultyConfig): FallingBlock {
   };
 }
 
-export default function NumberTower3DGame({ locale = 'en' }: NumberTower3DGameProps) {
-  const t = translations[locale] || translations.en;
+export default function NumberTower3DGame() {
+  const t = useTranslations('numberTower3D');
+  const locale = useLocale();
   const isRtl = locale === 'he';
-  const instrData = instructionsData[locale] || instructionsData.en;
 
   const { playClick, playSuccess, playHit, playLevelUp, playGameOver, playWin, playTick } = useRetroSounds();
 
@@ -462,7 +371,7 @@ export default function NumberTower3DGame({ locale = 'en' }: NumberTower3DGamePr
     if (newSum > targetSum) {
       // Overshot!
       playHit();
-      setStatusMsg(t.tooHigh);
+      setStatusMsg(t('tooHigh'));
       setLives(prev => {
         const next = prev - 1;
         if (next <= 0) {
@@ -478,7 +387,7 @@ export default function NumberTower3DGame({ locale = 'en' }: NumberTower3DGamePr
     } else if (newSum === targetSum) {
       // Perfect match!
       playSuccess();
-      setStatusMsg(t.perfect);
+      setStatusMsg(t('perfect'));
       setScore(prev => prev + 300 + Math.floor(timeLeft * 2));
       setStackedBlocks(prev => [...prev, { value: block.value, color: block.color, id: block.id }]);
       setCurrentSum(newSum);
@@ -534,7 +443,7 @@ export default function NumberTower3DGame({ locale = 'en' }: NumberTower3DGamePr
   }, [phase, highlightedLane, catchBlock]);
 
   return (
-    <GameWrapper title={t.title} onInstructionsClick={() => setShowInstructions(true)} fullHeight>
+    <GameWrapper title={t('title')} onInstructionsClick={() => setShowInstructions(true)} fullHeight>
     <div className="relative w-full h-full bg-black overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* 3D Canvas */}
       {(phase === 'playing' || phase === 'win' || phase === 'gameover') && (
@@ -559,17 +468,17 @@ export default function NumberTower3DGame({ locale = 'en' }: NumberTower3DGamePr
         <>
           <div className="absolute top-4 left-0 right-0 flex justify-between items-start px-4 pointer-events-none z-10">
             <div className="bg-black/70 rounded-2xl px-4 py-2 text-white text-sm font-bold space-y-1">
-              <div>⭐ {t.score}: {score}</div>
+              <div>⭐ {t('score')}: {score}</div>
               <div>❤️ {'❤️'.repeat(lives)}</div>
               <div>🏆 {round}/5</div>
             </div>
             <div className="text-center">
               <div className="bg-black/70 rounded-2xl px-6 py-3">
-                <div className="text-yellow-400 text-xs font-bold uppercase mb-1">{t.target}</div>
+                <div className="text-yellow-400 text-xs font-bold uppercase mb-1">{t('target')}</div>
                 <div className="text-4xl font-bold text-white">{targetSum}</div>
               </div>
               <div className="mt-2 bg-black/70 rounded-xl px-4 py-2">
-                <div className="text-green-400 text-xs">{t.sum}: <span className="text-xl font-bold">{currentSum}</span></div>
+                <div className="text-green-400 text-xs">{t('sum')}: <span className="text-xl font-bold">{currentSum}</span></div>
                 <div className="w-full bg-gray-700 h-2 rounded-full mt-1">
                   <div
                     className="h-2 rounded-full transition-all"
@@ -583,7 +492,7 @@ export default function NumberTower3DGame({ locale = 'en' }: NumberTower3DGamePr
             </div>
             <div className="bg-black/70 rounded-2xl px-4 py-2 text-white text-center font-bold">
               <div className="text-2xl">{timeLeft}s</div>
-              <div className="text-xs">{t.time}</div>
+              <div className="text-xs">{t('time')}</div>
             </div>
           </div>
 
@@ -599,7 +508,7 @@ export default function NumberTower3DGame({ locale = 'en' }: NumberTower3DGamePr
           {/* Bottom hint */}
           <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none z-10">
             <div className="inline-block bg-black/60 rounded-xl px-4 py-2 text-white text-sm">
-              {t.clickCatch}
+              {t('clickCatch')}
             </div>
           </div>
 
@@ -613,7 +522,7 @@ export default function NumberTower3DGame({ locale = 'en' }: NumberTower3DGamePr
               }}
               className="flex-1 max-w-[200px] py-4 rounded-2xl bg-yellow-400 text-black font-bold text-xl shadow-lg active:scale-95 transition-transform select-none"
             >
-              ✋ {t.clickCatch}
+              ✋ {t('clickCatch')}
             </button>
           </div>
         </>
@@ -624,8 +533,8 @@ export default function NumberTower3DGame({ locale = 'en' }: NumberTower3DGamePr
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-950 via-indigo-900 to-black z-20">
           <div className="text-center px-6 max-w-md">
             <div className="text-7xl mb-4">🔢</div>
-            <h1 className="text-4xl font-bold text-white mb-2">{t.title}</h1>
-            <p className="text-indigo-300 mb-8">{t.chooseDifficulty}</p>
+            <h1 className="text-4xl font-bold text-white mb-2">{t('title')}</h1>
+            <p className="text-indigo-300 mb-8">{t('chooseDifficulty')}</p>
             <div className="flex flex-col gap-4">
               {(['easy', 'medium', 'hard'] as Difficulty[]).map(d => {
                 const cfg = DIFFICULTY_SETTINGS[d];
@@ -654,13 +563,13 @@ export default function NumberTower3DGame({ locale = 'en' }: NumberTower3DGamePr
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-20">
           <div className="text-center">
             <div className="text-7xl mb-4">💥</div>
-            <h2 className="text-4xl font-bold text-white mb-2">{t.gameOver}</h2>
-            <p className="text-2xl text-yellow-400 mb-8">{t.score}: {score}</p>
+            <h2 className="text-4xl font-bold text-white mb-2">{t('gameOver')}</h2>
+            <p className="text-2xl text-yellow-400 mb-8">{t('score')}: {score}</p>
             <button
               onClick={() => setPhase('difficulty')}
               className="min-h-[56px] px-8 rounded-2xl font-bold text-xl text-white bg-gradient-to-r from-indigo-600 to-blue-600 hover:scale-105 transition-transform"
             >
-              {t.playAgain}
+              {t('playAgain')}
             </button>
           </div>
         </div>
@@ -671,13 +580,13 @@ export default function NumberTower3DGame({ locale = 'en' }: NumberTower3DGamePr
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-20">
           <div className="text-center">
             <div className="text-7xl mb-4">🏆</div>
-            <h2 className="text-4xl font-bold text-yellow-400 mb-2">{t.youWin}</h2>
-            <p className="text-2xl text-white mb-8">{t.score}: {score}</p>
+            <h2 className="text-4xl font-bold text-yellow-400 mb-2">{t('youWin')}</h2>
+            <p className="text-2xl text-white mb-8">{t('score')}: {score}</p>
             <button
               onClick={() => setPhase('difficulty')}
               className="min-h-[56px] px-8 rounded-2xl font-bold text-xl text-white bg-gradient-to-r from-yellow-500 to-orange-500 hover:scale-105 transition-transform"
             >
-              {t.playAgain}
+              {t('playAgain')}
             </button>
           </div>
         </div>
@@ -686,10 +595,18 @@ export default function NumberTower3DGame({ locale = 'en' }: NumberTower3DGamePr
       <InstructionsModal
         isOpen={showInstructions}
         onClose={startPlaying}
-        title={t.title}
-        instructions={instrData.instructions}
-        controls={instrData.controls}
-        tip={instrData.tip}
+        title={t('title')}
+        instructions={[
+            { icon: t('instructions.step0Icon'), title: t('instructions.step0Title'), description: t('instructions.step0Desc') },
+            { icon: t('instructions.step1Icon'), title: t('instructions.step1Title'), description: t('instructions.step1Desc') },
+            { icon: t('instructions.step2Icon'), title: t('instructions.step2Title'), description: t('instructions.step2Desc') },
+          ]}
+          controls={[
+            { icon: t('instructions.ctrl0Icon'), description: t('instructions.ctrl0Desc') },
+            { icon: t('instructions.ctrl1Icon'), description: t('instructions.ctrl1Desc') },
+            { icon: t('instructions.ctrl2Icon'), description: t('instructions.ctrl2Desc') },
+          ]}
+          tip={t('instructions.tip')}
         locale={locale}
       />
     </div>
