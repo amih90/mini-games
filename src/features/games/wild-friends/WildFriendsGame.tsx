@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GameWrapper } from '../shared/GameWrapper';
 import { InstructionsModal } from '../shared/InstructionsModal';
@@ -134,6 +134,27 @@ export default function WildFriendsGame({ locale = 'en' }: WildFriendsGameProps)
     progress.resetProgress();
     game.resetGame();
   }, [sounds, game, album, progress]);
+
+  // ─── Keyboard Navigation (US-020) ──────────────────────
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const { phase } = game.state;
+      switch (e.key) {
+        case 'Escape':
+          if (phase !== 'menu' && phase !== 'hub') {
+            handleReturnToHub();
+          }
+          break;
+        case 'Enter':
+        case ' ':
+          if (phase === 'scene_intro') handleStartExploring();
+          if (phase === 'scene_complete') handleSceneComplete();
+          break;
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [game.state, handleReturnToHub, handleStartExploring, handleSceneComplete]);
 
   // ─── Render Phase ──────────────────────────────────────
 
@@ -534,41 +555,115 @@ export default function WildFriendsGame({ locale = 'en' }: WildFriendsGameProps)
 
   // ─── Grand Finale ──────────────────────────────────────
 
-  const renderFinale = () => (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.5 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0 }}
-      className="flex flex-col items-center gap-6 p-8 max-w-md mx-auto text-center"
-    >
+  const renderFinale = () => {
+    // Trigger victory sound on mount
+    if (game.state.phase === 'grand_finale') {
+      sounds.playWin();
+    }
+
+    return (
       <motion.div
-        animate={{ y: [0, -20, 0] }}
-        transition={{ repeat: Infinity, duration: 1.5 }}
-        className="text-6xl"
+        initial={{ opacity: 0, scale: 0.5 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0 }}
+        className="flex flex-col items-center gap-6 p-8 max-w-md mx-auto text-center relative overflow-hidden"
       >
-        🏆
-      </motion.div>
-      <h2 className="text-3xl font-bold text-yellow-600">
-        {t(locale, 'worldExplorer')}
-      </h2>
-      <p className="text-lg text-gray-700">{t(locale, 'congratulations')}</p>
-
-      <div className="flex flex-wrap justify-center gap-2 my-4">
-        {Object.values(ANIMALS).map((animal) => (
-          <span key={animal.id} className="text-3xl">{animal.emoji}</span>
+        {/* Confetti particles */}
+        {Array.from({ length: 30 }).map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{
+              x: Math.random() * 400 - 200,
+              y: -50,
+              rotate: 0,
+              opacity: 1,
+            }}
+            animate={{
+              y: 600,
+              rotate: 360 * (Math.random() > 0.5 ? 1 : -1),
+              opacity: 0,
+            }}
+            transition={{
+              duration: 2 + Math.random() * 2,
+              delay: Math.random() * 1.5,
+              repeat: Infinity,
+              repeatDelay: Math.random() * 2,
+            }}
+            className="absolute text-2xl pointer-events-none"
+            style={{ left: `${Math.random() * 100}%` }}
+          >
+            {['🎊', '🌟', '⭐', '✨', '🎉'][i % 5]}
+          </motion.div>
         ))}
-      </div>
 
-      <button
-        onClick={handlePlayAgain}
-        className="px-8 py-4 bg-gradient-to-r from-purple-400 to-pink-500
-          text-white font-bold text-xl rounded-2xl shadow-lg
-          active:scale-95 transition-all touch-manipulation"
-      >
-        {t(locale, 'playAgain')} 🔄
-      </button>
-    </motion.div>
-  );
+        {/* Kiwi flying victory lap */}
+        <motion.div
+          animate={{
+            x: [0, 100, 0, -100, 0],
+            y: [0, -30, -10, -30, 0],
+            rotate: [0, 15, 0, -15, 0],
+          }}
+          transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
+          className="text-7xl"
+        >
+          🦜
+        </motion.div>
+
+        {/* Trophy */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          className="text-6xl"
+        >
+          🏆
+        </motion.div>
+        <h2 className="text-3xl font-bold text-yellow-600">
+          {t(locale, 'worldExplorer')}
+        </h2>
+        <p className="text-lg text-gray-700">{t(locale, 'congratulations')}</p>
+
+        {/* All 15 animals with dance animations */}
+        <div className="flex flex-wrap justify-center gap-2 my-4">
+          {Object.values(ANIMALS).map((animal, i) => (
+            <motion.span
+              key={animal.id}
+              animate={{
+                y: [0, -8, 0],
+                rotate: [0, i % 2 === 0 ? 10 : -10, 0],
+              }}
+              transition={{
+                repeat: Infinity,
+                duration: 1 + (i % 3) * 0.3,
+                delay: i * 0.1,
+              }}
+              className="text-3xl"
+            >
+              {animal.emoji}
+            </motion.span>
+          ))}
+        </div>
+
+        {/* Stats */}
+        <div className="bg-white/80 rounded-2xl p-4 shadow-md">
+          <p className="text-sm text-gray-600">
+            🐾 {album.discoveredCount}/{album.totalCount} {t(locale, 'collection')}
+          </p>
+          <p className="text-sm text-gray-600">
+            🌍 {progress.completedCount}/{progress.totalScenes} Continents
+          </p>
+        </div>
+
+        <button
+          onClick={handlePlayAgain}
+          className="px-8 py-4 bg-gradient-to-r from-purple-400 to-pink-500
+            text-white font-bold text-xl rounded-2xl shadow-lg
+            active:scale-95 transition-all touch-manipulation"
+        >
+          {t(locale, 'playAgain')} 🔄
+        </button>
+      </motion.div>
+    );
+  };
 
   // ─── Main Render ───────────────────────────────────────
 
