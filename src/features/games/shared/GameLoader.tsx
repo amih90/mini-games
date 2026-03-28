@@ -322,6 +322,11 @@ const AnimalDiceGame = dynamic(
   { loading: () => <GameLoadingSkeleton />, ssr: false }
 );
 
+const WildFriendsGame = dynamic(
+  () => import('@/features/games/wild-friends/WildFriendsGame'),
+  { loading: () => <GameLoadingSkeleton />, ssr: false }
+);
+
 function GameLoadingSkeleton() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-peach-glow-light via-white to-sky-bubble-light flex items-center justify-center">
@@ -437,6 +442,8 @@ export function GameLoader({ slug }: GameLoaderProps) {
       return <NumberTower3DGame locale={locale} />;
     case 'animal-dice':
       return <AnimalDiceGame locale={locale} />;
+    case 'wild-friends':
+      return <WildFriendsGame locale={locale} />;
     default:
       return null;
   }
