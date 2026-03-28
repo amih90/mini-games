@@ -395,7 +395,7 @@ export function GameLoader({ slug }: GameLoaderProps) {
     case 'ping-pong':
       return <PingPongGame locale={locale} />;
     case 'nascar-cars':
-      return <NascarCarsGame locale={locale} />;
+      return <NascarCarsGame />;
     case 'army-runner':
       return <ArmyRunnerGame locale={locale} />;
     case 'potion-craft':
@@ -435,11 +435,11 @@ export function GameLoader({ slug }: GameLoaderProps) {
     case 'counting-bubbles':
       return <CountingBubblesGame />;
     case 'shape-sorter-3d':
-      return <ShapeSorter3DGame locale={locale} />;
+      return <ShapeSorter3DGame />;
     case 'solar-system-3d':
-      return <SolarSystem3DGame locale={locale} />;
+      return <SolarSystem3DGame />;
     case 'number-tower-3d':
-      return <NumberTower3DGame locale={locale} />;
+      return <NumberTower3DGame />;
     case 'animal-dice':
       return <AnimalDiceGame locale={locale} />;
     case 'wild-friends':

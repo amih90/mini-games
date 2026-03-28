@@ -17,7 +17,7 @@ export const potionCraftConfig: GameConfig = {
   categories: ['science', 'patterns', 'ages-6-8'],
   ageRange: { min: 5, max: 14 },
   icon: '🧪',
-  thumbnail: '/images/games/screenshots/potion-craft.png',
+  thumbnail: '/images/games/potion-craft.svg',
   engine: 'r3f',
   i18nNamespace: 'potionCraft',
 };

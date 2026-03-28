@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="adBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef3c7"/>
+      <stop offset="100%" stop-color="#fde68a"/>
+    </linearGradient>
+    <linearGradient id="diceFace" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f0f0f0"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="200" height="200" rx="20" fill="url(#adBg)"/>
+  <!-- Grass ground -->
+  <ellipse cx="100" cy="185" rx="80" ry="20" fill="#86efac" opacity="0.5"/>
+  <!-- Main dice (3D illusion) -->
+  <!-- Shadow -->
+  <ellipse cx="105" cy="165" rx="50" ry="12" fill="rgba(0,0,0,0.15)"/>
+  <!-- Right face (dark) -->
+  <polygon points="150,60 175,75 175,155 150,140" fill="#d4d4d4" rx="8"/>
+  <!-- Bottom face (medium) -->
+  <polygon points="60,140 150,140 175,155 85,155" fill="#e5e5e5"/>
+  <!-- Front face (white) -->
+  <rect x="60" y="55" width="90" height="90" rx="12" fill="url(#diceFace)"/>
+  <rect x="60" y="55" width="90" height="90" rx="12" fill="none" stroke="#d1d5db" stroke-width="2"/>
+  <!-- Top face -->
+  <polygon points="60,55 85,40 175,40 150,55" fill="#f5f5f5"/>
+  <!-- Animal dots on front face (show 4 = 4 animals) -->
+  <text x="75" y="98" font-size="22">🐻</text>
+  <text x="111" y="98" font-size="22">🦊</text>
+  <text x="75" y="130" font-size="22">🐸</text>
+  <text x="111" y="130" font-size="22">🐼</text>
+  <!-- Dice animation (slight bounce) -->
+  <animateTransform attributeName="transform" type="translate" values="0,0;0,-6;0,0" dur="1.2s" repeatCount="indefinite" additive="sum"/>
+  <!-- Sparkles -->
+  <circle cx="30" cy="40" r="3" fill="#fbbf24">
+    <animate attributeName="opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="170" cy="30" r="2.5" fill="#f97316">
+    <animate attributeName="opacity" values="1;0;1" dur="1.2s" repeatCount="indefinite"/>
+  </circle>
+  <text x="160" y="175" font-size="16">🎲</text>
+  <text x="20" y="170" font-size="14">⭐</text>
+</svg>

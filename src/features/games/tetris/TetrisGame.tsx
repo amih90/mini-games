@@ -789,6 +789,8 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
     return (
       <GameWrapper
         title={t('title')}
+        onInstructionsClick={() => setShowInstructions(true)}
+      >
           <motion.div
             animate={{ rotate: [0, 10, -10, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
@@ -845,7 +847,6 @@ export default function TetrisGame({ locale = 'en' }: TetrisGameProps) {
               <span className="font-bold text-[#ec4399]">{highScore}</span>
             </div>
           )}
-        </div>
 
         <InstructionsModal
           isOpen={showInstructions}

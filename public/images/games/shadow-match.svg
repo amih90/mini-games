@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="smLight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fef9c3"/>
+      <stop offset="50%" stop-color="#fef08a"/>
+    </linearGradient>
+    <linearGradient id="smDark" x1="50%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <!-- Light half -->
+  <path d="M0,0 L0,200 L100,200 L100,0 Z" fill="url(#smLight)" clip-path="url(#roundRect)"/>
+  <!-- Dark half -->
+  <path d="M100,0 L100,200 L200,200 L200,0 Z" fill="url(#smDark)"/>
+  <!-- Rounded corners via clip -->
+  <rect width="200" height="200" rx="20" fill="none"/>
+
+  <!-- Divider line with glow -->
+  <line x1="100" y1="0" x2="100" y2="200" stroke="#fbbf24" stroke-width="2.5" opacity="0.8"/>
+  <line x1="100" y1="0" x2="100" y2="200" stroke="#fde68a" stroke-width="6" opacity="0.15"/>
+
+  <!-- Background rounded rect for border -->
+  <rect width="200" height="200" rx="20" fill="none" stroke="none"/>
+
+  <!-- Object 1: Cat (light side) -->
+  <g transform="translate(35, 45)">
+    <text font-size="38">🐱</text>
+  </g>
+  <!-- Shadow 1: Cat silhouette (dark side) -->
+  <ellipse cx="155" cy="72" rx="22" ry="20" fill="#334155" opacity="0.9"/>
+  <ellipse cx="143" cy="57" rx="10" ry="12" fill="#334155" opacity="0.9"/>
+  <ellipse cx="167" cy="57" rx="10" ry="12" fill="#334155" opacity="0.9"/>
+  <polygon points="140,50 143,42 146,50" fill="#334155" opacity="0.9"/>
+  <polygon points="164,50 167,42 170,50" fill="#334155" opacity="0.9"/>
+
+  <!-- Object 2: Star (light side) -->
+  <polygon points="38,130 42,120 46,130 56,130 48,136 51,146 42,140 33,146 36,136 28,130" fill="#f59e0b" stroke="#fcd34d" stroke-width="1"/>
+  <!-- Shadow 2: Star silhouette (dark side) -->
+  <polygon points="148,130 152,120 156,130 166,130 158,136 161,146 152,140 143,146 146,136 138,130" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+  <!-- Highlight showing which is correct -->
+  <polygon points="148,130 152,120 156,130 166,130 158,136 161,146 152,140 143,146 146,136 138,130" fill="none" stroke="#fbbf24" stroke-width="1.5">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" repeatCount="indefinite"/>
+  </polygon>
+
+  <!-- Object 3: Heart (light side) -->
+  <path d="M50,165 C50,160 43,155 38,160 C33,165 38,172 50,180 C62,172 67,165 62,160 C57,155 50,160 50,165" fill="#ef4444"/>
+  <!-- Shadow 3: Heart silhouette (dark side) -->
+  <path d="M150,165 C150,160 143,155 138,160 C133,165 138,172 150,180 C162,172 167,165 162,160 C157,155 150,160 150,165" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+
+  <!-- Labels -->
+  <text x="50" y="14" font-size="9" fill="#92400e" text-anchor="middle" font-weight="bold">OBJECTS</text>
+  <text x="155" y="14" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">SHADOWS</text>
+</svg>

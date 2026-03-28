@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="fbSky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e90ff"/>
+      <stop offset="100%" stop-color="#87ceeb"/>
+    </linearGradient>
+    <linearGradient id="fbPipe" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+  <!-- Sky -->
+  <rect width="200" height="200" rx="20" fill="url(#fbSky)"/>
+  <!-- Clouds -->
+  <ellipse cx="40" cy="40" rx="22" ry="12" fill="rgba(255,255,255,0.9)">
+    <animate attributeName="cx" values="40;55;40" dur="6s" repeatCount="indefinite"/>
+  </ellipse>
+  <ellipse cx="55" cy="35" rx="15" ry="10" fill="white">
+    <animate attributeName="cx" values="55;70;55" dur="6s" repeatCount="indefinite"/>
+  </ellipse>
+  <ellipse cx="160" cy="55" rx="18" ry="10" fill="rgba(255,255,255,0.85)">
+    <animate attributeName="cx" values="160;145;160" dur="7s" repeatCount="indefinite"/>
+  </ellipse>
+  <!-- Pipe top (left) -->
+  <rect x="120" y="0" width="36" height="90" rx="4" fill="url(#fbPipe)"/>
+  <rect x="115" y="80" width="46" height="16" rx="4" fill="#16a34a"/>
+  <!-- Pipe bottom (left) -->
+  <rect x="120" y="140" width="36" height="70" fill="url(#fbPipe)"/>
+  <rect x="115" y="136" width="46" height="16" rx="4" fill="#16a34a"/>
+  <!-- Bird (yellow) flying through gap -->
+  <g>
+    <animateTransform attributeName="transform" type="translate" values="0,-5;0,5;0,-5" dur="0.6s" repeatCount="indefinite"/>
+    <!-- Body -->
+    <ellipse cx="60" cy="110" rx="18" ry="14" fill="#fbbf24"/>
+    <!-- Wing -->
+    <ellipse cx="55" cy="116" rx="14" ry="7" fill="#f59e0b">
+      <animateTransform attributeName="transform" type="rotate" values="0 55 116;-25 55 116;0 55 116" dur="0.3s" repeatCount="indefinite"/>
+    </ellipse>
+    <!-- Eye -->
+    <circle cx="68" cy="106" r="5" fill="white"/>
+    <circle cx="70" cy="106" r="2.5" fill="#1a1a2e"/>
+    <!-- Beak -->
+    <polygon points="76,109 85,112 76,115" fill="#f97316"/>
+    <!-- Cheek -->
+    <circle cx="66" cy="112" r="4" fill="#fca5a5" opacity="0.6"/>
+  </g>
+  <!-- Ground -->
+  <rect x="0" y="185" width="200" height="15" rx="0" fill="#92400e"/>
+  <rect x="0" y="182" width="200" height="6" fill="#65a30d"/>
+  <!-- Score indicator -->
+  <text x="18" y="30" font-size="22" fill="white" font-weight="bold" font-family="monospace" opacity="0.9">3</text>
+</svg>

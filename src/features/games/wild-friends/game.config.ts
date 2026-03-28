@@ -17,7 +17,7 @@ export const wildFriendsConfig: GameConfig = {
   categories: ['science', 'ages-3-5'],
   ageRange: { min: 3, max: 5 },
   icon: '🦜',
-  thumbnail: '/images/games/screenshots/wild-friends.png',
+  thumbnail: '/images/games/wild-friends.svg',
   engine: 'r3f',
   i18nNamespace: 'wildFriends',
 };

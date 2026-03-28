@@ -17,7 +17,7 @@ export const armyRunnerConfig: GameConfig = {
   categories: ['reaction', 'math', 'ages-6-8'],
   ageRange: { min: 5, max: 12 },
   icon: '⚔️',
-  thumbnail: '/images/games/screenshots/army-runner.png',
+  thumbnail: '/images/games/army-runner.svg',
   engine: 'r3f',
   i18nNamespace: 'armyRunner',
 };

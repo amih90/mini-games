@@ -17,7 +17,7 @@ export const shapeSorter3DConfig: GameConfig = {
   categories: ['shapes', 'ages-3-5', 'ages-6-8'],
   ageRange: { min: 4, max: 8 },
   icon: '🔷',
-  thumbnail: '/images/games/screenshots/shape-sorter-3d.png',
+  thumbnail: '/images/games/shape-sorter-3d.svg',
   engine: 'r3f',
   i18nNamespace: 'shapeSorter3D',
 };

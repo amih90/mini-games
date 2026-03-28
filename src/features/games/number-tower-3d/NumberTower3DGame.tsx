@@ -549,7 +549,7 @@ export default function NumberTower3DGame() {
                           'linear-gradient(135deg, #ef4444, #dc2626)',
                     }}
                   >
-                    {d === 'easy' ? '🟢' : d === 'medium' ? '🟡' : '🔴'} {t[d]} — 1-{cfg.maxNumber}
+                    {d === 'easy' ? '🟢' : d === 'medium' ? '🟡' : '🔴'} {(t as any)(d)} — 1-{cfg.maxNumber}
                   </button>
                 );
               })}

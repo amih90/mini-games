@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="ciSpace" cx="50%" cy="50%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#0a0a1a"/>
+    </radialGradient>
+  </defs>
+  <!-- Space background -->
+  <rect width="200" height="200" rx="20" fill="url(#ciSpace)"/>
+  <!-- Stars -->
+  <circle cx="20" cy="15" r="1.5" fill="white" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="80" cy="25" r="1" fill="white" opacity="0.6"/>
+  <circle cx="150" cy="10" r="1.5" fill="white" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.4;0.9" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="185" cy="40" r="1" fill="white" opacity="0.7"/>
+  <circle cx="35" cy="60" r="1" fill="white" opacity="0.5"/>
+  <circle cx="175" cy="75" r="1.5" fill="white" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.2;0.8" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Chicken invaders row 1 -->
+  <g fill="#fbbf24">
+    <!-- Chicken 1 -->
+    <ellipse cx="40" cy="50" rx="14" ry="12"/>
+    <circle cx="40" cy="38" r="9"/>
+    <polygon points="36,29 40,22 44,29" fill="#f97316"/>
+    <circle cx="37" cy="35" r="2.5" fill="#1a1a2e"/>
+    <circle cx="43" cy="35" r="2.5" fill="#1a1a2e"/>
+    <path d="M32,52 L26,58 M48,52 L54,58" stroke="#f97316" stroke-width="2"/>
+    <!-- Chicken 2 -->
+    <ellipse cx="100" cy="50" rx="14" ry="12"/>
+    <circle cx="100" cy="38" r="9"/>
+    <polygon points="96,29 100,22 104,29" fill="#f97316"/>
+    <circle cx="97" cy="35" r="2.5" fill="#1a1a2e"/>
+    <circle cx="103" cy="35" r="2.5" fill="#1a1a2e"/>
+    <path d="M92,52 L86,58 M108,52 L114,58" stroke="#f97316" stroke-width="2"/>
+    <!-- Chicken 3 -->
+    <ellipse cx="160" cy="50" rx="14" ry="12"/>
+    <circle cx="160" cy="38" r="9"/>
+    <polygon points="156,29 160,22 164,29" fill="#f97316"/>
+    <circle cx="157" cy="35" r="2.5" fill="#1a1a2e"/>
+    <circle cx="163" cy="35" r="2.5" fill="#1a1a2e"/>
+    <path d="M152,52 L146,58 M168,52 L174,58" stroke="#f97316" stroke-width="2"/>
+  </g>
+  <!-- Row 2 (smaller) -->
+  <g fill="#fde68a" opacity="0.9">
+    <ellipse cx="70" cy="95" rx="11" ry="9"/><circle cx="70" cy="86" r="7"/>
+    <polygon points="67,79 70,74 73,79" fill="#f97316"/>
+    <ellipse cx="130" cy="95" rx="11" ry="9"/><circle cx="130" cy="86" r="7"/>
+    <polygon points="127,79 130,74 133,79" fill="#f97316"/>
+  </g>
+  <!-- Player ship -->
+  <g>
+    <animateTransform attributeName="transform" type="translate" values="0,0;8,0;-8,0;0,0" dur="2s" repeatCount="indefinite"/>
+    <polygon points="100,175 80,195 120,195" fill="#3b82f6"/>
+    <polygon points="100,178 90,193 110,193" fill="#60a5fa"/>
+    <rect x="96" y="170" width="8" height="10" rx="2" fill="#93c5fd"/>
+  </g>
+  <!-- Laser from ship -->
+  <rect x="98" y="140" width="4" height="30" rx="2" fill="#ffd700" opacity="0.8">
+    <animate attributeName="height" values="30;0;30" dur="0.5s" repeatCount="indefinite"/>
+    <animate attributeName="y" values="140;130;140" dur="0.5s" repeatCount="indefinite"/>
+  </rect>
+  <!-- Explosion on chicken -->
+  <circle cx="100" cy="95" r="10" fill="#f97316" opacity="0">
+    <animate attributeName="opacity" values="0;0.9;0" dur="0.5s" begin="0.3s" repeatCount="indefinite"/>
+    <animate attributeName="r" values="5;15;5" dur="0.5s" begin="0.3s" repeatCount="indefinite"/>
+  </circle>
+</svg>

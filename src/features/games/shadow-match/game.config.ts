@@ -17,7 +17,7 @@ export const shadowMatchConfig: GameConfig = {
   categories: ['shapes', 'ages-3-5'],
   ageRange: { min: 3, max: 6 },
   icon: '👤',
-  thumbnail: '/images/games/screenshots/shadow-match.png',
+  thumbnail: '/images/games/shadow-match.svg',
   engine: 'react',
   i18nNamespace: 'shadowMatch',
 };

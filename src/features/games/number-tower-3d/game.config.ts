@@ -17,7 +17,7 @@ export const numberTower3DConfig: GameConfig = {
   categories: ['math', 'ages-3-5', 'ages-6-8'],
   ageRange: { min: 5, max: 9 },
   icon: '🔢',
-  thumbnail: '/images/games/screenshots/number-tower-3d.png',
+  thumbnail: '/images/games/number-tower-3d.svg',
   engine: 'r3f',
   i18nNamespace: 'numberTower3D',
 };

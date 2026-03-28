@@ -449,8 +449,8 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
 
       // --- Miss animation ---
       if (missAnimationRef.current) {
-        missAnimationRef.current('time')--;
-        if (missAnimationRef.current('time') <= 0) missAnimationRef.current = null;
+        missAnimationRef.current.time--;
+        if (missAnimationRef.current.time <= 0) missAnimationRef.current = null;
       }
 
       // ========== DRAW ==========
@@ -730,7 +730,7 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
         ctx.fillText(
           missT,
           missAnimationRef.current.x,
-          missAnimationRef.current.y - (20 - missAnimationRef.current('time'))
+          missAnimationRef.current.y - (20 - missAnimationRef.current.time)
         );
       }
 
@@ -825,9 +825,9 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
                           : 'bg-red-100 hover:bg-red-200 text-red-800 border-2 border-red-300'
                     }`}
                   >
-                    <div>{t[diff]}</div>
+                    <div>{(t as any)(diff)}</div>
                     <div className="text-sm font-normal opacity-75 mt-1">
-                      {t[`${diff}Desc`]}
+                      {(t as any)(`${diff}Desc`)}
                     </div>
                   </motion.button>
                 ))}
@@ -893,7 +893,7 @@ export default function WhackAMoleGame({ locale = 'en' }: WhackAMoleGameProps) {
               {difficulty !== 'easy' && (
                 <span className="px-3 py-1 bg-white/80 rounded-full">{t('bombPoints')}</span>
               )}
-              <span className="px-3 py-1 bg-white/80 rounded-full">{t('combo')Points}</span>
+              <span className="px-3 py-1 bg-white/80 rounded-full">{t('comboPoints')}</span>
             </div>
           </>
         )}

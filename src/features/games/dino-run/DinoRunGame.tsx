@@ -1563,7 +1563,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                     className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-full shadow-lg min-h-[48px] min-w-[48px] flex flex-col items-center"
                   >
                     <span className="text-base">{t('easy')}</span>
-                    <span className="text-xs font-normal opacity-80">{t('easy')Desc}</span>
+                    <span className="text-xs font-normal opacity-80">{t('easyDesc')}</span>
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1572,7 +1572,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                     className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-full shadow-lg min-h-[48px] min-w-[48px] flex flex-col items-center"
                   >
                     <span className="text-base">{t('medium')}</span>
-                    <span className="text-xs font-normal opacity-80">{t('medium')Desc}</span>
+                    <span className="text-xs font-normal opacity-80">{t('mediumDesc')}</span>
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1581,7 +1581,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
                     className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-full shadow-lg min-h-[48px] min-w-[48px] flex flex-col items-center"
                   >
                     <span className="text-base">{t('hard')}</span>
-                    <span className="text-xs font-normal opacity-80">{t('hard')Desc}</span>
+                    <span className="text-xs font-normal opacity-80">{t('hardDesc')}</span>
                   </motion.button>
                 </div>
               </motion.div>
@@ -1660,7 +1660,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
               }}
               className="px-8 py-4 bg-[#f97316] hover:bg-[#ea580c] text-white text-lg font-bold rounded-2xl shadow-lg min-h-[56px] min-w-[56px] active:bg-[#ea580c] select-none"
             >
-              ⬇️ {t('duck')Btn}
+              ⬇️ {t('duckBtn')}
             </motion.button>
           </div>
         )}
@@ -1669,7 +1669,7 @@ export default function DinoRunGame({ locale = 'en' }: DinoRunGameProps) {
         <div className="flex flex-wrap justify-center gap-2 text-slate-600 text-sm">
           <span className="px-3 py-1 bg-white/80 rounded-full">🖱️ Click = {t('jumpBtn')}</span>
           <span className="px-3 py-1 bg-white/80 rounded-full">Space/↑/W = {t('jumpBtn')}</span>
-          <span className="px-3 py-1 bg-white/80 rounded-full">↓/S = {t('duck')Btn}</span>
+          <span className="px-3 py-1 bg-white/80 rounded-full">↓/S = {t('duckBtn')}</span>
         </div>
       </div>
 

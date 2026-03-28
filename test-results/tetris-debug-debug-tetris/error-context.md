@@ -1,0 +1,107 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - banner [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Back" [ref=e8] [cursor=pointer]:
+              - /url: /en/games
+              - button "Back" [ref=e9]:
+                - generic [ref=e10]:
+                  - generic [ref=e11]: ←
+                  - generic [ref=e12]: Back
+            - heading "Tetris" [level=1] [ref=e13]
+          - generic [ref=e14]:
+            - button "Instructions" [ref=e15]:
+              - generic [ref=e16]: ❓
+            - button "Sound On" [pressed] [ref=e17]:
+              - generic [ref=e18]: 🔊
+      - main [ref=e19]:
+        - generic [ref=e20]:
+          - generic [ref=e21]: 🧱
+          - heading "Tetris" [level=2] [ref=e22]
+          - paragraph [ref=e23]: Select Difficulty
+          - generic [ref=e24]:
+            - button "🟢 Easy Slow & relaxed" [ref=e25]:
+              - generic [ref=e26]: 🟢 Easy
+              - generic [ref=e27]: Slow & relaxed
+            - button "🟡 Medium Balanced fun" [ref=e28]:
+              - generic [ref=e29]: 🟡 Medium
+              - generic [ref=e30]: Balanced fun
+            - button "🔴 Hard Fast & challenging" [ref=e31]:
+              - generic [ref=e32]: 🔴 Hard
+              - generic [ref=e33]: Fast & challenging
+    - contentinfo [ref=e34]:
+      - img [ref=e36]
+      - generic [ref=e38]:
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - generic [ref=e41]:
+              - generic [ref=e42]: 🎮
+              - generic [ref=e43]: Mini Games
+            - paragraph [ref=e44]: Fun and educational games designed for kids. Learn while playing with our colorful collection of mini-games!
+            - generic [ref=e45]:
+              - generic [ref=e46]: 🦊
+              - generic [ref=e47]: 🐱
+              - generic [ref=e48]: 🐶
+              - generic [ref=e49]: 🐰
+          - generic [ref=e50]:
+            - heading "Quick Links" [level=3] [ref=e51]:
+              - generic [ref=e53]: Quick Links
+            - list [ref=e54]:
+              - listitem [ref=e55]:
+                - link "🏠 Home →" [ref=e56] [cursor=pointer]:
+                  - /url: /en
+                  - generic [ref=e57]: 🏠
+                  - generic [ref=e58]: Home
+                  - generic [ref=e59]: →
+              - listitem [ref=e60]:
+                - link "🎮 Games →" [ref=e61] [cursor=pointer]:
+                  - /url: /en/games
+                  - generic [ref=e62]: 🎮
+                  - generic [ref=e63]: Games
+                  - generic [ref=e64]: →
+          - generic [ref=e65]:
+            - heading "Game Categories" [level=3] [ref=e66]:
+              - generic [ref=e68]: Game Categories
+            - generic [ref=e69]:
+              - generic [ref=e70] [cursor=pointer]:
+                - generic [ref=e71]: 🎨
+                - generic [ref=e72]: Colors
+              - generic [ref=e73] [cursor=pointer]:
+                - generic [ref=e74]: 🧠
+                - generic [ref=e75]: Memory
+              - generic [ref=e76] [cursor=pointer]:
+                - generic [ref=e77]: 🔢
+                - generic [ref=e78]: Math
+              - generic [ref=e79] [cursor=pointer]:
+                - generic [ref=e80]: ⚡
+                - generic [ref=e81]: Reaction
+        - generic [ref=e85]: ⭐
+        - generic [ref=e86]:
+          - paragraph [ref=e87]:
+            - text: © 2026 Mini Games. Made with
+            - generic [ref=e88]: ❤️
+            - text: for kids.
+          - generic [ref=e89]:
+            - generic [ref=e90] [cursor=pointer]: ⭐
+            - generic [ref=e91] [cursor=pointer]: 🌟
+            - generic [ref=e92] [cursor=pointer]: ✨
+            - generic [ref=e93] [cursor=pointer]: 💫
+            - generic [ref=e94] [cursor=pointer]: 🎊
+      - generic [ref=e96]:
+        - generic [ref=e97] [cursor=pointer]: 🎨
+        - generic [ref=e98] [cursor=pointer]: 🃏
+        - generic [ref=e99] [cursor=pointer]: 🎯
+        - generic [ref=e100] [cursor=pointer]: 🧩
+        - generic [ref=e101] [cursor=pointer]: 🎮
+        - generic [ref=e102] [cursor=pointer]: 🧱
+        - generic [ref=e103] [cursor=pointer]: 🐤
+        - generic [ref=e104] [cursor=pointer]: 🐔
+  - button "Open Next.js Dev Tools" [ref=e111] [cursor=pointer]:
+    - img [ref=e112]
+  - alert [ref=e115]
+```

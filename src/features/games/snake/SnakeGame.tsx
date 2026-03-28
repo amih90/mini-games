@@ -774,6 +774,9 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
   return (
     <GameWrapper
       title={t('title')}
+      onInstructionsClick={() => setShowInstructions(true)}
+    >
+      <div className="flex flex-col md:flex-row items-start justify-center gap-6 w-full">
         {/* Game Board */}
         <div className="relative">
           <canvas
@@ -805,6 +808,7 @@ export default function SnakeGame({ locale = 'en' }: SnakeGameProps) {
                   {t('title')}
                 </h2>
                 <p className="text-white/80 text-sm mb-4">{t('difficulty')}</p>
+                <div className="flex flex-col gap-3 w-56">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}

@@ -237,7 +237,7 @@ export default function NascarCarsGame() {
                     className={`px-6 py-4 rounded-2xl bg-gradient-to-br ${color} text-white font-bold text-lg shadow-lg flex flex-col items-center gap-1 min-w-[120px]`}
                   >
                     <span className="text-2xl">{emoji}</span>
-                    <span>{t[key]}</span>
+                    <span>{(t as any)(key)}</span>
                     {key === 'easy' && (
                       <span className="text-xs opacity-80">{t('autoAccel')}</span>
                     )}
