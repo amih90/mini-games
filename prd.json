@@ -1,0 +1,704 @@
+{
+  "project": "Wild Friends — World Animal Explorer",
+  "branchName": "ralph/wild-friends",
+  "description": "A multi-scene educational adventure game for preschoolers (ages 3-5) built with R3F. Kids travel 6 continents with Kiwi the parrot discovering animals, learning science facts, and solving puzzles through an interactive story.",
+  "config": {
+    "createBranch": true,
+    "claudeModel": "claude-opus-4-6",
+    "copilotModel": "claude-opus-4.6-fast",
+    "setupCommands": [
+      "npm install",
+      "npx --yes playwright install --with-deps chromium"
+    ],
+    "buildCommands": [
+      "npm run build"
+    ],
+    "testCommands": [
+      "npx playwright test"
+    ],
+    "uiVerification": {
+      "tool": "playwright",
+      "command": "npx playwright test",
+      "launchCommand": "npm run dev",
+      "notes": "Dev server runs on localhost:3000. Use GAME_SLUG=wild-friends for targeted screenshot tests."
+    }
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Game config registration and TypeScript types",
+      "description": "As a developer, I want the Wild Friends game registered in the portal so that it appears in the game catalog and can be lazy-loaded via GameLoader.",
+      "complexity": "S",
+      "acceptanceCriteria": [
+        "game.config.ts exports wildFriendsConfig with slug 'wild-friends', engine 'r3f', icon '🦜', categories ['science', 'ages-3-5'], ageRange {min:3, max:5}",
+        "Title and description localized in en, he, zh, es",
+        "types.ts defines Animal, Scene, GamePhase, Difficulty, ChallengeType, AnimalAlbumEntry interfaces",
+        "GameLoader.tsx updated to lazy-import WildFriendsGame for slug 'wild-friends'",
+        "Build passes (run your project's build command)"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/game.config.ts",
+        "src/features/games/wild-friends/types.ts",
+        "src/features/games/shared/GameLoader.tsx",
+        "src/features/games/registry/types.ts"
+      ],
+      "explorationHints": [
+        "Look at src/features/games/solar-system-3d/game.config.ts for R3F game config pattern",
+        "Search GameLoader.tsx to see how existing games are lazy-loaded",
+        "Check src/features/games/registry/ for the game registry pattern"
+      ],
+      "specFile": "",
+      "dependsOn": [],
+      "priority": 1,
+      "passes": true,
+      "notes": "Committed fb07bf7. Build passes (pre-existing errors in other games)."
+    },
+    {
+      "id": "US-002",
+      "title": "Animal data, scene definitions, and translations",
+      "description": "As a developer, I want all 15 animal definitions, 6 scene metadata objects, and UI translations so that game components can reference structured data.",
+      "complexity": "M",
+      "acceptanceCriteria": [
+        "animals.ts exports 15 animal objects grouped by continent, each with: name (4 locales), fact (4 locales), emoji, challengeType, challengeConfig",
+        "scenes.ts exports 6 scene objects with: id, continent name (4 locales), biome description, animal IDs, order index, storyIntro (4 locales)",
+        "translations.ts exports all UI strings in en/he/zh/es: menu labels, Kiwi dialogue per scene, challenge instructions, reward messages (~80 keys total)",
+        "All Hebrew strings marked for RTL rendering",
+        "Build passes (run your project's build command)"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/data/animals.ts",
+        "src/features/games/wild-friends/data/scenes.ts",
+        "src/features/games/wild-friends/data/translations.ts"
+      ],
+      "explorationHints": [
+        "Search for TRANSLATIONS patterns in existing canvas games like SnakeGame.tsx",
+        "Look at how plant-grower or potion-craft structure their game data",
+        "Check how RTL (Hebrew) is handled in existing game translations"
+      ],
+      "specFile": "us-002-animal-scene-data.md",
+      "dependsOn": [
+        "US-001"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Committed 3cbce1b. 15 animals, 5 scenes, ~80 translation keys in 4 locales."
+    },
+    {
+      "id": "US-003",
+      "title": "Core game state machine and persistence hooks",
+      "description": "As a developer, I want a central game state machine and persistence hooks so that scene progression, animal collection, and difficulty are managed consistently.",
+      "complexity": "M",
+      "acceptanceCriteria": [
+        "useWildFriendsGame hook manages GamePhase state machine: MENU → DIFFICULTY_SELECT → HUB → SCENE_INTRO → EXPLORING → ANIMAL_ENCOUNTER → FACT_CARD → CHALLENGE → REWARD → SCENE_COMPLETE → HUB → GRAND_FINALE",
+        "Hook exposes: currentPhase, currentScene, currentAnimal, difficulty, discoveredAnimals, completedScenes, and transition functions",
+        "useAnimalAlbum hook persists discovered animals to localStorage key 'wild-friends-album', returns album state and addAnimal function",
+        "useSceneProgress hook persists completed scenes to localStorage key 'wild-friends-progress'",
+        "All hooks clean up properly and handle SSR (typeof window check)",
+        "Build passes (run your project's build command)"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/hooks/useWildFriendsGame.ts",
+        "src/features/games/wild-friends/hooks/useAnimalAlbum.ts",
+        "src/features/games/wild-friends/hooks/useSceneProgress.ts"
+      ],
+      "explorationHints": [
+        "Search for usePotionCraftGame to see multi-phase game state pattern",
+        "Look at how existing games handle localStorage persistence for high scores",
+        "Check useCallback and useRef patterns in game hooks"
+      ],
+      "specFile": "",
+      "dependsOn": [
+        "US-001"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "Committed. 3 hooks: useWildFriendsGame, useAnimalAlbum, useSceneProgress."
+    },
+    {
+      "id": "US-004",
+      "title": "Root game component with scene router and difficulty selector",
+      "description": "As a player, I want a main game screen that routes me to the correct scene and lets me pick difficulty before starting so that I can begin my adventure.",
+      "complexity": "M",
+      "acceptanceCriteria": [
+        "WildFriendsGame.tsx is the root 'use client' component wrapped in GameWrapper",
+        "Renders DifficultySelector with 3 levels: Little Cub (easy), Explorer (medium), Ranger (hard) — each with emoji and localized label",
+        "After difficulty selection, routes to Hub scene",
+        "Scene router dynamically renders the correct scene component based on currentScene from game state hook",
+        "Sound toggle and instructions button wired in GameWrapper header",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent launches the app and confirms the game loads, difficulty selector renders with 3 options, and selecting a difficulty transitions to the Hub scene via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/WildFriendsGame.tsx",
+        "src/features/games/wild-friends/components/Shared/DifficultySelector.tsx"
+      ],
+      "explorationHints": [
+        "Look at how potion-craft or plant-grower render different game phases",
+        "Search for GameWrapper usage pattern in existing games",
+        "Find how difficulty selectors are implemented in other games"
+      ],
+      "specFile": "",
+      "dependsOn": [
+        "US-002",
+        "US-003"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": "Full scene router with all 10 game phases, difficulty selector, hub, instructions."
+    },
+    {
+      "id": "US-005",
+      "title": "Kiwi narrator and shared interaction components",
+      "description": "As a player, I want Kiwi the parrot to guide me with speech bubbles, show me animal fact cards, and celebrate my discoveries with star animations.",
+      "complexity": "M",
+      "acceptanceCriteria": [
+        "KiwiGuide.tsx renders an animated parrot emoji/icon with a speech bubble overlay",
+        "Speech bubble displays localized text with typewriter animation effect, auto-advances after 3 seconds or on tap",
+        "Speech bubble arrow direction flips for RTL (Hebrew)",
+        "AnimalCard.tsx shows a popup card with animal emoji, localized name, localized fact, and close button",
+        "StarReward.tsx shows an animated star/sticker with confetti burst using framer-motion, auto-dismisses after 2 seconds",
+        "All components are touch-friendly with min 48x48px tap targets",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent confirms KiwiGuide speech bubble renders with typewriter text, AnimalCard shows fact popup, and StarReward plays confetti animation via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/components/Shared/KiwiGuide.tsx",
+        "src/features/games/wild-friends/components/Shared/AnimalCard.tsx",
+        "src/features/games/wild-friends/components/Shared/StarReward.tsx"
+      ],
+      "explorationHints": [
+        "Search for framer-motion usage in existing game components",
+        "Look at WinModal.tsx for celebration animation patterns",
+        "Check how RTL layout flipping works in existing components"
+      ],
+      "specFile": "",
+      "dependsOn": [
+        "US-002"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "KiwiNarrator, AnimalCard, ProgressTracker, SceneTransition components."
+    },
+    {
+      "id": "US-006",
+      "title": "Scene transition component",
+      "description": "As a player, I want smooth transitions between scenes so that travelling between continents feels magical and immersive.",
+      "complexity": "S",
+      "acceptanceCriteria": [
+        "SceneTransition.tsx renders a full-screen overlay with flying/zoom animation using framer-motion",
+        "Shows destination continent name and emoji during transition (e.g., '🦁 African Savanna')",
+        "Transition duration is 1.5 seconds with fade-in and scale-up effect",
+        "Calls onComplete callback when animation finishes",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent confirms scene transition overlay animates with continent name and emoji via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/components/Shared/SceneTransition.tsx"
+      ],
+      "explorationHints": [
+        "Search for framer-motion AnimatePresence patterns in the codebase",
+        "Look at how game phase transitions are animated"
+      ],
+      "specFile": "",
+      "dependsOn": [
+        "US-004"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "KiwiNarrator, AnimalCard, ProgressTracker, SceneTransition components."
+    },
+    {
+      "id": "US-007",
+      "title": "Hub scene with interactive World Globe",
+      "description": "As a player, I want a home hub with a spinning 3D globe where I can tap continents to travel there and see my discovered animals in the garden.",
+      "complexity": "L",
+      "acceptanceCriteria": [
+        "WorldGlobe.tsx renders a 3D sphere with continent hotspots using R3F Canvas and @react-three/drei",
+        "Each continent hotspot glows and pulses — completed continents show a star, locked ones are dimmed",
+        "Tapping a hotspot triggers scene transition to that continent",
+        "AnimalGarden.tsx renders discovered animal emojis/sprites around the globe area",
+        "AlbumViewer.tsx shows a grid overlay of all 15 animal silhouettes, revealing discovered ones with their emoji and name",
+        "Hub has ambient sparkle particles floating around the globe",
+        "Mobile-responsive: globe scales to container width with max 600px",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent confirms the Hub scene loads with 3D globe, continent hotspots are visible, and AlbumViewer opens/closes via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/components/Hub/WorldGlobe.tsx",
+        "src/features/games/wild-friends/components/Hub/AnimalGarden.tsx",
+        "src/features/games/wild-friends/components/Hub/AlbumViewer.tsx"
+      ],
+      "explorationHints": [
+        "Look at solar-system-3d for R3F Canvas setup, OrbitControls, and sphere rendering",
+        "Search for @react-three/drei components like Sphere, Html, Float",
+        "Find how R3F games handle click/tap events on 3D objects (onClick handler)"
+      ],
+      "specFile": "us-007-hub-world-globe.md",
+      "dependsOn": [
+        "US-003",
+        "US-005",
+        "US-006"
+      ],
+      "priority": 7,
+      "passes": true,
+      "notes": "R3F scenes + challenges. HubGlobe, Environments, ChallengeRouter."
+    },
+    {
+      "id": "US-008",
+      "title": "African Savanna — 3D environment and scene",
+      "description": "As a player, I want to explore the African Savanna with golden grasslands and acacia trees, discovering Lion, Elephant, and Giraffe.",
+      "complexity": "L",
+      "acceptanceCriteria": [
+        "SavannaEnv.tsx renders golden-lit 3D environment: flat terrain with grass color, procedural acacia tree shapes, warm directional light, sunset gradient sky",
+        "AfricanSavanna.tsx manages 3 sequential animal encounters: Lion → Elephant → Giraffe",
+        "Each animal appears as a clickable 3D emoji/sprite floating in the scene with a gentle bounce animation",
+        "Tapping an animal triggers: Kiwi intro dialogue → AnimalCard with fact → Challenge component → StarReward on completion",
+        "After all 3 animals discovered, scene completion triggers with Savanna Star sticker and return to Hub",
+        "Kiwi's scene intro plays on entry: 'Kiwi hears a roar! His friend Lion is calling...'",
+        "3D scene renders at 60fps with ≤80 draw calls",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent confirms Savanna scene renders with golden environment, 3 animal emojis are visible and clickable via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/components/Environments/SavannaEnv.tsx",
+        "src/features/games/wild-friends/components/Scenes/AfricanSavanna.tsx"
+      ],
+      "explorationHints": [
+        "Study solar-system-3d for R3F scene setup with Canvas, lights, and interactive 3D objects",
+        "Look at @react-three/drei for Plane, Sky, Float, Billboard, Html components",
+        "Search for procedural geometry patterns — shapes can be built with drei primitives"
+      ],
+      "specFile": "us-008-african-savanna.md",
+      "dependsOn": [
+        "US-005",
+        "US-007"
+      ],
+      "priority": 8,
+      "passes": true,
+      "notes": "R3F scenes + challenges. HubGlobe, Environments, ChallengeRouter."
+    },
+    {
+      "id": "US-009",
+      "title": "Savanna challenges — Sound Match, Size Sort, Reach & Feed",
+      "description": "As a player, I want to complete 3 mini-challenges in the Savanna to prove I learned about the animals.",
+      "complexity": "M",
+      "acceptanceCriteria": [
+        "SoundMatch.tsx: displays 3 animal emojis, plays a sound (via useRetroSounds), player taps the animal that makes that sound. Difficulty affects number of choices (2/3/4)",
+        "SizeSort.tsx: shows baby/mama/papa elephant emojis in random order, player drags them into size order (small→big). Touch-drag supported with pointer events",
+        "ReachAndFeed.tsx: giraffe stretches neck upward, player swipes/taps to reach leaves at different heights. Difficulty affects timing",
+        "Each challenge shows localized instructions before starting",
+        "Wrong answers trigger gentle 'try again' feedback (playBeep), never punishing language",
+        "Correct completion triggers playSuccess and advances to StarReward",
+        "Unlimited retries on all challenges",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent confirms SoundMatch, SizeSort, and ReachAndFeed challenges render and respond to interactions via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/components/Challenges/SoundMatch.tsx",
+        "src/features/games/wild-friends/components/Challenges/SizeSort.tsx",
+        "src/features/games/wild-friends/components/Challenges/ReachAndFeed.tsx"
+      ],
+      "explorationHints": [
+        "Search for useRetroSounds usage patterns in existing games for sound integration",
+        "Look at how drag-and-drop is implemented with pointer events in games like shape-builder or size-sorter",
+        "Check framer-motion drag gesture support for touch-friendly drag interactions"
+      ],
+      "specFile": "",
+      "dependsOn": [
+        "US-008"
+      ],
+      "priority": 9,
+      "passes": true,
+      "notes": "R3F scenes + challenges. HubGlobe, Environments, ChallengeRouter."
+    },
+    {
+      "id": "US-010",
+      "title": "Amazon Rainforest — 3D environment and scene",
+      "description": "As a player, I want to explore the Amazon Rainforest with lush green canopy and waterfalls, discovering Poison Dart Frog, Sloth, and Toucan.",
+      "complexity": "L",
+      "acceptanceCriteria": [
+        "RainforestEnv.tsx renders green-lit 3D environment: dense canopy layers, procedural tree trunks, waterfall particle effect, firefly point lights",
+        "AmazonRainforest.tsx manages 3 sequential animal encounters: Frog → Sloth → Toucan",
+        "Each animal is a clickable 3D emoji/sprite positioned in the canopy/ground with idle animation",
+        "Scene follows same encounter flow as Savanna: Kiwi intro → AnimalCard → Challenge → StarReward",
+        "Rain particle effect using drei Points or instanced geometry",
+        "Kiwi's intro: 'The rainforest is so green and noisy! Kiwi says his friend Toucan lives up in the tallest tree!'",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent confirms Rainforest scene renders with green canopy, rain particles, and 3 animals visible via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/components/Environments/RainforestEnv.tsx",
+        "src/features/games/wild-friends/components/Scenes/AmazonRainforest.tsx"
+      ],
+      "explorationHints": [
+        "Reference SavannaEnv.tsx from US-008 for environment structure pattern",
+        "Search @react-three/drei for Points component for particle effects",
+        "Look at how postprocessing Bloom is used in solar-system-3d for glow effects"
+      ],
+      "specFile": "us-010-amazon-rainforest.md",
+      "dependsOn": [
+        "US-005",
+        "US-007"
+      ],
+      "priority": 10,
+      "passes": true,
+      "notes": "R3F scenes + challenges. HubGlobe, Environments, ChallengeRouter."
+    },
+    {
+      "id": "US-011",
+      "title": "Rainforest challenges — Color Match, Patience Hold, Fruit Catch",
+      "description": "As a player, I want to complete 3 mini-challenges in the Rainforest to learn about tropical animals.",
+      "complexity": "M",
+      "acceptanceCriteria": [
+        "ColorMatch.tsx: shows a target color swatch, player taps the frog emoji matching that color from 3-4 options. Colors are bright and distinct for preschoolers",
+        "PatienceHold.tsx: sloth climbs a branch — player must hold finger still on screen for 3-5 seconds without moving. Progress bar fills up. Difficulty affects duration",
+        "FruitCatch.tsx: fruits fall from top of screen, player taps to catch them before they pass. 3 rounds of 3-5 fruits each. Difficulty affects fall speed",
+        "All challenges follow the same pattern: localized instructions → gameplay → playSuccess on completion",
+        "Touch targets minimum 48x48px, visual feedback on every interaction",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent confirms ColorMatch, PatienceHold, and FruitCatch challenges render and respond to interactions via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/components/Challenges/ColorMatch.tsx",
+        "src/features/games/wild-friends/components/Challenges/PatienceHold.tsx",
+        "src/features/games/wild-friends/components/Challenges/FruitCatch.tsx"
+      ],
+      "explorationHints": [
+        "Reference SoundMatch.tsx from US-009 for challenge component structure",
+        "Look at how whack-a-mole handles timed tap interactions",
+        "Search for requestAnimationFrame patterns for falling object animation"
+      ],
+      "specFile": "",
+      "dependsOn": [
+        "US-010"
+      ],
+      "priority": 11,
+      "passes": true,
+      "notes": "R3F scenes + challenges. HubGlobe, Environments, ChallengeRouter."
+    },
+    {
+      "id": "US-012",
+      "title": "Arctic Wonderland — 3D environment and scene",
+      "description": "As a player, I want to explore the Arctic with ice, snow, and northern lights, discovering Penguin, Polar Bear, and Seal.",
+      "complexity": "L",
+      "acceptanceCriteria": [
+        "ArcticEnv.tsx renders icy 3D environment: white/blue terrain, iceberg shapes (simple geometry), snow particle effect, aurora gradient in sky (animated color shift)",
+        "ArcticWonderland.tsx manages 3 sequential encounters: Penguin → Polar Bear → Seal",
+        "Each animal clickable with frost-themed idle animation",
+        "Aurora borealis effect using animated gradient or custom shader on sky plane",
+        "Snow particles drift downward continuously",
+        "Kiwi's intro: 'Brrr! It's so cold here! But look — Kiwi spots something sliding on the ice!'",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent confirms Arctic scene renders with ice terrain, snow particles, aurora, and 3 animals visible via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/components/Environments/ArcticEnv.tsx",
+        "src/features/games/wild-friends/components/Scenes/ArcticWonderland.tsx"
+      ],
+      "explorationHints": [
+        "Reference existing environment components for consistent scene structure",
+        "Search for drei Sky component or custom sky shader patterns",
+        "Look at particle effect patterns from RainforestEnv for snow adaptation"
+      ],
+      "specFile": "us-012-arctic-wonderland.md",
+      "dependsOn": [
+        "US-005",
+        "US-007"
+      ],
+      "priority": 12,
+      "passes": true,
+      "notes": "R3F scenes + challenges. HubGlobe, Environments, ChallengeRouter."
+    },
+    {
+      "id": "US-013",
+      "title": "Arctic challenges — Penguin Slide, Hide & Seek, Rhythm Clap",
+      "description": "As a player, I want to complete 3 mini-challenges in the Arctic to learn about cold-climate animals.",
+      "complexity": "M",
+      "acceptanceCriteria": [
+        "PenguinSlide.tsx: penguin emoji on ice surface, player swipes directionally to slide penguin to reach fish emoji. Simple grid-based movement with ice-slide momentum",
+        "HideAndSeek.tsx: polar bear emoji camouflaged among white/snowy elements — player must tap the hidden bear within time limit. Difficulty affects camouflage level",
+        "RhythmClap.tsx: seal claps a 3-beat pattern shown visually, player taps to repeat the pattern. Difficulty affects pattern length (3/4/5 beats)",
+        "All challenges use playClick for interactions, playSuccess on completion",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent confirms PenguinSlide, HideAndSeek, and RhythmClap challenges render and respond to interactions via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/components/Challenges/PenguinSlide.tsx",
+        "src/features/games/wild-friends/components/Challenges/HideAndSeek.tsx",
+        "src/features/games/wild-friends/components/Challenges/RhythmClap.tsx"
+      ],
+      "explorationHints": [
+        "Reference existing challenge component patterns from US-009",
+        "Look at how whack-a-mole implements timed find-and-tap mechanics",
+        "Search for pattern/sequence game logic in memory-type games"
+      ],
+      "specFile": "",
+      "dependsOn": [
+        "US-012"
+      ],
+      "priority": 13,
+      "passes": true,
+      "notes": "R3F scenes + challenges. HubGlobe, Environments, ChallengeRouter."
+    },
+    {
+      "id": "US-014",
+      "title": "Australian Outback — 3D environment and scene",
+      "description": "As a player, I want to explore the Australian Outback with red desert and starry skies, discovering Kangaroo, Koala, and Platypus.",
+      "complexity": "L",
+      "acceptanceCriteria": [
+        "OutbackEnv.tsx renders warm-toned 3D environment: red/orange terrain, eucalyptus tree shapes, starfield in night sky, campfire with orange point light and ember particles",
+        "AustralianOutback.tsx manages 3 sequential encounters: Kangaroo → Koala → Platypus",
+        "Each animal clickable with Australian-themed idle animation",
+        "Campfire has flickering light effect and floating ember particles",
+        "Kiwi's intro: 'The Outback glows orange! Kiwi hears hopping sounds… boing, boing! It's Kangaroo!'",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent confirms Outback scene renders with red terrain, campfire, starfield, and 3 animals visible via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/components/Environments/OutbackEnv.tsx",
+        "src/features/games/wild-friends/components/Scenes/AustralianOutback.tsx"
+      ],
+      "explorationHints": [
+        "Reference existing environment components for consistent structure",
+        "Search for PointLight animation patterns for flickering campfire effect",
+        "Look at drei Stars component for starfield rendering"
+      ],
+      "specFile": "us-014-australian-outback.md",
+      "dependsOn": [
+        "US-005",
+        "US-007"
+      ],
+      "priority": 14,
+      "passes": true,
+      "notes": "R3F scenes + challenges. HubGlobe, Environments, ChallengeRouter."
+    },
+    {
+      "id": "US-015",
+      "title": "Outback challenges — Jump Count, Leaf Match, Mix & Match",
+      "description": "As a player, I want to complete 3 mini-challenges in the Outback to learn about Australian animals.",
+      "complexity": "M",
+      "acceptanceCriteria": [
+        "JumpCount.tsx: kangaroo bounces on screen a random number of times (2-5), player taps the correct number from options. Difficulty affects number range",
+        "LeafMatch.tsx: 3-4 different leaf shapes shown, player taps the eucalyptus leaf that koala eats. Leaves shown as distinct colored shapes with labels",
+        "MixAndMatch.tsx: platypus body parts shown separately (bill, fur body, flat tail, webbed feet) — player drags parts to build the platypus in correct positions",
+        "MixAndMatch supports touch drag via pointer events with snap-to-position on correct placement",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent confirms JumpCount, LeafMatch, and MixAndMatch challenges render and respond to interactions via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/components/Challenges/JumpCount.tsx",
+        "src/features/games/wild-friends/components/Challenges/LeafMatch.tsx",
+        "src/features/games/wild-friends/components/Challenges/MixAndMatch.tsx"
+      ],
+      "explorationHints": [
+        "Reference existing challenge patterns from prior scenes",
+        "Look at shape-builder for drag-and-drop assembly game mechanics",
+        "Search for counting game patterns in existing educational games"
+      ],
+      "specFile": "",
+      "dependsOn": [
+        "US-014"
+      ],
+      "priority": 15,
+      "passes": true,
+      "notes": "R3F scenes + challenges. HubGlobe, Environments, ChallengeRouter."
+    },
+    {
+      "id": "US-016",
+      "title": "Ocean Deep — 3D environment and scene",
+      "description": "As a player, I want to explore the underwater Ocean with coral reefs and light rays, discovering Dolphin, Sea Turtle, and Blue Whale.",
+      "complexity": "L",
+      "acceptanceCriteria": [
+        "OceanEnv.tsx renders underwater 3D environment: deep blue gradient background, coral reef shapes on ocean floor, bubble particles rising, caustic light ray effect from above",
+        "OceanDeep.tsx manages 3 sequential encounters: Dolphin → Sea Turtle → Blue Whale",
+        "Each animal clickable with underwater floating/swimming idle animation",
+        "Bubble particle effect rises continuously from bottom",
+        "Light rays shimmer through water surface using animated opacity on mesh planes",
+        "Kiwi's intro: 'Splash! We're underwater now! Kiwi put on tiny goggles!'",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent confirms Ocean scene renders with underwater environment, bubbles, coral reef, and 3 animals visible via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/components/Environments/OceanEnv.tsx",
+        "src/features/games/wild-friends/components/Scenes/OceanDeep.tsx"
+      ],
+      "explorationHints": [
+        "Reference existing environment components for consistent structure",
+        "Search for drei Float component for underwater sway animation",
+        "Look at particle effects from prior environments for bubble adaptation"
+      ],
+      "specFile": "us-016-ocean-deep.md",
+      "dependsOn": [
+        "US-005",
+        "US-007"
+      ],
+      "priority": 16,
+      "passes": true,
+      "notes": "R3F scenes + challenges. HubGlobe, Environments, ChallengeRouter."
+    },
+    {
+      "id": "US-017",
+      "title": "Ocean challenges — Bubble Pop, Path Trace, Size Compare",
+      "description": "As a player, I want to complete 3 mini-challenges in the Ocean to learn about marine animals.",
+      "complexity": "M",
+      "acceptanceCriteria": [
+        "BubblePop.tsx: dolphin blows bubbles in a sequence pattern (e.g., 3 colored bubbles), player taps bubbles in the same order. Difficulty affects sequence length (2/3/4)",
+        "PathTrace.tsx: simple maze grid shown, player draws/swipes a path from sea turtle to beach. Touch path drawing with visual trail. Maze generated simply with 3-5 turns",
+        "SizeCompare.tsx: two items shown side-by-side (whale vs bus, whale vs elephant), player taps the bigger one. 3 rounds with different comparisons. Educational: whale is ALWAYS biggest",
+        "All challenges render as 2D overlays on top of the ocean scene background",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent confirms BubblePop, PathTrace, and SizeCompare challenges render and respond to interactions via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/components/Challenges/BubblePop.tsx",
+        "src/features/games/wild-friends/components/Challenges/PathTrace.tsx",
+        "src/features/games/wild-friends/components/Challenges/SizeCompare.tsx"
+      ],
+      "explorationHints": [
+        "Reference existing challenge patterns from prior scenes",
+        "Look at match-pairs or pattern-maker for sequence memory game patterns",
+        "Search for touch path drawing with canvas or SVG in the codebase"
+      ],
+      "specFile": "",
+      "dependsOn": [
+        "US-016"
+      ],
+      "priority": 17,
+      "passes": true,
+      "notes": "R3F scenes + challenges. HubGlobe, Environments, ChallengeRouter."
+    },
+    {
+      "id": "US-018",
+      "title": "Grand Finale celebration and World Garden completion",
+      "description": "As a player, I want a grand celebration when I complete all continents, with all my animal friends gathered in the World Garden.",
+      "complexity": "M",
+      "acceptanceCriteria": [
+        "When all 5 scenes are completed, Hub transitions to Grand Finale phase",
+        "World Garden shows all 15 discovered animals with celebratory animations (bounce, spin, dance)",
+        "Confetti particle explosion using framer-motion or R3F particles",
+        "Kiwi flies around the garden with a victory lap animation",
+        "Trophy display: '🏆 World Explorer' badge with player's completion stats",
+        "playWin() sound triggers on finale entry, playLevelUp() on trophy reveal",
+        "'Play Again' button resets all progress (with confirmation) and returns to menu",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent confirms Grand Finale triggers with all 15 animals displayed, confetti animation, and trophy/play-again button via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/components/Hub/WorldGlobe.tsx",
+        "src/features/games/wild-friends/WildFriendsGame.tsx"
+      ],
+      "explorationHints": [
+        "Look at WinModal.tsx for victory celebration patterns",
+        "Search for confetti or celebration animation patterns in existing games",
+        "Reference useRetroSounds for playWin and playLevelUp integration"
+      ],
+      "specFile": "",
+      "dependsOn": [
+        "US-009",
+        "US-011",
+        "US-013",
+        "US-015",
+        "US-017"
+      ],
+      "priority": 18,
+      "passes": true,
+      "notes": "Finale with confetti/victory, sounds integrated, keyboard + mobile support."
+    },
+    {
+      "id": "US-019",
+      "title": "Sound effects and Instructions Modal integration",
+      "description": "As a player, I want retro sound effects on all game events and a Feynman-style instructions modal so that the game feels polished and I know how to play.",
+      "complexity": "M",
+      "acceptanceCriteria": [
+        "useRetroSounds integrated across all scenes: playClick (tap animal), playPowerUp (fact card), playSuccess (challenge correct), playBeep (wrong answer), playLevelUp (scene complete), playMatch (star earned), playWhoosh (scene transition and Kiwi speech), playWin (finale)",
+        "InstructionsModal configured with 4 Feynman-technique steps: (1) Tap animals to discover them (2) Learn fun facts from Kiwi (3) Play mini-games to help (4) Collect all 15 friends!",
+        "Instructions include controls section: Touch: Tap & Swipe, Mouse: Click & Drag, Keyboard: Arrows + Enter",
+        "Instructions show on first game load (controlled by localStorage flag)",
+        "All instruction text localized in 4 languages",
+        "Pro tip section with localized tip text",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent confirms InstructionsModal opens with 4 steps in all locales and sound toggle works via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/WildFriendsGame.tsx",
+        "src/features/games/wild-friends/data/translations.ts"
+      ],
+      "explorationHints": [
+        "Search for InstructionsModal usage in existing games like plant-grower or snake",
+        "Look at how useRetroSounds is wired to game events in existing games",
+        "Check InstructionsModal props interface for required fields"
+      ],
+      "specFile": "",
+      "dependsOn": [
+        "US-004"
+      ],
+      "priority": 19,
+      "passes": true,
+      "notes": "Finale with confetti/victory, sounds integrated, keyboard + mobile support."
+    },
+    {
+      "id": "US-020",
+      "title": "Mobile optimization, keyboard support, and responsive layout",
+      "description": "As a player on a tablet or phone, I want the game to be fully playable with touch, properly sized, and responsive.",
+      "complexity": "M",
+      "acceptanceCriteria": [
+        "R3F Canvas resizes responsively: width = Math.min(containerWidth, 800), maintains aspect ratio",
+        "All interactive elements have minimum 48x48px touch targets",
+        "Touch gestures work: tap to select, swipe for directional challenges, long-press for patience challenge",
+        "Keyboard support: Arrow keys navigate between clickable items, Enter/Space to select, Escape returns to hub",
+        "WASD keys work as arrow key alternatives",
+        "On-screen navigation hints show on mobile (small arrow overlays for swipe challenges)",
+        "No horizontal scroll on any viewport width ≥ 320px",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent confirms responsive layout at 375px width, touch targets ≥48px, and keyboard navigation via arrows/Enter/Escape via Playwright"
+      ],
+      "fileHints": [
+        "src/features/games/wild-friends/WildFriendsGame.tsx",
+        "src/features/games/wild-friends/components/Shared/DifficultySelector.tsx"
+      ],
+      "explorationHints": [
+        "Search for responsive canvas sizing patterns in existing canvas games",
+        "Look at how touch events are handled in whack-a-mole or other tap-based games",
+        "Find keyboard event handler patterns (handleKeyDown) in existing games"
+      ],
+      "specFile": "",
+      "dependsOn": [
+        "US-018"
+      ],
+      "priority": 20,
+      "passes": true,
+      "notes": "Finale with confetti/victory, sounds integrated, keyboard + mobile support."
+    },
+    {
+      "id": "US-021",
+      "title": "Playwright screenshot and final build verification",
+      "description": "As a developer, I want a Playwright-generated thumbnail screenshot and verified clean build so that the game meets portal quality standards.",
+      "complexity": "S",
+      "acceptanceCriteria": [
+        "Running GAME_SLUG=wild-friends npx playwright test e2e/generate-thumbnails.spec.ts generates a PNG at public/images/games/screenshots/wild-friends.png",
+        "Screenshot shows the Hub scene with the World Globe visible",
+        "npm run build completes with zero errors",
+        "Game loads at /en/games/wild-friends without console errors",
+        "Build passes (run your project's build command)",
+        "UI verification passes — BUILD agent launches the app and confirms the game loads, globe renders, and difficulty selector appears via Playwright"
+      ],
+      "fileHints": [
+        "e2e/generate-thumbnails.spec.ts",
+        "public/images/games/screenshots/wild-friends.png"
+      ],
+      "explorationHints": [
+        "Look at e2e/generate-thumbnails.spec.ts for screenshot generation pattern",
+        "Check how existing games' screenshots are generated and stored",
+        "Search for game URL routing pattern to find the correct test URL"
+      ],
+      "specFile": "",
+      "dependsOn": [
+        "US-019",
+        "US-020"
+      ],
+      "priority": 21,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
