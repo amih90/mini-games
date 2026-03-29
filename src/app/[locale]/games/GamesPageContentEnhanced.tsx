@@ -394,6 +394,7 @@ interface GameCardProps {
 function GameCard({ game, locale, index, t, categoryData }: GameCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [thumbnailError, setThumbnailError] = useState(false);
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
   return (
     <motion.div
@@ -434,7 +435,7 @@ function GameCard({ game, locale, index, t, categoryData }: GameCardProps) {
             >
               {!thumbnailError ? (
                 <img
-                  src={game.thumbnail}
+                  src={basePath + game.thumbnail}
                   alt={game.title[locale]}
                   className="w-full h-full object-cover"
                   onError={() => setThumbnailError(true)}
@@ -508,6 +509,7 @@ function GameCard({ game, locale, index, t, categoryData }: GameCardProps) {
 // Game List Item Component
 function GameListItem({ game, locale, index, t, categoryData }: GameCardProps) {
   const [thumbnailError, setThumbnailError] = useState(false);
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
   return (
     <motion.div
@@ -524,7 +526,7 @@ function GameListItem({ game, locale, index, t, categoryData }: GameCardProps) {
           <div className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 bg-white/5 rounded-xl flex items-center justify-center overflow-hidden">
             {!thumbnailError ? (
               <img
-                src={game.thumbnail}
+                src={basePath + game.thumbnail}
                 alt={game.title[locale]}
                 className="w-full h-full object-cover rounded-xl"
                 onError={() => setThumbnailError(true)}
