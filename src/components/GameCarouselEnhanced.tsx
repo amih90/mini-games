@@ -7,6 +7,8 @@ import type { GameConfig } from '@/features/games/registry/types';
 import type { Locale } from '@/i18n/routing';
 import { ScrollReveal } from '@/components/animations';
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 interface GameCarouselProps {
   games: GameConfig[];
   locale: Locale;
@@ -263,7 +265,7 @@ function GameCardEnhanced({ game, locale, gradient, index }: GameCardEnhancedPro
             >
               {!thumbnailError ? (
                 <img
-                  src={game.thumbnail}
+                  src={`${basePath}${game.thumbnail}`}
                   alt={game.title[locale]}
                   className="w-full h-full object-cover"
                   onError={() => setThumbnailError(true)}

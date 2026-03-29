@@ -6,6 +6,8 @@ import { Link } from '@/i18n/navigation';
 import type { GameConfig } from '@/features/games/registry/types';
 import type { Locale } from '@/i18n/routing';
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 interface GameCarouselProps {
   games: GameConfig[];
   locale: Locale;
@@ -132,7 +134,7 @@ function GameCard({ game, locale }: GameCardProps) {
             {/* Thumbnail or Icon Fallback */}
             {!thumbnailError ? (
               <img
-                src={game.thumbnail}
+                src={`${basePath}${game.thumbnail}`}
                 alt={game.title[locale]}
                 className="w-full h-full object-cover relative z-10"
                 onError={() => setThumbnailError(true)}
