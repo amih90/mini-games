@@ -13,7 +13,7 @@ export const colorMatchConfig: GameConfig = {
   categories: ['colors', 'ages-3-5'],
   ageRange: { min: 3, max: 5 },
   icon: '🎨',
-  thumbnail: '/images/games/screenshots/color-match.png',
+  thumbnail: '/images/games/color-match.svg',
   engine: 'react',
   i18nNamespace: 'colorMatch',
 };

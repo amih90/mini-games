@@ -7,7 +7,7 @@ export const matchPairsConfig: GameConfig = {
   categories: ['science', 'memory', 'ages-3-5'],
   ageRange: { min: 3, max: 7 },
   icon: '🔗',
-  thumbnail: '/images/games/screenshots/match-pairs.png',
+  thumbnail: '/images/games/match-pairs.svg',
   engine: 'react',
   i18nNamespace: 'matchPairs',
 };

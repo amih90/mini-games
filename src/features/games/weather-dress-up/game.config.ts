@@ -7,7 +7,7 @@ export const weatherDressUpConfig: GameConfig = {
   categories: ['science', 'ages-3-5'],
   ageRange: { min: 3, max: 6 },
   icon: '🌤️',
-  thumbnail: '/images/games/screenshots/weather-dress-up.png',
+  thumbnail: '/images/games/weather-dress-up.svg',
   engine: 'react',
   i18nNamespace: 'weatherDressUp',
 };

@@ -13,7 +13,7 @@ export const nascarCarsConfig: GameConfig = {
   categories: ['reaction', 'ages-3-5', 'ages-6-8'],
   ageRange: { min: 4, max: 12 },
   icon: '🏎️',
-  thumbnail: '/images/games/screenshots/nascar-cars.png',
+  thumbnail: '/images/games/nascar-cars.svg',
   engine: 'r3f',
   i18nNamespace: 'nascarCars',
 };

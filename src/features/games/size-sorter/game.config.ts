@@ -7,7 +7,7 @@ export const sizeSorterConfig: GameConfig = {
   categories: ['math', 'ages-3-5'],
   ageRange: { min: 3, max: 6 },
   icon: '📏',
-  thumbnail: '/images/games/screenshots/size-sorter.png',
+  thumbnail: '/images/games/size-sorter.svg',
   engine: 'react',
   i18nNamespace: 'sizeSorter',
 };

@@ -7,7 +7,7 @@ export const numberMuncherConfig: GameConfig = {
   categories: ['math', 'ages-3-5', 'ages-6-8'],
   ageRange: { min: 4, max: 8 },
   icon: '🔢',
-  thumbnail: '/images/games/screenshots/number-muncher.png',
+  thumbnail: '/images/games/number-muncher.svg',
   engine: 'react',
   i18nNamespace: 'numberMuncher',
 };

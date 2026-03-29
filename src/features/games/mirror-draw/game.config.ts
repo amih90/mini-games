@@ -7,7 +7,7 @@ export const mirrorDrawConfig: GameConfig = {
   categories: ['shapes', 'ages-3-5', 'ages-6-8'],
   ageRange: { min: 4, max: 8 },
   icon: '🪞',
-  thumbnail: '/images/games/screenshots/mirror-draw.png',
+  thumbnail: '/images/games/mirror-draw.svg',
   engine: 'react',
   i18nNamespace: 'mirrorDraw',
 };

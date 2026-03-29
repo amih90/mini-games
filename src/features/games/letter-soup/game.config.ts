@@ -7,7 +7,7 @@ export const letterSoupConfig: GameConfig = {
   categories: ['language', 'ages-3-5', 'ages-6-8'],
   ageRange: { min: 4, max: 8 },
   icon: '🍜',
-  thumbnail: '/images/games/screenshots/letter-soup.png',
+  thumbnail: '/images/games/letter-soup.svg',
   engine: 'react',
   i18nNamespace: 'letterSoup',
 };

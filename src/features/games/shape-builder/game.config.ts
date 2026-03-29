@@ -7,7 +7,7 @@ export const shapeBuilderConfig: GameConfig = {
   categories: ['shapes', 'ages-3-5'],
   ageRange: { min: 3, max: 7 },
   icon: '🏗️',
-  thumbnail: '/images/games/screenshots/shape-builder.png',
+  thumbnail: '/images/games/shape-builder.svg',
   engine: 'react',
   i18nNamespace: 'shapeBuilder',
 };

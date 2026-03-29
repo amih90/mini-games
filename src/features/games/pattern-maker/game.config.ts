@@ -7,7 +7,7 @@ export const patternMakerConfig: GameConfig = {
   categories: ['patterns', 'ages-3-5'],
   ageRange: { min: 3, max: 7 },
   icon: '🔮',
-  thumbnail: '/images/games/screenshots/pattern-maker.png',
+  thumbnail: '/images/games/pattern-maker.svg',
   engine: 'react',
   i18nNamespace: 'patternMaker',
 };

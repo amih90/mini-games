@@ -7,7 +7,7 @@ export const plantGrowerConfig: GameConfig = {
   categories: ['science', 'ages-3-5'],
   ageRange: { min: 3, max: 7 },
   icon: '🌱',
-  thumbnail: '/images/games/screenshots/plant-grower.png',
+  thumbnail: '/images/games/plant-grower.svg',
   engine: 'react',
   i18nNamespace: 'plantGrower',
 };

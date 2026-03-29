@@ -16,7 +16,7 @@ export const backgammonConfig: GameConfig = {
     max: 12,
   },
   icon: '🎲',
-  thumbnail: '/images/games/screenshots/backgammon.png',
+  thumbnail: '/images/games/backgammon.svg',
   engine: 'react',
   i18nNamespace: 'backgammon',
 };

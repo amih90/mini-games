@@ -16,7 +16,7 @@ export const reversiConfig: GameConfig = {
     max: 12,
   },
   icon: '⚫',
-  thumbnail: '/images/games/screenshots/reversi.png',
+  thumbnail: '/images/games/reversi.svg',
   engine: 'react',
   i18nNamespace: 'reversi',
 };

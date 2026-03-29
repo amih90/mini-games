@@ -7,7 +7,7 @@ export const fractionPizzaConfig: GameConfig = {
   categories: ['math', 'ages-6-8'],
   ageRange: { min: 5, max: 9 },
   icon: '🍕',
-  thumbnail: '/images/games/screenshots/fraction-pizza.png',
+  thumbnail: '/images/games/fraction-pizza.svg',
   engine: 'react',
   i18nNamespace: 'fractionPizza',
 };

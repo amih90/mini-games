@@ -13,7 +13,7 @@ export const pingPongConfig: GameConfig = {
   categories: ['reaction', 'ages-6-8'],
   ageRange: { min: 5, max: 12 },
   icon: '🏓',
-  thumbnail: '/images/games/screenshots/ping-pong.png',
+  thumbnail: '/images/games/ping-pong.svg',
   engine: 'r3f',
   i18nNamespace: 'pingPong',
 };

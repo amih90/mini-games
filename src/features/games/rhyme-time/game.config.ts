@@ -7,7 +7,7 @@ export const rhymeTimeConfig: GameConfig = {
   categories: ['language', 'ages-3-5', 'ages-6-8'],
   ageRange: { min: 4, max: 8 },
   icon: '🎵',
-  thumbnail: '/images/games/screenshots/rhyme-time.png',
+  thumbnail: '/images/games/rhyme-time.svg',
   engine: 'react',
   i18nNamespace: 'rhymeTime',
 };
