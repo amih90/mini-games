@@ -1,2 +1,2 @@
-export { default } from './MergeTankTacticsGame';
-export { mergeTankTacticsConfig } from './game.config';
+export { default } from "./MergeTankTacticsGame";
+export { mergeTankTacticsConfig } from "./game.config";

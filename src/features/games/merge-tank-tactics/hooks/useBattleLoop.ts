@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { BattleRound } from '../types';
+import { useEffect, useRef } from "react";
+import { BattleRound } from "../types";
 
-export type FXPhase = 'idle' | 'projectile' | 'hit';
+export type FXPhase = "idle" | "projectile" | "hit";
 
 interface UseBattleLoopOptions {
   isActive: boolean;
@@ -40,23 +40,23 @@ export function useBattleLoop({
     }
 
     roundRef.current = 0;
-    onFXPhase('idle');
+    onFXPhase("idle");
 
     function advance() {
       if (!activeRef.current) return;
       const round = roundRef.current;
       if (round >= totalRounds) {
-        onFXPhase('idle');
+        onFXPhase("idle");
         onBattleEnd();
         return;
       }
       roundRef.current = round + 1;
       onRoundAdvance(roundRef.current);
-      onFXPhase('projectile');
+      onFXPhase("projectile");
 
       timerRef.current = setTimeout(() => {
         if (!activeRef.current) return;
-        onFXPhase('hit');
+        onFXPhase("hit");
         timerRef.current = setTimeout(advance, roundMs * 0.4);
       }, roundMs * 0.5);
     }
@@ -67,6 +67,6 @@ export function useBattleLoop({
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive, totalRounds, roundMs]);
 }

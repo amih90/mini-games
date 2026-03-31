@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef } from "react";
 
 export function useBattleSounds() {
   const ctxRef = useRef<AudioContext | null>(null);
@@ -9,7 +9,7 @@ export function useBattleSounds() {
     if (!ctxRef.current) {
       ctxRef.current = new AudioContext();
     }
-    if (ctxRef.current.state === 'suspended') {
+    if (ctxRef.current.state === "suspended") {
       ctxRef.current.resume();
     }
     return ctxRef.current;
@@ -24,7 +24,7 @@ export function useBattleSounds() {
     const gain = ctx.createGain();
     osc.connect(gain);
     gain.connect(ctx.destination);
-    osc.type = 'sawtooth';
+    osc.type = "sawtooth";
     osc.frequency.setValueAtTime(80, now);
     osc.frequency.exponentialRampToValueAtTime(20, now + 0.4);
     gain.gain.setValueAtTime(0.5, now);
@@ -36,7 +36,7 @@ export function useBattleSounds() {
     const gain2 = ctx.createGain();
     osc2.connect(gain2);
     gain2.connect(ctx.destination);
-    osc2.type = 'square';
+    osc2.type = "square";
     osc2.frequency.setValueAtTime(800, now);
     osc2.frequency.exponentialRampToValueAtTime(200, now + 0.15);
     gain2.gain.setValueAtTime(0.15, now);
@@ -69,7 +69,7 @@ export function useBattleSounds() {
     const g2 = ctx.createGain();
     osc.connect(g2);
     g2.connect(ctx.destination);
-    osc.type = 'sine';
+    osc.type = "sine";
     osc.frequency.setValueAtTime(60, now);
     osc.frequency.exponentialRampToValueAtTime(30, now + 0.4);
     g2.gain.setValueAtTime(0.3, now);
@@ -92,7 +92,7 @@ export function useBattleSounds() {
     const src = ctx.createBufferSource();
     src.buffer = buffer;
     const lowpass = ctx.createBiquadFilter();
-    lowpass.type = 'lowpass';
+    lowpass.type = "lowpass";
     lowpass.frequency.value = 500;
     const expGain = ctx.createGain();
     src.connect(lowpass);
@@ -106,7 +106,7 @@ export function useBattleSounds() {
     const sg = ctx.createGain();
     sub.connect(sg);
     sg.connect(ctx.destination);
-    sub.type = 'sine';
+    sub.type = "sine";
     sub.frequency.setValueAtTime(50, now);
     sub.frequency.exponentialRampToValueAtTime(15, now + 0.8);
     sg.gain.setValueAtTime(0.8, now);
@@ -123,7 +123,7 @@ export function useBattleSounds() {
     const gain = ctx.createGain();
     osc.connect(gain);
     gain.connect(ctx.destination);
-    osc.type = 'sawtooth';
+    osc.type = "sawtooth";
     osc.frequency.setValueAtTime(45, now);
     osc.frequency.setValueAtTime(55, now + 0.3);
     gain.gain.setValueAtTime(0, now);
@@ -141,7 +141,7 @@ export function useBattleSounds() {
     const gain = ctx.createGain();
     osc.connect(gain);
     gain.connect(ctx.destination);
-    osc.type = 'sine';
+    osc.type = "sine";
     osc.frequency.setValueAtTime(1200, now);
     osc.frequency.exponentialRampToValueAtTime(300, now + 0.4);
     gain.gain.setValueAtTime(0.3, now);
@@ -150,5 +150,11 @@ export function useBattleSounds() {
     osc.stop(now + 0.4);
   }, [getCtx]);
 
-  return { playCannonFire, playShellImpact, playExplosion, playEngineStart, playRicochet };
+  return {
+    playCannonFire,
+    playShellImpact,
+    playExplosion,
+    playEngineStart,
+    playRicochet,
+  };
 }

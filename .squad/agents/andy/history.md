@@ -21,6 +21,7 @@
 ## Learnings
 
 ### 2026-03-31 — Merge Tank Tactics (merge-tank-tactics)
+
 - Built full R3F game: 17 files, isometric 3D view, procedural tank geometry
 - Patterns used: useReducer for game state, useFrame for battle animation loop
 - Key files: MergeTankTacticsGame.tsx (root), BattleArena.tsx (R3F scene), useMergeTankGame.ts (state)

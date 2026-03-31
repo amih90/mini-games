@@ -1,9 +1,20 @@
-export type TankType = 'melee' | 'range';
-export type GamePhase = 'setup' | 'prep' | 'battle' | 'result';
-export type Difficulty = 'easy' | 'medium' | 'hard';
-export type TankOwner = 'player' | 'enemy';
-export type BattleEnvironment = 'desert_storm' | 'european_theater' | 'arctic_front' | 'urban_rubble' | 'night_battle';
-export type CameraMode = 'prep' | 'battle_start' | 'attack' | 'explosion' | 'victory' | 'overview';
+export type TankType = "melee" | "range";
+export type GamePhase = "setup" | "prep" | "battle" | "result";
+export type Difficulty = "easy" | "medium" | "hard";
+export type TankOwner = "player" | "enemy";
+export type BattleEnvironment =
+  | "desert_storm"
+  | "european_theater"
+  | "arctic_front"
+  | "urban_rubble"
+  | "night_battle";
+export type CameraMode =
+  | "prep"
+  | "battle_start"
+  | "attack"
+  | "explosion"
+  | "victory"
+  | "overview";
 
 export interface Tank {
   id: string;
@@ -58,7 +69,7 @@ export interface GameState {
   enemyTanks: Tank[];
   selectedTankId: string | null;
   pendingTankType: TankType | null;
-  result: 'win' | 'lose' | null;
+  result: "win" | "lose" | null;
   stagesWon: number;
   totalStagesNeeded: number;
   reward: number;

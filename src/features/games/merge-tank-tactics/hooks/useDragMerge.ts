@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useCallback } from 'react';
-import { Tank } from '../types';
+import { useCallback } from "react";
+import { Tank } from "../types";
 
 interface UseDragMergeOptions {
   playerTanks: Tank[];
@@ -30,7 +30,9 @@ export function useDragMerge({
   /** Called when a player grid cell is tapped */
   const handleCellClick = useCallback(
     (col: number, row: number) => {
-      const tankHere = playerTanks.find(t => t.col === col && t.row === row && t.isAlive) ?? null;
+      const tankHere =
+        playerTanks.find((t) => t.col === col && t.row === row && t.isAlive) ??
+        null;
 
       // 1. Pending tank from shop → place on empty cell
       if (pendingTankType) {
@@ -51,19 +53,31 @@ export function useDragMerge({
 
       // 3. No selection, empty cell → nothing
     },
-    [playerTanks, pendingTankType, selectedTankId, onPlaceTank, onMoveTank, onSelectTank]
+    [
+      playerTanks,
+      pendingTankType,
+      selectedTankId,
+      onPlaceTank,
+      onMoveTank,
+      onSelectTank,
+    ],
   );
 
   /** Called when a tank mesh is tapped */
   const handleTankClick = useCallback(
     (id: string) => {
-      const tank = playerTanks.find(t => t.id === id);
+      const tank = playerTanks.find((t) => t.id === id);
       if (!tank || !tank.isAlive) return;
 
       // If a tank is already selected and we click another tank of same type+level → merge
       if (selectedTankId && selectedTankId !== id) {
-        const selected = playerTanks.find(t => t.id === selectedTankId);
-        if (selected && selected.type === tank.type && selected.level === tank.level && selected.level < 5) {
+        const selected = playerTanks.find((t) => t.id === selectedTankId);
+        if (
+          selected &&
+          selected.type === tank.type &&
+          selected.level === tank.level &&
+          selected.level < 5
+        ) {
           onMergeTanks(selectedTankId, id);
           return;
         }
@@ -72,7 +86,7 @@ export function useDragMerge({
       // Otherwise just select it
       onSelectTank(id === selectedTankId ? null : id);
     },
-    [playerTanks, selectedTankId, onSelectTank, onMergeTanks]
+    [playerTanks, selectedTankId, onSelectTank, onMergeTanks],
   );
 
   return { handleCellClick, handleTankClick };

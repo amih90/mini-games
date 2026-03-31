@@ -1,279 +1,279 @@
-import { GameConfig, GameCategory } from './types';
-import { checkersConfig } from '../checkers/game.config';
-import { reversiConfig } from '../reversi/game.config';
-import { chessConfig } from '../chess/game.config';
-import { backgammonConfig } from '../backgammon/game.config';
-import { pingPongConfig } from '../ping-pong/game.config';
-import { nascarCarsConfig } from '../nascar-cars/game.config';
-import { sprintRacePhaserConfig } from '../sprint-race-phaser/game.config';
-import { colorMixConfig } from '../color-mix/game.config';
-import { fractionPizzaConfig } from '../fraction-pizza/game.config';
-import { letterSoupConfig } from '../letter-soup/game.config';
-import { matchPairsConfig } from '../match-pairs/game.config';
-import { mirrorDrawConfig } from '../mirror-draw/game.config';
-import { numberMuncherConfig } from '../number-muncher/game.config';
-import { patternMakerConfig } from '../pattern-maker/game.config';
-import { plantGrowerConfig } from '../plant-grower/game.config';
-import { rhymeTimeConfig } from '../rhyme-time/game.config';
-import { shapeBuilderConfig } from '../shape-builder/game.config';
-import { sizeSorterConfig } from '../size-sorter/game.config';
-import { weatherDressUpConfig } from '../weather-dress-up/game.config';
-import { backgammonPhaserConfig } from '../backgammon-phaser/game.config';
-import { oddOneOutConfig } from '../odd-one-out/game.config';
-import { shadowMatchConfig } from '../shadow-match/game.config';
-import { countingBubblesConfig } from '../counting-bubbles/game.config';
-import { armyRunnerConfig } from '../army-runner/game.config';
-import { potionCraftConfig } from '../potion-craft/game.config';
-import { shapeSorter3DConfig } from '../shape-sorter-3d/game.config';
-import { solarSystem3DConfig } from '../solar-system-3d/game.config';
-import { numberTower3DConfig } from '../number-tower-3d/game.config';
-import { animalDiceConfig } from '../animal-dice/game.config';
-import { wildFriendsConfig } from '../wild-friends/game.config';
-import { mergeTankTacticsConfig } from '../merge-tank-tactics/game.config';
+import { GameConfig, GameCategory } from "./types";
+import { checkersConfig } from "../checkers/game.config";
+import { reversiConfig } from "../reversi/game.config";
+import { chessConfig } from "../chess/game.config";
+import { backgammonConfig } from "../backgammon/game.config";
+import { pingPongConfig } from "../ping-pong/game.config";
+import { nascarCarsConfig } from "../nascar-cars/game.config";
+import { sprintRacePhaserConfig } from "../sprint-race-phaser/game.config";
+import { colorMixConfig } from "../color-mix/game.config";
+import { fractionPizzaConfig } from "../fraction-pizza/game.config";
+import { letterSoupConfig } from "../letter-soup/game.config";
+import { matchPairsConfig } from "../match-pairs/game.config";
+import { mirrorDrawConfig } from "../mirror-draw/game.config";
+import { numberMuncherConfig } from "../number-muncher/game.config";
+import { patternMakerConfig } from "../pattern-maker/game.config";
+import { plantGrowerConfig } from "../plant-grower/game.config";
+import { rhymeTimeConfig } from "../rhyme-time/game.config";
+import { shapeBuilderConfig } from "../shape-builder/game.config";
+import { sizeSorterConfig } from "../size-sorter/game.config";
+import { weatherDressUpConfig } from "../weather-dress-up/game.config";
+import { backgammonPhaserConfig } from "../backgammon-phaser/game.config";
+import { oddOneOutConfig } from "../odd-one-out/game.config";
+import { shadowMatchConfig } from "../shadow-match/game.config";
+import { countingBubblesConfig } from "../counting-bubbles/game.config";
+import { armyRunnerConfig } from "../army-runner/game.config";
+import { potionCraftConfig } from "../potion-craft/game.config";
+import { shapeSorter3DConfig } from "../shape-sorter-3d/game.config";
+import { solarSystem3DConfig } from "../solar-system-3d/game.config";
+import { numberTower3DConfig } from "../number-tower-3d/game.config";
+import { animalDiceConfig } from "../animal-dice/game.config";
+import { wildFriendsConfig } from "../wild-friends/game.config";
+import { mergeTankTacticsConfig } from "../merge-tank-tactics/game.config";
 
 // Re-export types
-export type { GameConfig, GameCategory } from './types';
+export type { GameConfig, GameCategory } from "./types";
 
 /**
  * Central game registry
  * All games must be registered here to appear in the portal
  */
 export const gameRegistry: Record<string, GameConfig> = {
-  'color-match': {
-    slug: 'color-match',
+  "color-match": {
+    slug: "color-match",
     title: {
-      en: 'Color Match',
-      he: 'התאמת צבעים',
+      en: "Color Match",
+      he: "התאמת צבעים",
     },
     description: {
-      en: 'Match colors by dragging items to the right place!',
-      he: 'התאימו צבעים על ידי גרירת פריטים למקום הנכון!',
+      en: "Match colors by dragging items to the right place!",
+      he: "התאימו צבעים על ידי גרירת פריטים למקום הנכון!",
     },
-    categories: ['colors', 'ages-3-5'],
+    categories: ["colors", "ages-3-5"],
     ageRange: { min: 3, max: 5 },
-    thumbnail: '/images/games/color-match.svg',
-    icon: '🎨',
-    engine: 'react',
-    i18nNamespace: 'colorMatch',
+    thumbnail: "/images/games/color-match.svg",
+    icon: "🎨",
+    engine: "react",
+    i18nNamespace: "colorMatch",
   },
-  'memory-cards': {
-    slug: 'memory-cards',
+  "memory-cards": {
+    slug: "memory-cards",
     title: {
-      en: 'Memory Cards',
-      he: 'קלפי זיכרון',
+      en: "Memory Cards",
+      he: "קלפי זיכרון",
     },
     description: {
-      en: 'Find all the matching pairs!',
-      he: 'מצאו את כל הזוגות התואמים!',
+      en: "Find all the matching pairs!",
+      he: "מצאו את כל הזוגות התואמים!",
     },
-    categories: ['memory', 'ages-3-5', 'ages-6-8'],
+    categories: ["memory", "ages-3-5", "ages-6-8"],
     ageRange: { min: 4, max: 7 },
-    thumbnail: '/images/games/memory-cards.svg',
-    icon: '🃏',
-    engine: 'react',
-    i18nNamespace: 'memoryCards',
+    thumbnail: "/images/games/memory-cards.svg",
+    icon: "🃏",
+    engine: "react",
+    i18nNamespace: "memoryCards",
   },
-  'flappy-bird': {
-    slug: 'flappy-bird',
+  "flappy-bird": {
+    slug: "flappy-bird",
     title: {
-      en: 'Flappy Bird',
-      he: 'ציפור מעופפת',
+      en: "Flappy Bird",
+      he: "ציפור מעופפת",
     },
     description: {
-      en: 'Tap to fly through the pipes! How far can you go?',
-      he: 'הקישו כדי לעוף בין הצינורות! כמה רחוק תגיעו?',
+      en: "Tap to fly through the pipes! How far can you go?",
+      he: "הקישו כדי לעוף בין הצינורות! כמה רחוק תגיעו?",
     },
-    categories: ['reaction', 'ages-6-8'],
+    categories: ["reaction", "ages-6-8"],
     ageRange: { min: 5, max: 12 },
-    thumbnail: '/images/games/flappy-bird.svg',
-    icon: '🐦',
-    engine: 'canvas',
-    i18nNamespace: 'flappyBird',
+    thumbnail: "/images/games/flappy-bird.svg",
+    icon: "🐦",
+    engine: "canvas",
+    i18nNamespace: "flappyBird",
   },
-  'chicken-invaders': {
-    slug: 'chicken-invaders',
+  "chicken-invaders": {
+    slug: "chicken-invaders",
     title: {
-      en: 'Chicken Invaders',
-      he: 'פולשי התרנגולות',
+      en: "Chicken Invaders",
+      he: "פולשי התרנגולות",
     },
     description: {
-      en: 'Defend Earth from waves of invading chickens!',
-      he: 'הגנו על כדור הארץ מגלי פלישה של תרנגולות!',
+      en: "Defend Earth from waves of invading chickens!",
+      he: "הגנו על כדור הארץ מגלי פלישה של תרנגולות!",
     },
-    categories: ['reaction', 'ages-6-8'],
+    categories: ["reaction", "ages-6-8"],
     ageRange: { min: 6, max: 12 },
-    thumbnail: '/images/games/chicken-invaders.svg',
-    icon: '🐔',
-    engine: 'canvas',
-    i18nNamespace: 'chickenInvaders',
+    thumbnail: "/images/games/chicken-invaders.svg",
+    icon: "🐔",
+    engine: "canvas",
+    i18nNamespace: "chickenInvaders",
   },
-  'tetris': {
-    slug: 'tetris',
+  tetris: {
+    slug: "tetris",
     title: {
-      en: 'Tetris',
-      he: 'טטריס',
+      en: "Tetris",
+      he: "טטריס",
     },
     description: {
-      en: 'Stack falling blocks to clear lines!',
-      he: 'סדרו בלוקים נופלים כדי למחוק שורות!',
+      en: "Stack falling blocks to clear lines!",
+      he: "סדרו בלוקים נופלים כדי למחוק שורות!",
     },
-    categories: ['reaction', 'ages-6-8'],
+    categories: ["reaction", "ages-6-8"],
     ageRange: { min: 6, max: 12 },
-    thumbnail: '/images/games/tetris.svg',
-    icon: '🧱',
-    engine: 'canvas',
-    i18nNamespace: 'tetris',
+    thumbnail: "/images/games/tetris.svg",
+    icon: "🧱",
+    engine: "canvas",
+    i18nNamespace: "tetris",
   },
-  'snake': {
-    slug: 'snake',
+  snake: {
+    slug: "snake",
     title: {
-      en: 'Snake',
-      he: 'נחש',
+      en: "Snake",
+      he: "נחש",
     },
     description: {
-      en: 'Eat fruits and grow longer! How big can you get?',
-      he: 'אכלו פירות וגדלו! כמה גדולים תוכלו להיות?',
+      en: "Eat fruits and grow longer! How big can you get?",
+      he: "אכלו פירות וגדלו! כמה גדולים תוכלו להיות?",
     },
-    categories: ['reaction', 'ages-6-8'],
+    categories: ["reaction", "ages-6-8"],
     ageRange: { min: 5, max: 12 },
-    thumbnail: '/images/games/snake.svg',
-    icon: '🐍',
-    engine: 'canvas',
-    i18nNamespace: 'snake',
+    thumbnail: "/images/games/snake.svg",
+    icon: "🐍",
+    engine: "canvas",
+    i18nNamespace: "snake",
   },
-  'brick-breaker': {
-    slug: 'brick-breaker',
+  "brick-breaker": {
+    slug: "brick-breaker",
     title: {
-      en: 'Brick Breaker',
-      he: 'שובר לבנים',
+      en: "Brick Breaker",
+      he: "שובר לבנים",
     },
     description: {
-      en: 'Break all the bricks with your ball and paddle!',
-      he: 'שברו את כל הלבנים עם הכדור והמחבט!',
+      en: "Break all the bricks with your ball and paddle!",
+      he: "שברו את כל הלבנים עם הכדור והמחבט!",
     },
-    categories: ['reaction', 'ages-6-8'],
+    categories: ["reaction", "ages-6-8"],
     ageRange: { min: 5, max: 12 },
-    thumbnail: '/images/games/brick-breaker.svg',
-    icon: '🧱',
-    engine: 'canvas',
-    i18nNamespace: 'brickBreaker',
+    thumbnail: "/images/games/brick-breaker.svg",
+    icon: "🧱",
+    engine: "canvas",
+    i18nNamespace: "brickBreaker",
   },
-  'dino-run': {
-    slug: 'dino-run',
+  "dino-run": {
+    slug: "dino-run",
     title: {
-      en: 'Dino Run',
-      he: 'דינו רץ',
+      en: "Dino Run",
+      he: "דינו רץ",
     },
     description: {
-      en: 'Jump over obstacles and run as far as you can!',
-      he: 'קפצו מעל מכשולים ורוצו כמה שיותר רחוק!',
+      en: "Jump over obstacles and run as far as you can!",
+      he: "קפצו מעל מכשולים ורוצו כמה שיותר רחוק!",
     },
-    categories: ['reaction', 'ages-6-8'],
+    categories: ["reaction", "ages-6-8"],
     ageRange: { min: 4, max: 10 },
-    thumbnail: '/images/games/dino-run.svg',
-    icon: '🦕',
-    engine: 'canvas',
-    i18nNamespace: 'dinoRun',
+    thumbnail: "/images/games/dino-run.svg",
+    icon: "🦕",
+    engine: "canvas",
+    i18nNamespace: "dinoRun",
   },
-  'whack-a-mole': {
-    slug: 'whack-a-mole',
+  "whack-a-mole": {
+    slug: "whack-a-mole",
     title: {
-      en: 'Whack-a-Mole',
-      he: 'הכה את השומה',
+      en: "Whack-a-Mole",
+      he: "הכה את השומה",
     },
     description: {
-      en: 'Whack the moles as they pop up! Watch out for bombs!',
-      he: 'הכו את השומות כשהן קופצות! היזהרו מפצצות!',
+      en: "Whack the moles as they pop up! Watch out for bombs!",
+      he: "הכו את השומות כשהן קופצות! היזהרו מפצצות!",
     },
-    categories: ['reaction', 'ages-3-5', 'ages-6-8'],
+    categories: ["reaction", "ages-3-5", "ages-6-8"],
     ageRange: { min: 3, max: 10 },
-    thumbnail: '/images/games/whack-a-mole.svg',
-    icon: '🔨',
-    engine: 'canvas',
-    i18nNamespace: 'whackAMole',
+    thumbnail: "/images/games/whack-a-mole.svg",
+    icon: "🔨",
+    engine: "canvas",
+    i18nNamespace: "whackAMole",
   },
-  'penalty-kick': {
-    slug: 'penalty-kick',
+  "penalty-kick": {
+    slug: "penalty-kick",
     title: {
-      en: 'Penalty Kick',
-      he: 'בעיטת עונשין',
+      en: "Penalty Kick",
+      he: "בעיטת עונשין",
     },
     description: {
-      en: 'Score goals in this exciting penalty shootout! Aim, power up, and shoot!',
-      he: 'הבקיעו שערים בפנדלים מרגשים! כוונו, טענו כוח ובעטו!',
+      en: "Score goals in this exciting penalty shootout! Aim, power up, and shoot!",
+      he: "הבקיעו שערים בפנדלים מרגשים! כוונו, טענו כוח ובעטו!",
     },
-    categories: ['reaction', 'ages-6-8'],
+    categories: ["reaction", "ages-6-8"],
     ageRange: { min: 5, max: 12 },
-    thumbnail: '/images/games/penalty-kick.svg',
-    icon: '⚽',
-    engine: 'canvas',
-    i18nNamespace: 'penaltyKick',
+    thumbnail: "/images/games/penalty-kick.svg",
+    icon: "⚽",
+    engine: "canvas",
+    i18nNamespace: "penaltyKick",
   },
-  'sprint-race': {
-    slug: 'sprint-race',
+  "sprint-race": {
+    slug: "sprint-race",
     title: {
-      en: 'Sprint Race',
-      he: 'מרוץ ספרינט',
+      en: "Sprint Race",
+      he: "מרוץ ספרינט",
     },
     description: {
-      en: 'Tap as fast as you can to win the Olympic sprint race!',
-      he: 'הקישו מהר ככל האפשר כדי לנצח במרוץ האולימפי!',
+      en: "Tap as fast as you can to win the Olympic sprint race!",
+      he: "הקישו מהר ככל האפשר כדי לנצח במרוץ האולימפי!",
     },
-    categories: ['reaction', 'ages-6-8'],
+    categories: ["reaction", "ages-6-8"],
     ageRange: { min: 5, max: 12 },
-    thumbnail: '/images/games/sprint-race.svg',
-    icon: '🏃',
-    engine: 'canvas',
-    i18nNamespace: 'sprintRace',
+    thumbnail: "/images/games/sprint-race.svg",
+    icon: "🏃",
+    engine: "canvas",
+    i18nNamespace: "sprintRace",
   },
-  'tower-defense': {
-    slug: 'tower-defense',
+  "tower-defense": {
+    slug: "tower-defense",
     title: {
-      en: 'Tower Defense',
-      he: 'הגנת מגדלים',
+      en: "Tower Defense",
+      he: "הגנת מגדלים",
     },
     description: {
-      en: 'Build towers to defend against waves of enemies! A strategic battle awaits!',
-      he: 'בנו מגדלים כדי להגן מפני גלי אויבים! קרב אסטרטגי מחכה!',
+      en: "Build towers to defend against waves of enemies! A strategic battle awaits!",
+      he: "בנו מגדלים כדי להגן מפני גלי אויבים! קרב אסטרטגי מחכה!",
     },
-    categories: ['reaction', 'ages-6-8'],
+    categories: ["reaction", "ages-6-8"],
     ageRange: { min: 6, max: 12 },
-    thumbnail: '/images/games/tower-defense.svg',
-    icon: '🏰',
-    engine: 'canvas',
-    i18nNamespace: 'towerDefense',
+    thumbnail: "/images/games/tower-defense.svg",
+    icon: "🏰",
+    engine: "canvas",
+    i18nNamespace: "towerDefense",
   },
-  'checkers': checkersConfig,
-  'reversi': reversiConfig,
-  'chess': chessConfig,
-  'backgammon': backgammonConfig,
-  'ping-pong': pingPongConfig,
-  'nascar-cars': nascarCarsConfig,
-  'sprint-race-phaser': sprintRacePhaserConfig,
-  'color-mix': colorMixConfig,
-  'fraction-pizza': fractionPizzaConfig,
-  'letter-soup': letterSoupConfig,
-  'match-pairs': matchPairsConfig,
-  'mirror-draw': mirrorDrawConfig,
-  'number-muncher': numberMuncherConfig,
-  'pattern-maker': patternMakerConfig,
-  'plant-grower': plantGrowerConfig,
-  'rhyme-time': rhymeTimeConfig,
-  'shape-builder': shapeBuilderConfig,
-  'size-sorter': sizeSorterConfig,
-  'weather-dress-up': weatherDressUpConfig,
-  'backgammon-phaser': backgammonPhaserConfig,
-  'odd-one-out': oddOneOutConfig,
-  'shadow-match': shadowMatchConfig,
-  'counting-bubbles': countingBubblesConfig,
-  'army-runner': armyRunnerConfig,
-  'potion-craft': potionCraftConfig,
-  'shape-sorter-3d': shapeSorter3DConfig,
-  'solar-system-3d': solarSystem3DConfig,
-  'number-tower-3d': numberTower3DConfig,
-  'animal-dice': animalDiceConfig,
-  'wild-friends': wildFriendsConfig,
-  'merge-tank-tactics': mergeTankTacticsConfig,
+  checkers: checkersConfig,
+  reversi: reversiConfig,
+  chess: chessConfig,
+  backgammon: backgammonConfig,
+  "ping-pong": pingPongConfig,
+  "nascar-cars": nascarCarsConfig,
+  "sprint-race-phaser": sprintRacePhaserConfig,
+  "color-mix": colorMixConfig,
+  "fraction-pizza": fractionPizzaConfig,
+  "letter-soup": letterSoupConfig,
+  "match-pairs": matchPairsConfig,
+  "mirror-draw": mirrorDrawConfig,
+  "number-muncher": numberMuncherConfig,
+  "pattern-maker": patternMakerConfig,
+  "plant-grower": plantGrowerConfig,
+  "rhyme-time": rhymeTimeConfig,
+  "shape-builder": shapeBuilderConfig,
+  "size-sorter": sizeSorterConfig,
+  "weather-dress-up": weatherDressUpConfig,
+  "backgammon-phaser": backgammonPhaserConfig,
+  "odd-one-out": oddOneOutConfig,
+  "shadow-match": shadowMatchConfig,
+  "counting-bubbles": countingBubblesConfig,
+  "army-runner": armyRunnerConfig,
+  "potion-craft": potionCraftConfig,
+  "shape-sorter-3d": shapeSorter3DConfig,
+  "solar-system-3d": solarSystem3DConfig,
+  "number-tower-3d": numberTower3DConfig,
+  "animal-dice": animalDiceConfig,
+  "wild-friends": wildFriendsConfig,
+  "merge-tank-tactics": mergeTankTacticsConfig,
 };
 
 /**
@@ -302,7 +302,7 @@ export function getAllGameSlugs(): string[] {
  */
 export function getGamesByCategory(category: GameCategory): GameConfig[] {
   return Object.values(gameRegistry).filter((game) =>
-    game.categories.includes(category)
+    game.categories.includes(category),
   );
 }
 
@@ -311,7 +311,7 @@ export function getGamesByCategory(category: GameCategory): GameConfig[] {
  */
 export function getGamesByAge(age: number): GameConfig[] {
   return Object.values(gameRegistry).filter(
-    (game) => age >= game.ageRange.min && age <= game.ageRange.max
+    (game) => age >= game.ageRange.min && age <= game.ageRange.max,
   );
 }
 

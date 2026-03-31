@@ -327,7 +327,7 @@ If you want, I can also:
 **Tanks:** Procedural THREE.js geometry (Box + Cylinder combos) — no external GLB assets needed  
 **UI HUD:** 2D React overlay (absolute positioned) on top of Canvas  
 **Post-processing:** Bloom + vignette via `@react-three/postprocessing`  
-**Particles:** GPU-instanced Points for explosions, merge sparks, death smoke  
+**Particles:** GPU-instanced Points for explosions, merge sparks, death smoke
 
 ## File Structure
 
@@ -361,26 +361,28 @@ src/features/games/merge-tank-tactics/
 
 ## Visual Identity
 
-| Element | Design |
-|---------|--------|
-| Tank body | Low-poly box + turret cylinder, flat shading |
-| Level colors | L1=gray, L2=green, L3=blue, L4=purple, L5=gold |
-| Player side | Blue-tinted ground plane |
-| Enemy side | Red-tinted ground plane |
-| Merge FX | Spiral golden sparkles, scale-up pop |
-| Attack FX | Fast cylinder projectile + hit flash + screen shake |
-| Death FX | Orange particle burst + tank shrinks + smoke linger |
-| Post-proc | Bloom on impacts, vignette on battle start |
+| Element      | Design                                              |
+| ------------ | --------------------------------------------------- |
+| Tank body    | Low-poly box + turret cylinder, flat shading        |
+| Level colors | L1=gray, L2=green, L3=blue, L4=purple, L5=gold      |
+| Player side  | Blue-tinted ground plane                            |
+| Enemy side   | Red-tinted ground plane                             |
+| Merge FX     | Spiral golden sparkles, scale-up pop                |
+| Attack FX    | Fast cylinder projectile + hit flash + screen shake |
+| Death FX     | Orange particle burst + tank shrinks + smoke linger |
+| Post-proc    | Bloom on impacts, vignette on battle start          |
 
 ## Camera Setup
+
 ```typescript
-position: [0, 14, 10]   // isometric fixed angle
-fov: 45
-lookAt: [0, 0, 0]
+position: [0, 14, 10]; // isometric fixed angle
+fov: 45;
+lookAt: [0, 0, 0];
 // No orbit controls in gameplay — locked perspective
 ```
 
 ## Grid Layout (world coords)
+
 ```
 Enemy grid:  x: [-3, 3],  z: [-5, -2]  (far side)
 Player grid: x: [-3, 3],  z: [ 2,  5]  (near side)
@@ -388,6 +390,7 @@ Cell size: 1.5 world units
 ```
 
 ## Drag-Merge Interaction
+
 - Mouse/touch down → raycast → pick tank
 - Hover candidate cell → highlight if valid merge target
 - Mouse/touch up over valid target → trigger merge animation + combine
@@ -395,6 +398,7 @@ Cell size: 1.5 world units
 - Pointer events pass through Canvas via `pointerEvents: none` on HUD layer
 
 ## Turn Battle Animation Timeline (per turn)
+
 1. Attacker glow pulse (0.3s)
 2. Projectile flies (0.4s lerp)
 3. Hit flash on target (0.1s)
@@ -403,6 +407,7 @@ Cell size: 1.5 world units
 6. Next attacker starts after (0.2s pause)
 
 ## i18n Namespaces Required
+
 ```json
 "mergeTankTactics": {
   "title": "...",
@@ -413,9 +418,11 @@ Cell size: 1.5 world units
   "instructions": { "title": "...", "step1": "...", ... }
 }
 ```
+
 Required locales: en, he (RTL), zh, es
 
 ## Quality Checklist
+
 - [ ] 3 difficulty levels (easy/medium/hard) with enemy count + gold scaling
 - [ ] i18n 4 locales (en, he, zh, es)
 - [ ] useRetroSounds wired to: buy, merge, battleStart, hit, explosion, win, lose
