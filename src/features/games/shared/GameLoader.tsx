@@ -327,6 +327,11 @@ const WildFriendsGame = dynamic(
   { loading: () => <GameLoadingSkeleton />, ssr: false }
 );
 
+const MergeTankTacticsGame = dynamic(
+  () => import('@/features/games/merge-tank-tactics/MergeTankTacticsGame'),
+  { loading: () => <GameLoadingSkeleton />, ssr: false }
+);
+
 function GameLoadingSkeleton() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-peach-glow-light via-white to-sky-bubble-light flex items-center justify-center">
@@ -444,6 +449,8 @@ export function GameLoader({ slug }: GameLoaderProps) {
       return <AnimalDiceGame locale={locale} />;
     case 'wild-friends':
       return <WildFriendsGame locale={locale} />;
+    case 'merge-tank-tactics':
+      return <MergeTankTacticsGame />;
     default:
       return null;
   }

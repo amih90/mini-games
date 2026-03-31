@@ -1150,5 +1150,38 @@
   },
   "backgammonPhaser": {
     "title": "Backgammon (Phaser)"
+  },
+  "mergeTankTactics": {
+    "title": "Merge Tank Tactics",
+    "subtitle": "Merge, deploy, dominate!",
+    "buyMelee": "Buy Melee Tank",
+    "buyRange": "Buy Range Tank",
+    "gold": "Gold",
+    "stage": "Stage",
+    "startBattle": "Start Battle!",
+    "merge": "Merge",
+    "melee": "Melee",
+    "range": "Range",
+    "level": "Lv.",
+    "hp": "HP",
+    "attack": "ATK",
+    "victory": "Victory!",
+    "defeat": "Defeated!",
+    "nextStage": "Next Stage",
+    "reward": "Reward",
+    "instructions": {
+      "title": "How to Play",
+      "step1": "Buy tanks from the shop using gold",
+      "step2": "Tap two identical tanks together to merge them into a stronger tank",
+      "step3": "Place your tanks on the grid, then press Start Battle",
+      "step4": "Watch your tanks fight automatically! Win to earn gold and advance",
+      "tip": "Range tanks attack from far away. Melee tanks hit hard up close!"
+    },
+    "difficulty": {
+      "label": "Difficulty",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    }
   }
 }

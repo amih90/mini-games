@@ -29,6 +29,7 @@ import { solarSystem3DConfig } from '../solar-system-3d/game.config';
 import { numberTower3DConfig } from '../number-tower-3d/game.config';
 import { animalDiceConfig } from '../animal-dice/game.config';
 import { wildFriendsConfig } from '../wild-friends/game.config';
+import { mergeTankTacticsConfig } from '../merge-tank-tactics/game.config';
 
 // Re-export types
 export type { GameConfig, GameCategory } from './types';
@@ -272,6 +273,7 @@ export const gameRegistry: Record<string, GameConfig> = {
   'number-tower-3d': numberTower3DConfig,
   'animal-dice': animalDiceConfig,
   'wild-friends': wildFriendsConfig,
+  'merge-tank-tactics': mergeTankTacticsConfig,
 };
 
 /**

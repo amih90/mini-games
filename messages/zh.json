@@ -1150,5 +1150,38 @@
   },
   "backgammonPhaser": {
     "title": "双陆棋 (Phaser)"
+  },
+  "mergeTankTactics": {
+    "title": "合并坦克战术",
+    "subtitle": "合并、部署、制霸！",
+    "buyMelee": "购买近战坦克",
+    "buyRange": "购买远程坦克",
+    "gold": "金币",
+    "stage": "关卡",
+    "startBattle": "开始战斗！",
+    "merge": "合并",
+    "melee": "近战",
+    "range": "远程",
+    "level": "等级",
+    "hp": "生命值",
+    "attack": "攻击",
+    "victory": "胜利！",
+    "defeat": "失败！",
+    "nextStage": "下一关",
+    "reward": "奖励",
+    "instructions": {
+      "title": "如何游玩",
+      "step1": "用金币在商店购买坦克",
+      "step2": "点击两个相同的坦克将它们合并成更强的坦克",
+      "step3": "将坦克放置在格子上，然后按开始战斗",
+      "step4": "看你的坦克自动战斗！赢了就能获得金币并进入下一关",
+      "tip": "远程坦克从远处攻击。近战坦克近距离打击威力大！"
+    },
+    "difficulty": {
+      "label": "难度",
+      "easy": "简单",
+      "medium": "中等",
+      "hard": "困难"
+    }
   }
 }

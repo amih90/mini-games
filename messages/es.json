@@ -1150,5 +1150,38 @@
   },
   "backgammonPhaser": {
     "title": "Backgammon (Phaser)"
+  },
+  "mergeTankTactics": {
+    "title": "Táctica de Tanques",
+    "subtitle": "¡Fusiona, despliega, domina!",
+    "buyMelee": "Comprar Tanque Cuerpo a Cuerpo",
+    "buyRange": "Comprar Tanque a Distancia",
+    "gold": "Oro",
+    "stage": "Etapa",
+    "startBattle": "¡Iniciar Batalla!",
+    "merge": "Fusionar",
+    "melee": "Cuerpo a cuerpo",
+    "range": "A distancia",
+    "level": "Nv.",
+    "hp": "Vida",
+    "attack": "ATQ",
+    "victory": "¡Victoria!",
+    "defeat": "¡Derrota!",
+    "nextStage": "Siguiente Etapa",
+    "reward": "Recompensa",
+    "instructions": {
+      "title": "Cómo jugar",
+      "step1": "Compra tanques en la tienda usando oro",
+      "step2": "Toca dos tanques idénticos para fusionarlos en un tanque más fuerte",
+      "step3": "Coloca tus tanques en la cuadrícula y presiona Iniciar Batalla",
+      "step4": "¡Mira cómo tus tanques luchan automáticamente! Gana para obtener oro y avanzar",
+      "tip": "¡Los tanques a distancia atacan desde lejos. Los tanques cuerpo a cuerpo golpean fuerte de cerca!"
+    },
+    "difficulty": {
+      "label": "Dificultad",
+      "easy": "Fácil",
+      "medium": "Medio",
+      "hard": "Difícil"
+    }
   }
 }
