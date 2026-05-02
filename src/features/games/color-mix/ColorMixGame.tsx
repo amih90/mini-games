@@ -292,7 +292,10 @@ export function ColorMixGame() {
         setShowWrong(true);
 
         // Hint ladder advance
-        setHintLevel(h => Math.min(3, ((wrongOnChallenge + 1) as 1 | 2 | 3)));
+        setHintLevel(() => {
+          const next = Math.min(3, wrongOnChallenge + 1);
+          return next as 0 | 1 | 2 | 3;
+        });
 
         setTimeout(() => {
           setShowWrong(false);
@@ -310,7 +313,7 @@ export function ColorMixGame() {
   // Ask for hint manually (jumps the ladder by 1)
   const askHint = useCallback(() => {
     playClick();
-    setHintLevel(h => Math.min(3, (h + 1) as 0 | 1 | 2 | 3));
+    setHintLevel(h => Math.min(3, h + 1) as 0 | 1 | 2 | 3);
   }, [playClick]);
 
   // ── New-tube banner when entering a level that unlocks tubes ──
