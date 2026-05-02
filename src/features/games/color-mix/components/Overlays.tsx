@@ -2,8 +2,8 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Level } from '../data/levels';
-import { ACT_BY_ID, ACT_INTROS } from '../data/levels';
-import { ACT_TITLES, UI, type Locale } from '../data/strings';
+import { ACT_BY_ID } from '../data/levels';
+import { ACT_INTROS, ACT_TITLES, UI, type Locale } from '../data/strings';
 
 interface LevelIntroProps {
   isOpen: boolean;
