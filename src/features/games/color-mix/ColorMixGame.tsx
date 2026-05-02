@@ -1,980 +1,726 @@
 'use client';
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale } from 'next-intl';
+
 import { GameWrapper } from '../shared/GameWrapper';
-import { WinModal } from '../shared/WinModal';
 import { InstructionsModal } from '../shared/InstructionsModal';
-import { LevelDisplay } from '../shared/LevelDisplay';
-import { usePlayAgainKey } from '../shared/usePlayAgainKey';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 import { useDirection } from '@/hooks/useDirection';
 import { TextDirection } from '@/i18n/routing';
 
-// ────────────────────────────────────────────────────────────────────
+import { BASE_COLORS, UNLOCKABLE_COLORS, COLOR_BY_ID, RESULTS, RECIPE_BY_ID, findRecipeByPour, totalParts, blendHex } from './data/colors';
+import type { Recipe, PaintColor } from './data/colors';
+import { LEVELS, LEVEL_BY_ID, TOTAL_LEVELS, type Level } from './data/levels';
+import { COLOR_NAMES, INSTRUCTIONS_DATA, REAL_WORLD, UI, getLocale } from './data/strings';
+
+import { useColorMixProgress } from './hooks/useColorMixProgress';
+import { PaintTube } from './components/PaintTube';
+import { Bowl } from './components/Bowl';
+import { MapScreen } from './components/MapScreen';
+import { RecipeBookModal } from './components/RecipeBookModal';
+import { LevelIntro, LevelComplete, PauseModal, SettingsModal } from './components/Overlays';
+import { LessonCard, WrongFeedback, HintCard, CorrectBurst } from './components/Feedback';
+
+// ─────────────────────────────────────────────────────────────────────
 // Types
-// ────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────
 
-type Difficulty = 'easy' | 'medium' | 'hard';
-type GamePhase = 'menu' | 'playing' | 'levelComplete' | 'won';
+type Phase = 'map' | 'levelIntro' | 'playing' | 'levelComplete' | 'won' | 'freePlay';
 
-interface PrimaryColor {
-  id: string;
-  name: string;
-  hex: string;
-  emoji: string;
-}
+const MAX_PARTS_PER_TUBE = 3;
+const MAX_TOTAL_PARTS = 6;
 
-interface MixRecipe {
-  ingredients: string[]; // color ids
-  result: string;
-  resultHex: string;
-  resultEmoji: string;
-}
-
-interface Challenge {
-  targetName: string;
-  targetHex: string;
-  targetEmoji: string;
-  recipe: MixRecipe;
-}
-
-interface DifficultyConfig {
-  totalLevels: number;
-  challengesPerLevel: number;
-  availableColors: string[];
-  recipes: MixRecipe[];
-  scoreMultiplier: number;
-  maxIngredients: number;
-}
-
-// ────────────────────────────────────────────────────────────────────
-// Constants
-// ────────────────────────────────────────────────────────────────────
-
-const PRIMARY_COLORS: PrimaryColor[] = [
-  { id: 'red', name: 'red', hex: '#EF4444', emoji: '🔴' },
-  { id: 'blue', name: 'blue', hex: '#3B82F6', emoji: '🔵' },
-  { id: 'yellow', name: 'yellow', hex: '#FACC15', emoji: '🟡' },
-  { id: 'white', name: 'white', hex: '#F9FAFB', emoji: '⚪' },
-  { id: 'black', name: 'black', hex: '#1F2937', emoji: '⚫' },
-];
-
-const ALL_RECIPES: MixRecipe[] = [
-  // Primary mixes (2 colors)
-  { ingredients: ['red', 'blue'], result: 'purple', resultHex: '#A855F7', resultEmoji: '🟣' },
-  { ingredients: ['red', 'yellow'], result: 'orange', resultHex: '#F97316', resultEmoji: '🟠' },
-  { ingredients: ['blue', 'yellow'], result: 'green', resultHex: '#22C55E', resultEmoji: '🟢' },
-  // Tints and shades (2 colors)
-  { ingredients: ['red', 'white'], result: 'pink', resultHex: '#F9A8D4', resultEmoji: '🩷' },
-  { ingredients: ['blue', 'white'], result: 'light blue', resultHex: '#93C5FD', resultEmoji: '🩵' },
-  { ingredients: ['red', 'black'], result: 'dark red', resultHex: '#991B1B', resultEmoji: '🔴' },
-  { ingredients: ['blue', 'black'], result: 'dark blue', resultHex: '#1E3A5F', resultEmoji: '🔵' },
-  { ingredients: ['yellow', 'white'], result: 'cream', resultHex: '#FEF9C3', resultEmoji: '🟡' },
-];
-
-// 3-ingredient recipes for hard mode
-const TRIPLE_RECIPES: MixRecipe[] = [
-  { ingredients: ['red', 'blue', 'yellow'], result: 'brown', resultHex: '#92400E', resultEmoji: '🟤' },
-  { ingredients: ['red', 'yellow', 'white'], result: 'peach', resultHex: '#FDBA74', resultEmoji: '🍑' },
-  { ingredients: ['blue', 'yellow', 'white'], result: 'mint', resultHex: '#A7F3D0', resultEmoji: '🌿' },
-  { ingredients: ['red', 'blue', 'white'], result: 'lavender', resultHex: '#C4B5FD', resultEmoji: '💜' },
-  { ingredients: ['red', 'yellow', 'black'], result: 'olive', resultHex: '#854D0E', resultEmoji: '🫒' },
-  { ingredients: ['blue', 'yellow', 'black'], result: 'dark green', resultHex: '#14532D', resultEmoji: '🌲' },
-  { ingredients: ['red', 'blue', 'black'], result: 'dark purple', resultHex: '#581C87', resultEmoji: '🔮' },
-];
-
-const EASY_RECIPES = ALL_RECIPES.filter(r =>
-  ['purple', 'orange', 'green'].includes(r.result)
-);
-
-const MEDIUM_RECIPES = ALL_RECIPES;
-
-const HARD_RECIPES = [...ALL_RECIPES, ...TRIPLE_RECIPES];
-
-const DIFFICULTY_CONFIG: Record<Difficulty, DifficultyConfig> = {
-  easy: {
-    totalLevels: 3,
-    challengesPerLevel: 8,
-    availableColors: ['red', 'blue', 'yellow'],
-    recipes: EASY_RECIPES,
-    scoreMultiplier: 1,
-    maxIngredients: 2,
-  },
-  medium: {
-    totalLevels: 3,
-    challengesPerLevel: 10,
-    availableColors: ['red', 'blue', 'yellow', 'white', 'black'],
-    recipes: MEDIUM_RECIPES,
-    scoreMultiplier: 2,
-    maxIngredients: 2,
-  },
-  hard: {
-    totalLevels: 4,
-    challengesPerLevel: 12,
-    availableColors: ['red', 'blue', 'yellow', 'white', 'black'],
-    recipes: HARD_RECIPES,
-    scoreMultiplier: 3,
-    maxIngredients: 3,
-  },
-};
-
-const DIFFICULTY_EMOJI: Record<Difficulty, string> = {
-  easy: '🟢',
-  medium: '🟡',
-  hard: '🔴',
-};
-
-// ────────────────────────────────────────────────────────────────────
-// Localized strings
-// ────────────────────────────────────────────────────────────────────
-
-const COLOR_NAMES: Record<string, Record<string, string>> = {
-  en: { red: 'Red', blue: 'Blue', yellow: 'Yellow', white: 'White', black: 'Black', purple: 'Purple', orange: 'Orange', green: 'Green', pink: 'Pink', 'light blue': 'Light Blue', 'dark red': 'Dark Red', 'dark blue': 'Dark Blue', cream: 'Cream', brown: 'Brown', peach: 'Peach', mint: 'Mint', lavender: 'Lavender', olive: 'Olive', 'dark green': 'Dark Green', 'dark purple': 'Dark Purple' },
-  he: { red: 'אדום', blue: 'כחול', yellow: 'צהוב', white: 'לבן', black: 'שחור', purple: 'סגול', orange: 'כתום', green: 'ירוק', pink: 'ורוד', 'light blue': 'תכלת', 'dark red': 'אדום כהה', 'dark blue': 'כחול כהה', cream: 'שמנת', brown: 'חום', peach: 'אפרסק', mint: 'מנטה', lavender: 'לבנדר', olive: 'זית', 'dark green': 'ירוק כהה', 'dark purple': 'סגול כהה' },
-  zh: { red: '红色', blue: '蓝色', yellow: '黄色', white: '白色', black: '黑色', purple: '紫色', orange: '橙色', green: '绿色', pink: '粉红色', 'light blue': '浅蓝色', 'dark red': '深红色', 'dark blue': '深蓝色', cream: '奶油色', brown: '棕色', peach: '桃色', mint: '薄荷色', lavender: '薰衣草色', olive: '橄榄色', 'dark green': '深绿色', 'dark purple': '深紫色' },
-  es: { red: 'Rojo', blue: 'Azul', yellow: 'Amarillo', white: 'Blanco', black: 'Negro', purple: 'Morado', orange: 'Naranja', green: 'Verde', pink: 'Rosa', 'light blue': 'Celeste', 'dark red': 'Rojo oscuro', 'dark blue': 'Azul oscuro', cream: 'Crema', brown: 'Marrón', peach: 'Melocotón', mint: 'Menta', lavender: 'Lavanda', olive: 'Oliva', 'dark green': 'Verde oscuro', 'dark purple': 'Morado oscuro' },
-};
-
-const UI_STRINGS: Record<string, Record<string, string>> = {
-  en: { title: 'Color Lab', make: 'Make', mixButton: 'Mix!', tryAgain: 'Try Again', great: 'Great job!', correct: 'Correct!', wrong: 'Oops! Try different colors!', pick: 'Pick colors to mix', nextChallenge: 'Next Challenge!', selectDifficulty: 'Choose your level', easy: 'Easy', medium: 'Medium', hard: 'Hard', score: 'Score', level: 'Level', challenge: 'Challenge', mixingBowl: 'Mixing Bowl', plus: '+', equals: '=', streak: 'streak', hint: 'Hint', hintMsg: 'This color needs {n} ingredients!', discovered: 'Discovered', newColor: 'New color discovered!', easyDesc: '3 colors, simple mixes', mediumDesc: '5 colors, tints & shades', hardDesc: '3-color combos!' },
-  he: { title: 'מעבדת הצבעים', make: 'צרו', mixButton: '!ערבבו', tryAgain: 'נסו שוב', great: '!כל הכבוד', correct: '!נכון', wrong: '!אופס! נסו צבעים אחרים', pick: 'בחרו צבעים לערבוב', nextChallenge: '!אתגר הבא', selectDifficulty: 'בחרו רמת קושי', easy: 'קל', medium: 'בינוני', hard: 'קשה', score: 'ניקוד', level: 'שלב', challenge: 'אתגר', mixingBowl: 'קערת ערבוב', plus: '+', equals: '=', streak: 'רצף', hint: 'רמז', hintMsg: 'לצבע הזה צריך {n} מרכיבים!', discovered: 'התגלו', newColor: '!צבע חדש התגלה', easyDesc: '3 צבעים, ערבובים פשוטים', mediumDesc: '5 צבעים, גוונים בהירים וכהים', hardDesc: '!שילובי 3 צבעים' },
-  zh: { title: '色彩实验室', make: '调出', mixButton: '混合！', tryAgain: '再试一次', great: '太棒了！', correct: '正确！', wrong: '哎呀！试试其他颜色！', pick: '选择颜色来混合', nextChallenge: '下一个挑战！', selectDifficulty: '选择难度', easy: '简单', medium: '中等', hard: '困难', score: '分数', level: '关卡', challenge: '挑战', mixingBowl: '调色盘', plus: '+', equals: '=', streak: '连击', hint: '提示', hintMsg: '这个颜色需要{n}种原料！', discovered: '已发现', newColor: '发现新颜色！', easyDesc: '3种颜色，简单混合', mediumDesc: '5种颜色，色调和阴影', hardDesc: '3色组合！' },
-  es: { title: 'Laboratorio de Colores', make: 'Crea', mixButton: '¡Mezclar!', tryAgain: 'Intentar de nuevo', great: '¡Buen trabajo!', correct: '¡Correcto!', wrong: '¡Ups! ¡Prueba otros colores!', pick: 'Elige colores para mezclar', nextChallenge: '¡Siguiente reto!', selectDifficulty: 'Elige tu nivel', easy: 'Fácil', medium: 'Medio', hard: 'Difícil', score: 'Puntos', level: 'Nivel', challenge: 'Reto', mixingBowl: 'Paleta de mezcla', plus: '+', equals: '=', streak: 'racha', hint: 'Pista', hintMsg: '¡Este color necesita {n} ingredientes!', discovered: 'Descubiertos', newColor: '¡Nuevo color descubierto!', easyDesc: '3 colores, mezclas simples', mediumDesc: '5 colores, tintes y sombras', hardDesc: '¡Combos de 3 colores!' },
-};
-
-// ────────────────────────────────────────────────────────────────────
-// Instructions
-// ────────────────────────────────────────────────────────────────────
-
-const INSTRUCTIONS_DATA: Record<string, {
-  instructions: { icon: string; title: string; description: string }[];
-  controls: { icon: string; description: string }[];
-  tip: string;
-}> = {
-  en: {
-    instructions: [
-      { icon: '🎨', title: 'Goal', description: 'You\'re a color scientist! Mix paint colors together to create the target color shown on screen.' },
-      { icon: '🧪', title: 'How to Play', description: 'Click on color tubes to select them for mixing. Then press the Mix button to combine them!' },
-      { icon: '✨', title: 'Color Magic', description: 'Red + Blue = Purple, Red + Yellow = Orange, Blue + Yellow = Green. In hard mode, mix 3 colors to make brown, lavender, and more!' },
-      { icon: '🔥', title: 'Streaks & Discovery', description: 'Get correct answers in a row to build a streak and earn bonus points! Discover new colors and fill your recipe book!' },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Click or tap on color tubes to select them' },
-      { icon: '🔄', description: 'Click a selected color again to deselect it' },
-      { icon: '🧪', description: 'Press Mix to combine your selected colors' },
-      { icon: '💡', description: 'After 2 wrong tries, a hint appears!' },
-    ],
-    tip: 'In hard mode, some colors need 3 ingredients — Red + Blue + Yellow = Brown!',
-  },
-  he: {
-    instructions: [
-      { icon: '🎨', title: 'מטרה', description: 'אתם מדענים של צבעים! ערבבו צבעי צבע כדי ליצור את הצבע המבוקש על המסך.' },
-      { icon: '🧪', title: 'איך לשחק', description: 'לחצו על שפופרות צבע כדי לבחור אותן לערבוב. אז לחצו על כפתור הערבוב!' },
-      { icon: '✨', title: 'קסם הצבעים', description: 'אדום + כחול = סגול, אדום + צהוב = כתום, כחול + צהוב = ירוק. ברמה קשה, ערבבו 3 צבעים ליצירת חום, לבנדר ועוד!' },
-      { icon: '🔥', title: 'רצפים וגילויים', description: 'ענו נכון ברצף כדי לקבל בונוס נקודות! גלו צבעים חדשים ומלאו את ספר המתכונים!' },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'לחצו על שפופרות צבע כדי לבחור אותן' },
-      { icon: '🔄', description: 'לחצו שוב על צבע נבחר כדי לבטל בחירה' },
-      { icon: '🧪', description: 'לחצו ערבבו כדי לשלב את הצבעים' },
-      { icon: '💡', description: 'אחרי 2 טעויות, מופיע רמז!' },
-    ],
-    tip: 'ברמה קשה, חלק מהצבעים צריכים 3 מרכיבים — אדום + כחול + צהוב = חום!',
-  },
-  zh: {
-    instructions: [
-      { icon: '🎨', title: '目标', description: '你是一位色彩科学家！混合颜料颜色来创造屏幕上显示的目标颜色。' },
-      { icon: '🧪', title: '怎么玩', description: '点击颜料管来选择它们进行混合。然后按下混合按钮来组合它们！' },
-      { icon: '✨', title: '颜色魔法', description: '红+蓝=紫，红+黄=橙，蓝+黄=绿。在困难模式下，混合3种颜色制作棕色、薰衣草色等！' },
-      { icon: '🔥', title: '连击与发现', description: '连续答对可以获得连击奖励分数！发现新颜色并填满你的配方书！' },
-    ],
-    controls: [
-      { icon: '🖱️', description: '点击颜料管来选择' },
-      { icon: '🔄', description: '再次点击已选颜色来取消选择' },
-      { icon: '🧪', description: '按混合按钮来组合颜色' },
-      { icon: '💡', description: '连续错2次后会出现提示！' },
-    ],
-    tip: '在困难模式下，有些颜色需要3种原料——红+蓝+黄=棕色！',
-  },
-  es: {
-    instructions: [
-      { icon: '🎨', title: 'Objetivo', description: '¡Eres un científico del color! Mezcla colores de pintura para crear el color objetivo en la pantalla.' },
-      { icon: '🧪', title: 'Cómo jugar', description: 'Haz clic en los tubos de pintura para seleccionarlos. ¡Luego presiona el botón Mezclar para combinarlos!' },
-      { icon: '✨', title: 'Magia del Color', description: 'Rojo + Azul = Morado, Rojo + Amarillo = Naranja, Azul + Amarillo = Verde. ¡En modo difícil, mezcla 3 colores para hacer marrón, lavanda y más!' },
-      { icon: '🔥', title: 'Rachas y Descubrimiento', description: '¡Acierta en racha para ganar puntos extra! ¡Descubre nuevos colores y llena tu libro de recetas!' },
-    ],
-    controls: [
-      { icon: '🖱️', description: 'Clic o toca los tubos de pintura para seleccionar' },
-      { icon: '🔄', description: 'Clic en un color seleccionado para deseleccionar' },
-      { icon: '🧪', description: 'Presiona Mezclar para combinar los colores' },
-      { icon: '💡', description: '¡Después de 2 errores aparece una pista!' },
-    ],
-    tip: '¡En modo difícil, algunos colores necesitan 3 ingredientes — Rojo + Azul + Amarillo = Marrón!',
-  },
-};
-
-// ────────────────────────────────────────────────────────────────────
-// Helper functions
-// ────────────────────────────────────────────────────────────────────
-
-function shuffleArray<T>(array: T[]): T[] {
-  const arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-function generateChallenges(config: DifficultyConfig, count: number): Challenge[] {
-  const shuffled = shuffleArray(config.recipes);
-  const challenges: Challenge[] = [];
-  for (let i = 0; i < count; i++) {
-    const recipe = shuffled[i % shuffled.length];
-    challenges.push({
-      targetName: recipe.result,
-      targetHex: recipe.resultHex,
-      targetEmoji: recipe.resultEmoji,
-      recipe,
-    });
-  }
-  return challenges;
-}
-
-function checkMix(selected: string[], recipe: MixRecipe): boolean {
-  if (selected.length !== recipe.ingredients.length) return false;
-  const sorted1 = [...selected].sort();
-  const sorted2 = [...recipe.ingredients].sort();
-  return sorted1.every((s, i) => s === sorted2[i]);
-}
-
-function findMatchingRecipe(selected: string[], recipes: MixRecipe[]): MixRecipe | null {
-  for (const recipe of recipes) {
-    if (checkMix(selected, recipe)) return recipe;
-  }
-  return null;
-}
-
-// ────────────────────────────────────────────────────────────────────
-// Sub-components
-// ────────────────────────────────────────────────────────────────────
-
-function PaintTube({
-  color,
-  isSelected,
-  onClick,
-  disabled,
-  locale,
-}: {
-  color: PrimaryColor;
-  isSelected: boolean;
-  onClick: () => void;
-  disabled: boolean;
-  locale: string;
-}) {
-  const colorNames = COLOR_NAMES[locale] || COLOR_NAMES.en;
-
-  return (
-    <motion.button
-      whileHover={disabled ? {} : { scale: 1.08, y: -4 }}
-      whileTap={disabled ? {} : { scale: 0.95 }}
-      animate={isSelected ? { scale: 1.1, y: -6, boxShadow: `0 8px 30px ${color.hex}80` } : { scale: 1, y: 0 }}
-      onClick={onClick}
-      disabled={disabled}
-      className={`
-        relative flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 rounded-xl sm:rounded-2xl transition-all min-h-[44px] min-w-[44px]
-        ${isSelected
-          ? 'ring-2 sm:ring-4 ring-offset-1 sm:ring-offset-2 ring-yellow-400 bg-white/90 shadow-xl'
-          : 'bg-white/70 hover:bg-white/90 shadow-md'
-        }
-        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-      `}
-      aria-label={`${colorNames[color.name]} paint tube${isSelected ? ' (selected)' : ''}`}
-      aria-pressed={isSelected}
-    >
-      {/* Paint tube visual */}
-      <div className="relative">
-        <div
-          className="w-10 h-14 sm:w-16 sm:h-24 rounded-t-lg sm:rounded-t-xl rounded-b-2xl sm:rounded-b-3xl border-2 border-white/50 shadow-inner"
-          style={{ backgroundColor: color.hex }}
-        >
-          {/* Tube cap */}
-          <div
-            className="absolute -top-1.5 sm:-top-2 left-1/2 -translate-x-1/2 w-4 sm:w-6 h-3 sm:h-4 rounded-t-lg"
-            style={{ backgroundColor: color.hex, filter: 'brightness(0.8)' }}
-          />
-          {/* Shine effect */}
-          <div className="absolute top-2 sm:top-3 left-1.5 sm:left-2 w-1.5 sm:w-2 h-5 sm:h-8 bg-white/30 rounded-full" />
-        </div>
-        {/* Selected checkmark */}
-        {isSelected && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-7 sm:h-7 bg-yellow-400 rounded-full flex items-center justify-center shadow-md"
-          >
-            <span className="text-xs sm:text-sm">✓</span>
-          </motion.div>
-        )}
-      </div>
-      <span className="text-[10px] sm:text-sm font-bold text-gray-700 leading-tight">{colorNames[color.name]}</span>
-    </motion.button>
-  );
-}
-
-function MixingBowl({
-  selectedColors,
-  mixResult,
-  isAnimating,
-}: {
-  selectedColors: PrimaryColor[];
-  mixResult: { hex: string; name: string; emoji: string } | null;
-  isAnimating: boolean;
-}) {
-  return (
-    <div className="relative flex flex-col items-center">
-      {/* Bowl */}
-      <motion.div
-        animate={isAnimating ? { rotate: [0, -5, 5, -5, 5, 0] } : {}}
-        transition={{ duration: 0.6, ease: 'easeInOut' }}
-        className="relative w-24 h-18 sm:w-40 sm:h-28"
-      >
-        {/* Bowl shape */}
-        <div className="absolute bottom-0 w-full h-16 sm:h-24 bg-gray-200 rounded-b-[50%] rounded-t-lg border-2 sm:border-4 border-gray-300 overflow-hidden shadow-inner">
-          {/* Color in bowl */}
-          <AnimatePresence mode="wait">
-            {mixResult ? (
-              <motion.div
-                key="result"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 20, opacity: 0 }}
-                className="absolute inset-0 rounded-b-[50%]"
-                style={{ backgroundColor: mixResult.hex }}
-              >
-                {/* Bubbling effect */}
-                <motion.div
-                  animate={{ y: [-2, 2, -2] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                  className="absolute top-2 left-1/4 w-3 h-3 bg-white/30 rounded-full"
-                />
-                <motion.div
-                  animate={{ y: [2, -2, 2] }}
-                  transition={{ repeat: Infinity, duration: 2 }}
-                  className="absolute top-4 right-1/3 w-2 h-2 bg-white/20 rounded-full"
-                />
-              </motion.div>
-            ) : selectedColors.length > 0 ? (
-              <motion.div
-                key="preview"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.5 }}
-                className="absolute inset-0 flex"
-              >
-                {selectedColors.map((c, i) => (
-                  <div
-                    key={c.id}
-                    className="flex-1 h-full"
-                    style={{
-                      backgroundColor: c.hex,
-                      borderRadius: i === 0 ? '0 0 0 50%' : i === selectedColors.length - 1 ? '0 0 50% 0' : undefined,
-                    }}
-                  />
-                ))}
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-        </div>
-        {/* Bowl rim */}
-        <div className="absolute top-0 w-full h-4 bg-gray-300 rounded-t-lg border-2 border-gray-400" />
-      </motion.div>
-    </div>
-  );
-}
-
-function TargetDisplay({
-  challenge,
-  locale,
-  strings,
-}: {
-  challenge: Challenge;
-  locale: string;
-  strings: Record<string, string>;
-}) {
-  const colorNames = COLOR_NAMES[locale] || COLOR_NAMES.en;
-
-  return (
-    <motion.div
-      initial={{ scale: 0.8, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      className="flex flex-col items-center gap-1.5 sm:gap-3 px-4 py-3 sm:p-6 bg-white/80 rounded-2xl sm:rounded-3xl shadow-lg backdrop-blur-sm"
-    >
-      <span className="text-sm sm:text-lg font-bold text-gray-600">{strings.make}:</span>
-      <motion.div
-        animate={{ scale: [1, 1.05, 1] }}
-        transition={{ repeat: Infinity, duration: 2 }}
-        className="w-14 h-14 sm:w-24 sm:h-24 rounded-full border-3 sm:border-4 border-white shadow-xl flex items-center justify-center"
-        style={{ backgroundColor: challenge.targetHex }}
-      >
-        <span className="text-2xl sm:text-4xl">{challenge.targetEmoji}</span>
-      </motion.div>
-      <span className="text-base sm:text-xl font-bold text-gray-800">
-        {colorNames[challenge.targetName] || challenge.targetName}
-      </span>
-    </motion.div>
-  );
-}
-
-function FeedbackOverlay({
-  type,
-  strings,
-  wrongMixResult,
-}: {
-  type: 'correct' | 'wrong' | null;
-  strings: Record<string, string>;
-  wrongMixResult?: { hex: string; name: string; emoji: string } | null;
-}) {
-  return (
-    <AnimatePresence>
-      {type === 'correct' && (
-        <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0, opacity: 0 }}
-          className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none"
-        >
-          <motion.div
-            initial={{ y: 50 }}
-            animate={{ y: 0 }}
-            exit={{ y: -50 }}
-            className="text-center px-8 py-5 sm:px-12 sm:py-8 rounded-2xl sm:rounded-3xl shadow-2xl mx-4 bg-green-100 border-4 border-green-400"
-          >
-            <span className="text-4xl sm:text-6xl block mb-2">🎉</span>
-            <span className="text-2xl font-bold text-green-700">{strings.correct}</span>
-          </motion.div>
-        </motion.div>
-      )}
-      {type === 'wrong' && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 flex items-center justify-center pointer-events-none z-50"
-        >
-          <div className="flex items-center gap-3">
-            <span className="text-7xl sm:text-8xl">❌</span>
-            {wrongMixResult && (
-              <span
-                className="inline-block w-12 h-12 sm:w-16 sm:h-16 rounded-full border-4 border-white shadow-lg"
-                style={{ backgroundColor: wrongMixResult.hex }}
-                title={wrongMixResult.name}
-              />
-            )}
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
-function FormulaDisplay({
-  selectedColors,
-  mixResult,
-  locale,
-  strings,
-}: {
-  selectedColors: PrimaryColor[];
-  mixResult: { hex: string; name: string; emoji: string } | null;
-  locale: string;
-  strings: Record<string, string>;
-}) {
-  const colorNames = COLOR_NAMES[locale] || COLOR_NAMES.en;
-
-  if (selectedColors.length === 0 && !mixResult) return null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex items-center justify-center gap-1 sm:gap-3 text-sm sm:text-xl font-bold text-gray-700 flex-wrap"
-    >
-      {selectedColors.map((c, i) => (
-        <span key={c.id} className="flex items-center gap-1">
-          {i > 0 && <span className="text-gray-400 mx-1">{strings.plus}</span>}
-          <span
-            className="inline-block w-4 h-4 sm:w-8 sm:h-8 rounded-full border-2 border-white shadow"
-            style={{ backgroundColor: c.hex }}
-          />
-          <span className="text-xs sm:text-base">{colorNames[c.name]}</span>
-        </span>
-      ))}
-      {mixResult && (
-        <>
-          <span className="text-gray-400 mx-1">{strings.equals}</span>
-          <span className="flex items-center gap-1">
-            <span
-              className="inline-block w-4 h-4 sm:w-8 sm:h-8 rounded-full border-2 border-white shadow"
-              style={{ backgroundColor: mixResult.hex }}
-            />
-            <span className="text-xs sm:text-base">{colorNames[mixResult.name] || mixResult.name}</span>
-          </span>
-        </>
-      )}
-    </motion.div>
-  );
-}
-
-// ────────────────────────────────────────────────────────────────────
-// Celebration particles
-// ────────────────────────────────────────────────────────────────────
-
-function CelebrationParticles({ color }: { color: string }) {
-  const particles = useMemo(() => Array.from({ length: 20 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 300 - 150,
-    y: -(Math.random() * 200 + 100),
-    rotate: Math.random() * 720 - 360,
-    scale: Math.random() * 0.5 + 0.5,
-    delay: Math.random() * 0.3,
-  })), []);
-
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {particles.map(p => (
-        <motion.div
-          key={p.id}
-          initial={{ x: 0, y: 0, scale: 0, rotate: 0, opacity: 1 }}
-          animate={{ x: p.x, y: p.y, scale: p.scale, rotate: p.rotate, opacity: 0 }}
-          transition={{ duration: 1.2, delay: p.delay, ease: 'easeOut' }}
-          className="absolute left-1/2 top-1/2 w-3 h-3 rounded-full"
-          style={{ backgroundColor: color }}
-        />
-      ))}
-    </div>
-  );
-}
-
-// ────────────────────────────────────────────────────────────────────
-// Main game component
-// ────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────────────────────────────
 
 export function ColorMixGame() {
-  const t = useTranslations('common');
-  const locale = useLocale();
+  const localeRaw = useLocale();
+  const locale = getLocale(localeRaw);
   const direction = useDirection();
   const isRtl = direction === TextDirection.RTL;
-  const strings = UI_STRINGS[locale] || UI_STRINGS.en;
-  const { playClick, playSuccess, playDrop } = useRetroSounds();
+  const ui = UI[locale];
+  const colorNames = COLOR_NAMES[locale];
 
-  // Game state
-  const [phase, setPhase] = useState<GamePhase>('menu');
-  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
-  const [level, setLevel] = useState(1);
+  const { playClick, playSuccess, playDrop, playLevelUp, playWin, playPowerUp, playHit, playWhoosh, isMuted, toggleMute } = useRetroSounds();
+  const {
+    progress, hydrated, totalStars, discoveredSet,
+    isLevelUnlocked, isLevelComplete,
+    recordLevelStars, discoverColor, addScore, setSetting,
+  } = useColorMixProgress();
+
+  // ── Game state ──
+  const [phase, setPhase] = useState<Phase>('map');
+  const [activeLevelId, setActiveLevelId] = useState<number | null>(null);
   const [challengeIndex, setChallengeIndex] = useState(0);
-  const [challenges, setChallenges] = useState<Challenge[]>([]);
-  const [score, setScore] = useState(0);
-  const [selected, setSelected] = useState<string[]>([]);
-  const [mixResult, setMixResult] = useState<{ hex: string; name: string; emoji: string } | null>(null);
-  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
-  const [showCelebration, setShowCelebration] = useState(false);
-
-  // Joy features state
+  const [pour, setPour] = useState<Record<string, number>>({});
+  const [resultRecipe, setResultRecipe] = useState<Recipe | null>(null);
+  const [resultHex, setResultHex] = useState<string | null>(null);
+  const [stirring, setStirring] = useState(false);
+  const [showCorrectBurst, setShowCorrectBurst] = useState(false);
+  const [showLesson, setShowLesson] = useState(false);
+  const [lessonRecipe, setLessonRecipe] = useState<Recipe | null>(null);
+  const [showWrong, setShowWrong] = useState(false);
+  const [wrongActualRecipe, setWrongActualRecipe] = useState<Recipe | null>(null);
   const [streak, setStreak] = useState(0);
-  const [consecutiveWrong, setConsecutiveWrong] = useState(0);
-  const [discoveredColors, setDiscoveredColors] = useState<Set<string>>(new Set());
-  const [showNewDiscovery, setShowNewDiscovery] = useState(false);
+  const [wrongInLevel, setWrongInLevel] = useState(0);
+  const [wrongOnChallenge, setWrongOnChallenge] = useState(0);
+  const [hintLevel, setHintLevel] = useState<0 | 1 | 2 | 3>(0);
+  const [scoreInLevel, setScoreInLevel] = useState(0);
+  const [bossHadWrong, setBossHadWrong] = useState(false);
 
-  const config = DIFFICULTY_CONFIG[difficulty];
-  const currentChallenge = challenges[challengeIndex];
-  const availableColors = PRIMARY_COLORS.filter(c => config.availableColors.includes(c.id));
-  const selectedColors = selected.map(id => PRIMARY_COLORS.find(c => c.id === id)!).filter(Boolean);
+  // UI overlays
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [showRecipeBook, setShowRecipeBook] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showPause, setShowPause] = useState(false);
+  const [showNewTubeBanner, setShowNewTubeBanner] = useState<string | null>(null);
 
-  // Start game
-  const startGame = useCallback((diff: Difficulty) => {
+  const cbAssist = progress.settings.cbAssist;
+  const reduceMotion = progress.settings.reduceMotion;
+
+  // ── Derived ──
+  const activeLevel: Level | null = activeLevelId ? LEVEL_BY_ID[activeLevelId] : null;
+  const currentChallenge = activeLevel ? activeLevel.challenges[challengeIndex] : null;
+  const targetRecipe = currentChallenge ? RECIPE_BY_ID[currentChallenge.recipeId] : null;
+  const isFreePlay = phase === 'freePlay';
+  const freePlayUnlocked = isLevelComplete(TOTAL_LEVELS);
+
+  // Available tubes
+  const availableTubes: PaintColor[] = useMemo(() => {
+    const base = [...BASE_COLORS];
+    if (isFreePlay) return [...base, ...UNLOCKABLE_COLORS];
+    if (!activeLevel) return base;
+    if (!activeLevel.unlocksTubes) return base;
+    const extras = activeLevel.unlocksTubes
+      .map(id => UNLOCKABLE_COLORS.find(c => c.id === id))
+      .filter(Boolean) as PaintColor[];
+    return [...base, ...extras];
+  }, [activeLevel, isFreePlay]);
+
+  const totalPour = useMemo(() => totalParts(pour), [pour]);
+  const formulaIds = useMemo(() => Object.keys(pour).filter(id => pour[id] > 0), [pour]);
+
+  const previewHex = useMemo(() => blendHex(pour), [pour]);
+
+  // ─────────────────────────────────────────────────────────────────
+  // Actions
+  // ─────────────────────────────────────────────────────────────────
+
+  const resetMixState = useCallback(() => {
+    setPour({});
+    setResultRecipe(null);
+    setResultHex(null);
+    setShowWrong(false);
+    setWrongActualRecipe(null);
+    setShowLesson(false);
+    setLessonRecipe(null);
+    setHintLevel(0);
+    setShowCorrectBurst(false);
+  }, []);
+
+  const startLevel = useCallback((level: Level) => {
     playClick();
-    setDifficulty(diff);
-    setLevel(1);
+    setActiveLevelId(level.id);
     setChallengeIndex(0);
-    setScore(0);
-    setSelected([]);
-    setMixResult(null);
-    setFeedback(null);
     setStreak(0);
-    setConsecutiveWrong(0);
-    setDiscoveredColors(new Set());
-    setShowNewDiscovery(false);
-    const cfg = DIFFICULTY_CONFIG[diff];
-    setChallenges(generateChallenges(cfg, cfg.challengesPerLevel));
+    setWrongInLevel(0);
+    setWrongOnChallenge(0);
+    setBossHadWrong(false);
+    setScoreInLevel(0);
+    resetMixState();
+    setPhase('levelIntro');
+  }, [playClick, resetMixState]);
+
+  const startFreePlay = useCallback(() => {
+    if (!freePlayUnlocked) return;
+    playClick();
+    setActiveLevelId(null);
+    resetMixState();
+    setPhase('freePlay');
+  }, [playClick, resetMixState, freePlayUnlocked]);
+
+  const goToMap = useCallback(() => {
+    playClick();
+    resetMixState();
+    setShowPause(false);
+    setActiveLevelId(null);
+    setPhase('map');
+  }, [playClick, resetMixState]);
+
+  const beginPlaying = useCallback(() => {
+    playClick();
     setPhase('playing');
   }, [playClick]);
 
-  // Reset game
-  const resetGame = useCallback(() => {
-    setPhase('menu');
-    setLevel(1);
-    setChallengeIndex(0);
-    setScore(0);
-    setSelected([]);
-    setMixResult(null);
-    setFeedback(null);
-    setChallenges([]);
-    setShowCelebration(false);
-    setStreak(0);
-    setConsecutiveWrong(0);
-    setDiscoveredColors(new Set());
-    setShowNewDiscovery(false);
-  }, []);
-
-  // Play again key handler
-  usePlayAgainKey(phase === 'won', resetGame);
-
-  // Select a color
-  const toggleColor = useCallback((colorId: string) => {
-    if (isAnimating || feedback) return;
-    playClick();
-
-    setSelected(prev => {
-      if (prev.includes(colorId)) {
-        return prev.filter(id => id !== colorId);
-      }
-      if (prev.length >= config.maxIngredients) {
-        return [...prev.slice(1), colorId];
-      }
-      return [...prev, colorId];
+  const pourTube = useCallback((colorId: string) => {
+    if (stirring || resultRecipe || showWrong) return;
+    setPour(prev => {
+      const current = prev[colorId] ?? 0;
+      if (current >= MAX_PARTS_PER_TUBE) return prev;
+      const total = totalParts(prev);
+      if (total >= MAX_TOTAL_PARTS) return prev;
+      return { ...prev, [colorId]: current + 1 };
     });
-    setMixResult(null);
-  }, [isAnimating, feedback, playClick, config.maxIngredients]);
+    playDrop();
+  }, [stirring, resultRecipe, showWrong, playDrop]);
 
-  // Mix colors
-  const handleMix = useCallback(() => {
-    if (selected.length < 2 || isAnimating || !currentChallenge) return;
+  const clearBowl = useCallback(() => {
+    if (stirring) return;
     playClick();
-    setIsAnimating(true);
+    resetMixState();
+  }, [stirring, playClick, resetMixState]);
 
-    // Find what the mix produces (search all recipes in current difficulty)
-    const matchedRecipe = findMatchingRecipe(selected, config.recipes);
+  const advanceChallenge = useCallback(() => {
+    if (!activeLevel) return;
+    const nextIndex = challengeIndex + 1;
+    if (nextIndex < activeLevel.challenges.length) {
+      setChallengeIndex(nextIndex);
+      setWrongOnChallenge(0);
+      setHintLevel(0);
+      resetMixState();
+      return;
+    }
 
+    // Level complete — calculate stars
+    let stars = 3;
+    if (wrongInLevel >= 1) stars = 2;
+    if (wrongInLevel >= 3) stars = 1;
+    const bossBonus = activeLevel.challenges.some(c => c.boss) && !bossHadWrong;
+    if (bossBonus) stars = Math.min(3, stars + 1);
+
+    recordLevelStars(activeLevel.id, stars);
+    addScore(scoreInLevel + (bossBonus ? 200 : 0));
+    playLevelUp();
+    if (activeLevel.id === TOTAL_LEVELS) {
+      setTimeout(() => playWin(), 400);
+      setPhase('won');
+    } else {
+      setPhase('levelComplete');
+    }
+  }, [activeLevel, challengeIndex, wrongInLevel, bossHadWrong, scoreInLevel, recordLevelStars, addScore, playLevelUp, playWin, resetMixState]);
+
+  const goNextLevel = useCallback(() => {
+    if (!activeLevel) return;
+    const next = LEVELS.find(l => l.id === activeLevel.id + 1);
+    if (next) {
+      startLevel(next);
+    } else {
+      goToMap();
+    }
+  }, [activeLevel, startLevel, goToMap]);
+
+  // ── Stir & resolve ──
+  const stir = useCallback(() => {
+    if (totalPour < 2 || stirring || resultRecipe || showWrong) return;
+    playWhoosh();
+    setStirring(true);
+
+    // Animate the stir for ~700ms then reveal result
     setTimeout(() => {
-      if (matchedRecipe) {
-        setMixResult({ hex: matchedRecipe.resultHex, name: matchedRecipe.result, emoji: matchedRecipe.resultEmoji });
+      const recipe = findRecipeByPour(pour);
+      const finalHex = recipe ? RESULTS[recipe.result].hex : previewHex;
+      setResultHex(finalHex);
+      setResultRecipe(recipe);
+      setStirring(false);
+
+      // Free Play: just record discovery, no win/lose
+      if (isFreePlay) {
+        if (recipe) {
+          discoverColor(recipe.result);
+          setLessonRecipe(recipe);
+          setShowLesson(true);
+          playSuccess();
+          setShowCorrectBurst(true);
+          setTimeout(() => {
+            setShowCorrectBurst(false);
+          }, 900);
+          // Auto-clear after a moment
+          setTimeout(() => {
+            setShowLesson(false);
+            resetMixState();
+          }, 2400);
+        } else {
+          // Unknown mix — gentle clear
+          setTimeout(() => resetMixState(), 1200);
+        }
+        return;
       }
 
-      setTimeout(() => {
-        const isCorrect = checkMix(selected, currentChallenge.recipe);
+      // Story mode: check correctness
+      const isCorrect = !!targetRecipe && recipe?.id === targetRecipe.id;
+      if (isCorrect) {
+        playSuccess();
+        setShowCorrectBurst(true);
 
-        if (isCorrect) {
-          playSuccess();
-          setFeedback('correct');
-          setShowCelebration(true);
-          setConsecutiveWrong(0);
+        // Discovery
+        const isNew = !discoveredSet.has(recipe!.result);
+        discoverColor(recipe!.result);
 
-          // Streak bonus
-          const newStreak = streak + 1;
-          setStreak(newStreak);
-          const streakBonus = newStreak >= 3 ? Math.min(newStreak, 5) * 25 : 0;
-          setScore(prev => prev + 100 * config.scoreMultiplier + streakBonus);
+        // Score
+        const base = 100;
+        const newStreak = streak + 1;
+        setStreak(newStreak);
+        const streakBonus = newStreak >= 3 ? Math.min(newStreak, 5) * 25 : 0;
+        const noviceBonus = isNew ? 50 : 0;
+        const earned = base + streakBonus + noviceBonus;
+        setScoreInLevel(s => s + earned);
 
-          // Discovery tracking
-          const colorName = currentChallenge.recipe.result;
-          setDiscoveredColors(prev => {
-            const next = new Set(prev);
-            if (!next.has(colorName)) {
-              setShowNewDiscovery(true);
-              setTimeout(() => setShowNewDiscovery(false), 2000);
-            }
-            next.add(colorName);
-            return next;
-          });
+        // Lesson card
+        setLessonRecipe(recipe!);
+        setShowLesson(true);
 
-          setTimeout(() => {
-            setFeedback(null);
-            setShowCelebration(false);
-            setSelected([]);
-            setMixResult(null);
-            setIsAnimating(false);
-
-            // Next challenge or next level
-            const nextIndex = challengeIndex + 1;
-            if (nextIndex >= config.challengesPerLevel) {
-              // Level complete
-              const nextLevel = level + 1;
-              if (nextLevel > config.totalLevels) {
-                // All levels complete!
-                setPhase('won');
-              } else {
-                setLevel(nextLevel);
-                setChallengeIndex(0);
-                setChallenges(generateChallenges(config, config.challengesPerLevel));
-                setPhase('levelComplete');
-                setTimeout(() => setPhase('playing'), 1500);
-              }
-            } else {
-              setChallengeIndex(nextIndex);
-            }
-          }, 1500);
-        } else {
-          playDrop();
-          setFeedback('wrong');
-          setStreak(0);
-          setConsecutiveWrong(prev => prev + 1);
-          setTimeout(() => {
-            setFeedback(null);
-            setSelected([]);
-            setMixResult(null);
-            setIsAnimating(false);
-          }, 800);
+        if (isNew) {
+          setTimeout(() => playPowerUp(), 250);
         }
-      }, 600);
-    }, 600);
-  }, [selected, isAnimating, currentChallenge, config, challengeIndex, level, streak, playClick, playSuccess, playDrop]);
 
-  // Keyboard Mix shortcut
+        setTimeout(() => setShowCorrectBurst(false), 900);
+        setTimeout(() => {
+          setShowLesson(false);
+          advanceChallenge();
+        }, 2400);
+      } else {
+        // Wrong
+        playHit();
+        setWrongInLevel(w => w + 1);
+        setWrongOnChallenge(w => w + 1);
+        setStreak(0);
+        if (currentChallenge?.boss) setBossHadWrong(true);
+        setWrongActualRecipe(recipe);
+        setShowWrong(true);
+
+        // Hint ladder advance
+        setHintLevel(h => Math.min(3, ((wrongOnChallenge + 1) as 1 | 2 | 3)));
+
+        setTimeout(() => {
+          setShowWrong(false);
+          setResultRecipe(null);
+          setResultHex(null);
+          setWrongActualRecipe(null);
+          setPour({});
+        }, 2200);
+      }
+    }, 750);
+  }, [totalPour, stirring, resultRecipe, showWrong, pour, previewHex, isFreePlay, targetRecipe, currentChallenge, streak, wrongOnChallenge, discoveredSet,
+      playWhoosh, playSuccess, playHit, playPowerUp,
+      discoverColor, advanceChallenge, resetMixState]);
+
+  // Ask for hint manually (jumps the ladder by 1)
+  const askHint = useCallback(() => {
+    playClick();
+    setHintLevel(h => Math.min(3, (h + 1) as 0 | 1 | 2 | 3));
+  }, [playClick]);
+
+  // ── New-tube banner when entering a level that unlocks tubes ──
+  const lastLevelIdRef = useRef<number | null>(null);
   useEffect(() => {
+    if (phase !== 'playing' || !activeLevel) return;
+    if (lastLevelIdRef.current === activeLevel.id) return;
+    lastLevelIdRef.current = activeLevel.id;
+    if (activeLevel.unlocksTubes && activeLevel.unlocksTubes.length > 0) {
+      setShowNewTubeBanner('🔓');
+      setTimeout(() => setShowNewTubeBanner(null), 1800);
+    }
+  }, [phase, activeLevel]);
+
+  // ── Keyboard handlers ──
+  useEffect(() => {
+    if (phase !== 'playing' && phase !== 'freePlay') return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && phase === 'playing' && selected.length >= 2) {
-        handleMix();
+      if (showPause || showRecipeBook || showSettings || showInstructions) {
+        if (e.key === 'Escape') {
+          setShowPause(false);
+          setShowRecipeBook(false);
+          setShowSettings(false);
+          setShowInstructions(false);
+        }
+        return;
+      }
+      if (e.key === 'Enter') { stir(); return; }
+      if (e.key === 'Backspace') { clearBowl(); return; }
+      if (e.key === 'Escape') { setShowPause(true); return; }
+      if (e.key.toLowerCase() === 'r') { setShowRecipeBook(true); return; }
+      if (e.key.toLowerCase() === 'h') { askHint(); return; }
+      const n = parseInt(e.key, 10);
+      if (!isNaN(n) && n >= 1 && n <= availableTubes.length) {
+        pourTube(availableTubes[n - 1].id);
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [handleMix, phase, selected.length]);
+  }, [phase, showPause, showRecipeBook, showSettings, showInstructions, availableTubes, stir, clearBowl, pourTube, askHint]);
 
-  // ── Render ──────────────────────────────────────────────────────
-
-  const instrData = INSTRUCTIONS_DATA[locale] || INSTRUCTIONS_DATA.en;
-
-  // MENU
-  if (phase === 'menu') {
+  // Don't render until hydrated to avoid SSR/CSR mismatch on persisted state
+  if (!hydrated) {
     return (
-      <GameWrapper title={strings.title} onInstructionsClick={() => setShowInstructions(true)}>
+      <GameWrapper title={ui.title}>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <span className="text-5xl animate-pulse">🧪</span>
+        </div>
+      </GameWrapper>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────────────────────────
+
+  const instrData = INSTRUCTIONS_DATA[locale];
+
+  // ── MAP ──
+  if (phase === 'map') {
+    return (
+      <GameWrapper title={ui.title} onInstructionsClick={() => setShowInstructions(true)}>
         <InstructionsModal
           isOpen={showInstructions}
           onClose={() => setShowInstructions(false)}
-          title={strings.title}
+          title={ui.title}
           instructions={instrData.instructions}
           controls={instrData.controls}
           tip={instrData.tip}
           locale={locale}
         />
-
-        <div className="flex flex-col items-center justify-center min-h-[80vh] gap-8 p-4" dir={direction}>
-          {/* Hero */}
-          <motion.div
-            initial={{ y: -30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="text-center"
-          >
-            <span className="text-7xl sm:text-8xl block mb-4">🧪</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white drop-shadow-lg">
-              {strings.title}
-            </h2>
-          </motion.div>
-
-          {/* Color preview animation */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="flex items-center gap-3"
-          >
-            <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 2 }} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-500 shadow-lg" />
-            <span className="text-2xl sm:text-3xl text-white font-bold">+</span>
-            <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 2, delay: 0.3 }} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-500 shadow-lg" />
-            <span className="text-2xl sm:text-3xl text-white font-bold">=</span>
-            <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2, delay: 0.6 }} className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-purple-500 shadow-lg border-4 border-yellow-300" />
-          </motion.div>
-
-          {/* Difficulty selection */}
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="flex flex-col items-center gap-4"
-          >
-            <span className="text-xl font-bold text-white/90">{strings.selectDifficulty}</span>
-            <div className="flex gap-4 flex-wrap justify-center">
-              {(['easy', 'medium', 'hard'] as Difficulty[]).map((diff) => (
-                <motion.button
-                  key={diff}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => startGame(diff)}
-                  className="px-5 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-white/90 shadow-lg hover:shadow-xl transition-shadow text-base sm:text-lg font-bold min-h-[44px] min-w-[44px] focus:outline-none focus:ring-4 focus:ring-yellow-300 flex flex-col items-center gap-1"
-                >
-                  <span className="flex items-center gap-2">
-                    <span className="text-2xl">{DIFFICULTY_EMOJI[diff]}</span>
-                    {strings[diff]}
-                  </span>
-                  <span className="text-xs font-normal text-gray-500">
-                    {strings[`${diff}Desc`]}
-                  </span>
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        </div>
+        <RecipeBookModal
+          isOpen={showRecipeBook}
+          onClose={() => setShowRecipeBook(false)}
+          discovered={discoveredSet}
+          locale={locale}
+          reduceMotion={reduceMotion}
+        />
+        <SettingsModal
+          isOpen={showSettings}
+          locale={locale}
+          cbAssist={cbAssist}
+          reduceMotion={reduceMotion}
+          isMuted={isMuted}
+          onToggleCb={v => setSetting('cbAssist', v)}
+          onToggleMotion={v => setSetting('reduceMotion', v)}
+          onToggleMute={() => toggleMute()}
+          onClose={() => setShowSettings(false)}
+        />
+        <MapScreen
+          locale={locale}
+          totalStars={totalStars}
+          starsByLevel={progress.stars}
+          isLevelUnlocked={isLevelUnlocked}
+          isLevelComplete={isLevelComplete}
+          discovered={discoveredSet}
+          freePlayUnlocked={freePlayUnlocked}
+          onLevelStart={startLevel}
+          onFreePlay={startFreePlay}
+          onOpenRecipeBook={() => setShowRecipeBook(true)}
+          onOpenSettings={() => setShowSettings(true)}
+          reduceMotion={reduceMotion}
+          isRtl={isRtl}
+        />
       </GameWrapper>
     );
   }
 
-  // LEVEL COMPLETE
-  if (phase === 'levelComplete') {
-    return (
-      <GameWrapper title={strings.title}>
-        <div className="flex flex-col items-center justify-center min-h-[80vh] gap-6">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="text-center"
-          >
-            <span className="text-7xl block mb-4">🌟</span>
-            <h2 className="text-3xl font-bold text-white drop-shadow-lg">{strings.great}</h2>
-            <p className="text-xl text-white/80 mt-2">{strings.level} {level}</p>
-          </motion.div>
-        </div>
-      </GameWrapper>
-    );
-  }
-
-  // WON
+  // ── WON ──
   if (phase === 'won') {
     return (
-      <GameWrapper title={strings.title}>
-        <div className="flex items-center justify-center min-h-[80vh]">
-          <WinModal isOpen onPlayAgain={resetGame} score={score} />
-        </div>
+      <GameWrapper title={ui.title}>
+        <LevelComplete
+          isOpen
+          stars={3}
+          bossBonus={false}
+          scoreEarned={scoreInLevel}
+          totalStars={totalStars}
+          isLastLevel
+          locale={locale}
+          onNext={goToMap}
+          onMap={goToMap}
+          reduceMotion={reduceMotion}
+        />
       </GameWrapper>
     );
   }
 
-  // PLAYING
+  // ── PLAYING / FREE PLAY ──
+  const target = targetRecipe;
+  const targetResult = target ? RESULTS[target.result] : null;
+  const targetAnchor = target ? REAL_WORLD[locale][target.result] : null;
+
   return (
-    <GameWrapper title={strings.title} onInstructionsClick={() => setShowInstructions(true)}>
+    <GameWrapper
+      title={ui.title}
+      showBackButton={false}
+      onInstructionsClick={() => setShowInstructions(true)}
+    >
       <InstructionsModal
         isOpen={showInstructions}
         onClose={() => setShowInstructions(false)}
-        title={strings.title}
+        title={ui.title}
         instructions={instrData.instructions}
         controls={instrData.controls}
         tip={instrData.tip}
         locale={locale}
       />
+      <RecipeBookModal
+        isOpen={showRecipeBook}
+        onClose={() => setShowRecipeBook(false)}
+        discovered={discoveredSet}
+        locale={locale}
+        reduceMotion={reduceMotion}
+      />
+      <SettingsModal
+        isOpen={showSettings}
+        locale={locale}
+        cbAssist={cbAssist}
+        reduceMotion={reduceMotion}
+        isMuted={isMuted}
+        onToggleCb={v => setSetting('cbAssist', v)}
+        onToggleMotion={v => setSetting('reduceMotion', v)}
+        onToggleMute={() => toggleMute()}
+        onClose={() => setShowSettings(false)}
+      />
+      <PauseModal
+        isOpen={showPause}
+        locale={locale}
+        onResume={() => setShowPause(false)}
+        onMap={goToMap}
+      />
+      <LevelIntro
+        isOpen={phase === 'levelIntro'}
+        level={activeLevel}
+        locale={locale}
+        onStart={beginPlaying}
+        reduceMotion={reduceMotion}
+      />
+      <LevelComplete
+        isOpen={phase === 'levelComplete'}
+        stars={(() => {
+          let s = 3;
+          if (wrongInLevel >= 1) s = 2;
+          if (wrongInLevel >= 3) s = 1;
+          if (activeLevel?.challenges.some(c => c.boss) && !bossHadWrong) s = Math.min(3, s + 1);
+          return s;
+        })()}
+        bossBonus={!!activeLevel?.challenges.some(c => c.boss) && !bossHadWrong}
+        scoreEarned={scoreInLevel}
+        totalStars={totalStars}
+        isLastLevel={activeLevel?.id === TOTAL_LEVELS}
+        locale={locale}
+        onNext={goNextLevel}
+        onMap={goToMap}
+        reduceMotion={reduceMotion}
+      />
 
-      <FeedbackOverlay type={feedback} strings={strings} wrongMixResult={feedback === 'wrong' ? mixResult : null} />
+      <LessonCard isOpen={showLesson} recipe={lessonRecipe} locale={locale} reduceMotion={reduceMotion} />
+      <WrongFeedback isOpen={showWrong} actualRecipe={wrongActualRecipe} targetRecipe={target} locale={locale} />
+      <CorrectBurst isVisible={showCorrectBurst} color={lessonRecipe ? RESULTS[lessonRecipe.result]?.hex : '#FBBF24'} reduceMotion={reduceMotion} />
 
-      <div className="flex flex-col items-center gap-2 sm:gap-6 p-2 sm:p-6 pb-4 sm:pb-8 min-h-[80vh] w-full max-w-3xl mx-auto" dir={direction}>
-        {/* HUD: Level + Score + Challenge counter */}
+      {/* New-tube banner */}
+      <AnimatePresence>
+        {showNewTubeBanner && (
+          <motion.div
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -50, opacity: 0 }}
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-30 px-4 py-2 bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white rounded-full shadow-xl font-bold text-sm sm:text-base"
+          >
+            🔓 {ui.newTube}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex flex-col items-center gap-2 sm:gap-4 p-2 sm:p-4 pb-6 min-h-[80vh] w-full max-w-3xl mx-auto" dir={direction}>
+        {/* HUD */}
         <div className="flex items-center justify-between w-full gap-2">
-          <LevelDisplay level={level} />
-          <div className="flex items-center gap-1.5 sm:gap-4">
-            <div className="px-2 sm:px-4 py-1 sm:py-2 bg-white/80 rounded-full shadow font-bold text-gray-700 text-xs sm:text-base whitespace-nowrap">
-              {strings.challenge} {challengeIndex + 1}/{config.challengesPerLevel}
-            </div>
-            <div className="px-2 sm:px-4 py-1 sm:py-2 bg-yellow-300 rounded-full shadow font-bold text-gray-800 text-xs sm:text-base whitespace-nowrap">
-              {strings.score}: {score}
-            </div>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              onClick={() => setShowPause(true)}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 shadow flex items-center justify-center text-lg hover:scale-110 transition focus:outline-none focus-visible:ring-4 focus-visible:ring-yellow-300"
+              aria-label={ui.pause}
+            >
+              ⏸️
+            </button>
+            {!isFreePlay && activeLevel && (
+              <div className="px-2 sm:px-3 py-1 sm:py-2 bg-white/90 rounded-full shadow font-bold text-gray-800 text-xs sm:text-sm whitespace-nowrap">
+                {ui.level} {activeLevel.id}/{TOTAL_LEVELS} · {challengeIndex + 1}/{activeLevel.challenges.length}
+              </div>
+            )}
+            {isFreePlay && (
+              <div className="px-2 sm:px-3 py-1 sm:py-2 bg-fuchsia-300 rounded-full shadow font-bold text-gray-800 text-xs sm:text-sm">
+                🎨 {ui.freePlay}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              onClick={() => setShowRecipeBook(true)}
+              className="px-2 sm:px-3 py-1 sm:py-2 bg-amber-200 rounded-full shadow font-bold text-gray-800 text-xs sm:text-sm hover:scale-105 transition focus:outline-none focus-visible:ring-4 focus-visible:ring-yellow-300"
+              aria-label={ui.recipeBook}
+            >
+              📖 {discoveredSet.size}
+            </button>
+            {!isFreePlay && (
+              <div className="px-2 sm:px-3 py-1 sm:py-2 bg-yellow-300 rounded-full shadow font-bold text-gray-800 text-xs sm:text-sm whitespace-nowrap">
+                ⭐ {scoreInLevel}
+              </div>
+            )}
+            <button
+              onClick={() => setShowSettings(true)}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 shadow flex items-center justify-center text-base hover:scale-110 transition focus:outline-none focus-visible:ring-4 focus-visible:ring-yellow-300"
+              aria-label={ui.settings}
+            >
+              ⚙️
+            </button>
           </div>
         </div>
 
-        {/* Streak indicator + Discovered counter */}
-        <div className="flex items-center gap-2 sm:gap-4">
-          {streak >= 2 && (
+        {/* Streak indicator */}
+        {streak >= 2 && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className={`px-3 py-1 rounded-full shadow font-extrabold text-white text-sm flex items-center gap-1 ${streak >= 5 ? 'bg-red-500' : streak >= 3 ? 'bg-orange-500' : 'bg-yellow-500'
+              }`}
+          >
+            {streak >= 5 ? '🔥🔥' : streak >= 3 ? '🔥' : '✨'} {streak} {ui.streak}!
+          </motion.div>
+        )}
+
+        {/* Target color (story mode only) */}
+        {!isFreePlay && target && targetResult && (
+          <motion.div
+            key={`target-${challengeIndex}`}
+            initial={reduceMotion ? false : { scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="flex items-center gap-3 px-3 sm:px-5 py-2 sm:py-3 bg-white/90 rounded-2xl shadow-lg backdrop-blur-sm"
+          >
+            <span className="text-xs sm:text-sm font-bold text-gray-600">{ui.make}:</span>
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="px-3 py-1 bg-orange-400 rounded-full shadow font-bold text-white text-sm flex items-center gap-1"
+              animate={reduceMotion ? undefined : { scale: [1, 1.07, 1] }}
+              transition={reduceMotion ? undefined : { repeat: Infinity, duration: 2.5 }}
+              className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-4 border-white shadow-xl flex items-center justify-center relative"
+              style={{ backgroundColor: targetResult.hex }}
             >
-              🔥 {streak} {strings.streak}!
+              <span className="text-xl sm:text-2xl">{targetResult.emoji}</span>
+              {cbAssist && (
+                <span className="absolute -bottom-1 -end-1 px-1.5 py-0.5 rounded-full bg-white text-[10px] font-extrabold text-gray-800 border border-gray-300 shadow">
+                  {target.result.slice(0, 3).toUpperCase()}
+                </span>
+              )}
             </motion.div>
-          )}
-          {discoveredColors.size > 0 && (
-            <div className="px-3 py-1 bg-purple-400 rounded-full shadow font-bold text-white text-sm flex items-center gap-1">
-              📖 {discoveredColors.size} {strings.discovered}
+            <div className="flex flex-col">
+              <span className="text-base sm:text-lg font-extrabold text-gray-900 leading-tight">
+                {colorNames[target.result]}
+              </span>
+              {targetAnchor && (
+                <span className="text-xs sm:text-sm text-gray-600 leading-tight">
+                  {ui.like} {targetAnchor.emoji} {targetAnchor.text}
+                </span>
+              )}
+              {currentChallenge?.boss && (
+                <span className="text-xs font-extrabold text-purple-700 mt-0.5">👑 {ui.bossChallenge}</span>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Free play heading */}
+        {isFreePlay && (
+          <div className="text-center">
+            <p className="text-sm sm:text-base text-white/90 font-bold drop-shadow">
+              🎨 {ui.freePlayDesc}
+            </p>
+          </div>
+        )}
+
+        {/* Bowl + formula */}
+        <div className="relative flex flex-col items-center gap-2">
+          <Bowl pour={pour} resultHex={resultHex} stirring={stirring} reduceMotion={reduceMotion} />
+
+          {/* Formula display */}
+          {totalPour > 0 && (
+            <div className="flex items-center justify-center gap-1 sm:gap-1.5 flex-wrap text-xs sm:text-sm font-bold text-gray-800 px-3 py-1.5 bg-white/90 rounded-full shadow">
+              {formulaIds.map((id, i) => {
+                const c = COLOR_BY_ID[id];
+                const n = pour[id];
+                return (
+                  <span key={id} className="flex items-center gap-1">
+                    {i > 0 && <span className="text-gray-400">+</span>}
+                    <span className="inline-block w-4 h-4 rounded-full border-2 border-white shadow" style={{ backgroundColor: c?.hex }} />
+                    {n > 1 && <span className="text-[11px] font-extrabold">×{n}</span>}
+                  </span>
+                );
+              })}
+              {resultRecipe && (
+                <>
+                  <span className="text-gray-400">=</span>
+                  <span className="inline-block w-4 h-4 rounded-full border-2 border-white shadow" style={{ backgroundColor: RESULTS[resultRecipe.result].hex }} />
+                  <span className="text-[11px]">{colorNames[resultRecipe.result]}</span>
+                </>
+              )}
             </div>
           )}
         </div>
 
-        {/* New discovery celebration */}
-        <AnimatePresence>
-          {showNewDiscovery && (
-            <motion.div
-              initial={{ y: -20, opacity: 0, scale: 0.8 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: -20, opacity: 0 }}
-              className="px-4 py-2 bg-gradient-to-r from-yellow-300 to-orange-300 rounded-2xl shadow-lg text-center font-bold text-gray-800"
-            >
-              ✨ {strings.newColor} ✨
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Target color */}
-        {currentChallenge && (
-          <TargetDisplay challenge={currentChallenge} locale={locale} strings={strings} />
+        {/* Hint card */}
+        {!isFreePlay && hintLevel > 0 && (
+          <HintCard level={hintLevel} recipe={target} locale={locale} />
         )}
 
-        {/* Formula display */}
-        <FormulaDisplay selectedColors={selectedColors} mixResult={mixResult} locale={locale} strings={strings} />
-
-        {/* Mixing bowl */}
-        <div className="relative">
-          <MixingBowl selectedColors={selectedColors} mixResult={mixResult} isAnimating={isAnimating} />
-          {showCelebration && currentChallenge && (
-            <CelebrationParticles color={currentChallenge.targetHex} />
-          )}
-        </div>
-
-        {/* Color palette */}
-        <div className="flex justify-center gap-1.5 sm:gap-5">
-          {availableColors.map(color => (
+        {/* Color palette (with auto-wrap) */}
+        <div className="flex justify-center gap-1 sm:gap-2 flex-wrap max-w-2xl">
+          {availableTubes.map((color, i) => (
             <PaintTube
               key={color.id}
               color={color}
-              isSelected={selected.includes(color.id)}
-              onClick={() => toggleColor(color.id)}
-              disabled={isAnimating || !!feedback}
-              locale={locale}
+              label={colorNames[color.id]}
+              parts={pour[color.id] ?? 0}
+              onPour={() => pourTube(color.id)}
+              disabled={stirring || !!resultRecipe || showWrong}
+              cbAssist={cbAssist}
+              reduceMotion={reduceMotion}
+              hintGlow={hintLevel >= 2 && !!target?.parts[color.id]}
+              newlyUnlocked={!color.base}
+              shortcut={i + 1 <= 9 ? i + 1 : undefined}
             />
           ))}
         </div>
 
-        {/* Hint text / ingredient hint after consecutive wrong */}
-        {selected.length < 2 && !feedback && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-white/70 font-medium text-center"
+        {/* Action buttons */}
+        <div className="flex items-center gap-2 sm:gap-3 mt-1">
+          <button
+            onClick={clearBowl}
+            disabled={totalPour === 0 || stirring}
+            className="px-3 sm:px-4 py-2 sm:py-2.5 bg-white text-gray-700 rounded-2xl font-bold shadow hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-4 focus-visible:ring-yellow-300 text-sm sm:text-base"
+            aria-label={ui.clear}
           >
-            {consecutiveWrong >= 2 && currentChallenge
-              ? `💡 ${strings.hintMsg.replace('{n}', String(currentChallenge.recipe.ingredients.length))}`
-              : strings.pick}
-          </motion.p>
-        )}
-
-        {/* Mix button */}
-        <AnimatePresence>
-          {selected.length >= 2 && !feedback && (
-            <motion.button
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0, opacity: 0 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleMix}
-              disabled={isAnimating}
-              className="px-8 sm:px-10 py-3 sm:py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white text-lg sm:text-xl font-bold rounded-2xl shadow-lg hover:shadow-xl transition-shadow min-h-[44px] sm:min-h-[48px] focus:outline-none focus:ring-4 focus:ring-yellow-300 disabled:opacity-50"
+            🗑️ {ui.clear}
+          </button>
+          <motion.button
+            onClick={stir}
+            disabled={totalPour < 2 || stirring || !!resultRecipe || showWrong}
+            whileHover={totalPour >= 2 && !stirring && !reduceMotion ? { scale: 1.05 } : undefined}
+            whileTap={totalPour >= 2 && !stirring && !reduceMotion ? { scale: 0.95 } : undefined}
+            className="px-6 sm:px-8 py-2.5 sm:py-3.5 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white text-base sm:text-lg font-extrabold rounded-2xl shadow-lg disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-4 focus-visible:ring-yellow-300"
+          >
+            🥄 {ui.mixButton}
+          </motion.button>
+          {!isFreePlay && target && (
+            <button
+              onClick={askHint}
+              disabled={hintLevel >= 3 || stirring}
+              className="px-3 sm:px-4 py-2 sm:py-2.5 bg-yellow-200 text-yellow-900 rounded-2xl font-bold shadow hover:bg-yellow-300 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-4 focus-visible:ring-yellow-300 text-sm sm:text-base"
+              aria-label={ui.hintTitle}
             >
-              <span className="flex items-center gap-2">
-                <span>🧪</span>
-                {strings.mixButton}
-              </span>
-            </motion.button>
+              💡 {ui.hintTitle}
+            </button>
           )}
-        </AnimatePresence>
+        </div>
+
+        {/* Helper text */}
+        {totalPour === 0 && !showWrong && (
+          <p className="text-white/85 text-center font-medium text-sm sm:text-base px-3">
+            {ui.pickColors}
+          </p>
+        )}
       </div>
     </GameWrapper>
   );
