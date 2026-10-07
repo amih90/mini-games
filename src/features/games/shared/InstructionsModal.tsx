@@ -1,8 +1,9 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { useId, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { KidButton } from '@/components/ui/KidButton';
+import { useDialogFocus } from './useDialogFocus';
 
 interface InstructionsModalProps {
   isOpen: boolean;
@@ -19,13 +20,14 @@ interface InstructionsModalProps {
   }[];
   tip?: string;
   locale?: string;
+  theme?: 'default' | 'storybook';
 }
 
-const modalLabels: Record<string, { howToPlay: string; controls: string; proTip: string; letsPlay: string }> = {
-  en: { howToPlay: 'How to Play', controls: 'Controls', proTip: 'Pro Tip', letsPlay: "Got it! Let's Play! 🚀" },
-  he: { howToPlay: 'איך לשחק', controls: 'פקדים', proTip: 'טיפ מקצועי', letsPlay: '!הבנתי! בואו נשחק 🚀' },
-  zh: { howToPlay: '如何游玩', controls: '操作方式', proTip: '小技巧', letsPlay: '明白了！开始游戏！🚀' },
-  es: { howToPlay: 'Cómo jugar', controls: 'Controles', proTip: 'Consejo', letsPlay: '¡Entendido! ¡A jugar! 🚀' },
+const modalLabels: Record<string, { howToPlay: string; controls: string; proTip: string; letsPlay: string; close: string }> = {
+  en: { howToPlay: 'How to Play', controls: 'Controls', proTip: 'Pro Tip', letsPlay: "Got it! Let's Play! 🚀", close: 'Close' },
+  he: { howToPlay: 'איך לשחק', controls: 'פקדים', proTip: 'טיפ מקצועי', letsPlay: '!הבנתי! בואו נשחק 🚀', close: 'סגירה' },
+  zh: { howToPlay: '如何游玩', controls: '操作方式', proTip: '小技巧', letsPlay: '明白了！开始游戏！🚀', close: '关闭' },
+  es: { howToPlay: 'Cómo jugar', controls: 'Controles', proTip: 'Consejo', letsPlay: '¡Entendido! ¡A jugar! 🚀', close: 'Cerrar' },
 };
 
 /**
@@ -43,12 +45,18 @@ export function InstructionsModal({
   controls,
   tip,
   locale = 'en',
+  theme = 'default',
 }: InstructionsModalProps) {
   const labels = modalLabels[locale] || modalLabels.en;
+  const panel = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  useDialogFocus(isOpen, panel, onClose);
+  const storybook = theme === 'storybook';
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          dir={locale === 'he' ? 'rtl' : 'ltr'}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -56,6 +64,11 @@ export function InstructionsModal({
           onClick={onClose}
         >
           <motion.div
+            ref={panel}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            tabIndex={-1}
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
@@ -63,15 +76,15 @@ export function InstructionsModal({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-[#f7941d] to-[#ffb74d] p-6 rounded-t-3xl border-b-4 border-[#ffdd00]">
+            <div className={`sticky top-0 p-6 rounded-t-3xl ${storybook ? 'bg-[#91afa1] border-b-4 border-[#e8d6ac]' : 'bg-gradient-to-r from-[#f7941d] to-[#ffb74d] border-b-4 border-[#ffdd00]'}`}>
               <div className="flex items-center justify-between">
-                <h2 className="text-3xl font-bold text-white drop-shadow-md">
+                <h2 id={titleId} className="text-3xl font-bold text-white drop-shadow-md">
                   {title}
                 </h2>
                 <button
                   onClick={onClose}
                   className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
-                  aria-label="Close"
+                  aria-label={labels.close}
                 >
                   <span className="text-2xl" aria-hidden="true">✕</span>
                 </button>
@@ -82,7 +95,7 @@ export function InstructionsModal({
             <div className="p-6 space-y-6">
               {/* How to Play Section */}
               <div>
-                <h3 className="text-2xl font-bold text-[#f7941d] mb-4 flex items-center gap-2">
+                <h3 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${storybook ? 'text-[#789486]' : 'text-[#f7941d]'}`}>
                   <span aria-hidden="true">🎯</span>
                   <span>{labels.howToPlay}</span>
                 </h3>
@@ -93,7 +106,7 @@ export function InstructionsModal({
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="flex gap-4 items-start p-4 bg-gradient-to-r from-[#f7941d]/10 to-[#ffb74d]/10 rounded-2xl border-2 border-[#f7941d]/20"
+                      className={`flex gap-4 items-start p-4 rounded-2xl border-2 ${storybook ? 'bg-[#f7efe0] border-[#e3d3b0]' : 'bg-gradient-to-r from-[#f7941d]/10 to-[#ffb74d]/10 border-[#f7941d]/20'}`}
                     >
                       <span className="text-4xl flex-shrink-0" aria-hidden="true">
                         {instruction.icon}
@@ -113,7 +126,7 @@ export function InstructionsModal({
 
               {/* Controls Section */}
               <div>
-                <h3 className="text-2xl font-bold text-[#f7941d] mb-4 flex items-center gap-2">
+                <h3 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${storybook ? 'text-[#789486]' : 'text-[#f7941d]'}`}>
                   <span aria-hidden="true">🎮</span>
                   <span>{labels.controls}</span>
                 </h3>
@@ -124,7 +137,7 @@ export function InstructionsModal({
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.3 + index * 0.05 }}
-                      className="flex items-center gap-3 p-3 bg-white border-2 border-[#ffdd00] rounded-xl shadow-sm"
+                      className={`flex items-center gap-3 p-3 bg-white border-2 rounded-xl shadow-sm ${storybook ? 'border-[#dcccaf]' : 'border-[#ffdd00]'}`}
                     >
                       <span className="text-2xl" aria-hidden="true">
                         {control.icon}
@@ -143,15 +156,15 @@ export function InstructionsModal({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="p-4 bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl border-2 border-purple-300"
+                  className={`p-4 rounded-2xl border-2 ${storybook ? 'bg-[#edf1e4] border-[#b4c3a2]' : 'bg-gradient-to-r from-purple-100 to-pink-100 border-purple-300'}`}
                 >
                   <div className="flex gap-3 items-start">
                     <span className="text-3xl" aria-hidden="true">💡</span>
                     <div>
-                      <h4 className="text-lg font-bold text-purple-800 mb-1">
+                      <h4 className={`text-lg font-bold mb-1 ${storybook ? 'text-[#658473]' : 'text-purple-800'}`}>
                         {labels.proTip}
                       </h4>
-                      <p className="text-purple-700">{tip}</p>
+                      <p className={storybook ? 'text-[#718773]' : 'text-purple-700'}>{tip}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -163,6 +176,7 @@ export function InstructionsModal({
                   variant="primary"
                   size="lg"
                   onClick={onClose}
+                  className={storybook ? '!bg-[#8da99b] !text-[#fffaf0] hover:!bg-[#79998a]' : ''}
                 >
                   {labels.letsPlay}
                 </KidButton>

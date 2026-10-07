@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 import { trackGamePlay, trackGameSession } from '@/lib/gtag';
 
@@ -337,12 +338,18 @@ const PokemonTowerDefenseGame = dynamic(
   { loading: () => <GameLoadingSkeleton />, ssr: false }
 );
 
+const PrincessMansionGame = dynamic(
+  () => import('@/features/games/princess-mansion/PrincessMansionGame'),
+  { loading: () => <GameLoadingSkeleton />, ssr: false }
+);
+
 function GameLoadingSkeleton() {
+  const t = useTranslations('common');
   return (
     <div className="min-h-screen bg-gradient-to-br from-peach-glow-light via-white to-sky-bubble-light flex items-center justify-center">
       <div className="text-center">
         <div className="text-6xl mb-4 animate-bounce">🎮</div>
-        <div className="text-2xl font-bold text-slate-600">Loading...</div>
+        <div className="text-2xl font-bold text-slate-600">{t('loading')}</div>
       </div>
     </div>
   );
@@ -355,7 +362,7 @@ interface GameLoaderProps {
 export function GameLoader({ slug }: GameLoaderProps) {
   const params = useParams();
   const locale = (params?.locale as string) || 'en';
-  const sessionStart = useRef<number>(Date.now());
+  const sessionStart = useRef<number>(0);
 
   useEffect(() => {
     sessionStart.current = Date.now();
@@ -370,6 +377,8 @@ export function GameLoader({ slug }: GameLoaderProps) {
   }, [slug]);
 
   switch (slug) {
+    case 'princess-mansion':
+      return <PrincessMansionGame />;
     case 'color-match':
       return <ColorMatchGame />;
     case 'memory-cards':

@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "sampleRate": 22050,
+  "assets": [
+    {
+      "file": "palace-ambient.wav",
+      "bytes": 1058444,
+      "sha256": "8c61c4244c70fc8f7791526cb5f0890ee924e106d1d0cc1b4fad4731fafe9ae3",
+      "creator": "Mini-Games original",
+      "source": "scripts/generate-princess-mansion-audio.mjs",
+      "license": "Original project audio"
+    },
+    {
+      "file": "bubbles.wav",
+      "bytes": 41940,
+      "sha256": "b1434c9d1f0c0b59c35e17114b2e943709143375baf4a861d42c213eebe61f19",
+      "creator": "Mini-Games original",
+      "source": "scripts/generate-princess-mansion-audio.mjs",
+      "license": "Original project audio"
+    },
+    {
+      "file": "flush.wav",
+      "bytes": 55170,
+      "sha256": "333edd3b16e65f0a4459ec599eb34b161c6fa6e75f4980a5068834aca3b77dba",
+      "creator": "Mini-Games original",
+      "source": "scripts/generate-princess-mansion-audio.mjs",
+      "license": "Original project audio"
+    },
+    {
+      "file": "munch.wav",
+      "bytes": 21212,
+      "sha256": "3e16be74a5701ce686bc4365d05954e3913330f0c81aad5356cf99792974d137",
+      "creator": "Mini-Games original",
+      "source": "scripts/generate-princess-mansion-audio.mjs",
+      "license": "Original project audio"
+    },
+    {
+      "file": "button.mp3",
+      "bytes": 825,
+      "sha256": "edfc668764006e0ae2a07e5f75343c87c3dfda2475bdf0601d0958bf03942ba5",
+      "creator": "Kenney",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "original": "click_003.ogg",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "page.mp3",
+      "bytes": 2676,
+      "sha256": "7cc24dac8a76bb875cef8a962dc7e49f2448b9c113c2e254a610f6650600cbf8",
+      "creator": "Kenney",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "original": "maximize_003.ogg",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "place.mp3",
+      "bytes": 1450,
+      "sha256": "bdfa005ddfc5b0f0b30c23d7bb7b495fd2a650b4841a3c5fb482c6dd895d6ee6",
+      "creator": "Kenney",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "original": "drop_003.ogg",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "welcome.mp3",
+      "bytes": 4810,
+      "sha256": "ae08310887838d8cf67aa75ed235942a91e07b95275949c5954101a2a6d7d28a",
+      "creator": "Kenney",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "original": "confirmation_002.ogg",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "pop.mp3",
+      "bytes": 1111,
+      "sha256": "2a5e22e266ce0de2b1d4940c8c2c6964964ec6f21ae60d9245ab0a21ff015211",
+      "creator": "Kenney",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "original": "bong_001.ogg",
+      "license": "CC0-1.0"
+    }
+  ]
+}

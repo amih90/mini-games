@@ -16,6 +16,8 @@ interface GameWrapperProps {
   showSoundToggle?: boolean;
   /** Lock to viewport height with no scroll — use for full-screen 3D / canvas games */
   fullHeight?: boolean;
+  theme?: 'default' | 'storybook';
+  sound?: Pick<ReturnType<typeof useRetroSounds>, 'isMuted' | 'toggleMute' | 'playClick'>;
 }
 
 export function GameWrapper({
@@ -26,23 +28,27 @@ export function GameWrapper({
   onInstructionsClick,
   showSoundToggle = true,
   fullHeight = false,
+  theme = 'default',
+  sound,
 }: GameWrapperProps) {
   const t = useTranslations('common');
-  const { isMuted, toggleMute, playClick } = useRetroSounds();
+  const ownSound = useRetroSounds({ enabled: !sound });
+  const { isMuted, toggleMute, playClick } = sound ?? ownSound;
+  const storybook = theme === 'storybook';
 
   const handleBackClick = () => {
     playClick();
   };
 
   return (
-    <div className={`${fullHeight ? 'h-svh' : 'min-h-screen'} flex flex-col bg-gradient-to-b from-[#f7941d] via-[#ffb74d] to-[#f7941d] ${className}`}>
+    <div className={`${fullHeight ? 'h-svh' : 'min-h-screen'} flex flex-col ${storybook ? 'bg-[#fbf3e4] text-[#655149]' : 'bg-gradient-to-b from-[#f7941d] via-[#ffb74d] to-[#f7941d]'} ${className}`}>
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#f7941d]/95 backdrop-blur-sm border-b-4 border-[#ffdd00]">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <header className={`sticky top-0 z-50 backdrop-blur-sm ${storybook ? 'bg-[#fffaf0]/95 border-b border-[#e1cfa9]' : 'bg-[#f7941d]/95 border-b-4 border-[#ffdd00]'}`}>
+        <div className={`container mx-auto px-4 ${storybook ? 'py-2' : 'py-3'} flex items-center justify-between gap-2`}>
+          <div className="flex items-center gap-3 min-w-0">
             {showBackButton && (
               <Link href="/games" onClick={handleBackClick}>
-                <KidButton variant="secondary" size="md">
+                <KidButton variant="secondary" size="md" className={storybook ? '!px-3 !py-2 !text-sm !rounded-xl !min-h-11 !shadow-none !border-[#e7d9bd] !bg-[#fffaf0] !text-[#766251]' : ''}>
                   <span className="flex items-center gap-2">
                     <span aria-hidden="true">←</span>
                     <span>{t('back')}</span>
@@ -53,7 +59,7 @@ export function GameWrapper({
             <motion.h1
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-2xl sm:text-3xl font-bold text-white drop-shadow-md"
+              className={storybook ? 'text-lg sm:text-2xl font-serif font-semibold truncate text-[#786050]' : 'text-2xl sm:text-3xl font-bold text-white drop-shadow-md'}
             >
               {title}
             </motion.h1>
@@ -71,7 +77,7 @@ export function GameWrapper({
                   onInstructionsClick();
                 }}
                 className="p-3 rounded-xl bg-white shadow-md hover:shadow-lg transition-shadow min-h-[48px] min-w-[48px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-lavender-dream/50"
-                aria-label="Instructions"
+                aria-label={t('instructions')}
               >
                 <span className="text-2xl" aria-hidden="true">
                   ❓

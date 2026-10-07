@@ -1,58 +1,143 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 const STORAGE_KEY = 'mini-games-sound-muted';
+const muteListeners = new Set<() => void>();
+let muted = false;
+const readMute = () => muted;
+const unmuted = () => false;
+const noSubscription = () => () => {};
+export interface MelodyNote { frequency: number; at: number; duration: number }
+export type MelodyPlayback = 'played' | 'muted' | 'unavailable' | 'invalid';
+function subscribeMute(listener: () => void) { muteListeners.add(listener); return () => { muteListeners.delete(listener); }; }
+function updateMute(value: boolean) {
+  if (muted === value) return;
+  muted = value;
+  for (const listener of muteListeners) listener();
+}
 
 /**
  * Hook for generating retro-style game sounds using Web Audio API
  * Creates procedural sounds without requiring audio files
  */
-export function useRetroSounds() {
-  const [isMuted, setIsMuted] = useState(false);
+export function useRetroSounds({ enabled = true }: { enabled?: boolean } = {}) {
+  const isMuted = useSyncExternalStore(enabled ? subscribeMute : noSubscription, enabled ? readMute : unmuted, unmuted);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const melodyGains = useRef(new Set<GainNode>());
 
   // Load mute preference from localStorage
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored !== null) {
-      setIsMuted(stored === 'true');
+    if (!enabled || typeof window === 'undefined') return;
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      updateMute(stored === 'true');
+    } catch (error) {
+      console.warn('Sound preferences could not be loaded', error);
     }
-  }, []);
+    const onStorage = (event: StorageEvent) => { if (event.key === STORAGE_KEY || event.key === null) updateMute(event.newValue === 'true'); };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [enabled]);
 
   // Initialize audio context on first user interaction
   const unlockAudio = useCallback(() => {
-    if (isUnlocked || typeof window === 'undefined') return;
+    if (!enabled || muted || typeof window === 'undefined') return;
+    const existing = audioContextRef.current;
+    if (existing) {
+      if (existing.state === 'suspended') void existing.resume().catch(error => console.warn('Audio context could not be resumed', error));
+      return;
+    }
 
     try {
-      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const AudioContextClass = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextClass) { console.debug('Web Audio API not supported'); return; }
       audioContextRef.current = new AudioContextClass();
+      if (audioContextRef.current.state === 'suspended') void audioContextRef.current.resume().catch(error => console.warn('Audio context could not be resumed', error));
       setIsUnlocked(true);
     } catch (error) {
       console.debug('Web Audio API not supported', error);
     }
-  }, [isUnlocked]);
+  }, [enabled]);
 
   // Add click listener to unlock audio
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (!enabled || typeof window === 'undefined') return;
 
     const handleInteraction = () => {
       unlockAudio();
     };
 
-    document.addEventListener('click', handleInteraction, { once: true });
-    document.addEventListener('touchstart', handleInteraction, { once: true });
-    document.addEventListener('keydown', handleInteraction, { once: true });
+    document.addEventListener('click', handleInteraction);
+    document.addEventListener('touchstart', handleInteraction);
+    document.addEventListener('keydown', handleInteraction);
 
     return () => {
       document.removeEventListener('click', handleInteraction);
       document.removeEventListener('touchstart', handleInteraction);
       document.removeEventListener('keydown', handleInteraction);
     };
-  }, [unlockAudio]);
+  }, [enabled, unlockAudio]);
+
+  useEffect(() => () => {
+    const context = audioContextRef.current;
+    audioContextRef.current = null;
+    if (context && context.state !== 'closed') void context.close().catch(error => console.warn('Audio context could not be closed', error));
+  }, []);
+
+  const stopMelodies = useCallback(() => {
+    const context = audioContextRef.current;
+    if (context && context.state !== 'closed') for (const gain of melodyGains.current) {
+      gain.gain.cancelScheduledValues(context.currentTime);
+      gain.gain.setValueAtTime(0, context.currentTime);
+    }
+    melodyGains.current.clear();
+  }, []);
+  useEffect(() => { if (isMuted) stopMelodies(); }, [isMuted, stopMelodies]);
+
+  const playMelody = useCallback((notes: readonly MelodyNote[], volume = 0.12): MelodyPlayback => {
+    if (!enabled || muted) return 'muted';
+    if (!notes.length || notes.length > 16 || !Number.isFinite(volume) || volume < 0 || volume > 0.3 ||
+      notes.some(note => !Number.isFinite(note.frequency) || note.frequency < 40 || note.frequency > 4000 ||
+        !Number.isFinite(note.at) || note.at < 0 || note.at > 5 || !Number.isFinite(note.duration) || note.duration <= 0 || note.duration > 3)) {
+      console.warn('Game melody contains invalid notes');
+      return 'invalid';
+    }
+    unlockAudio();
+    const context = audioContextRef.current;
+    if (!context || context.state === 'closed') return 'unavailable';
+    try {
+      const master = context.createGain();
+      master.gain.value = volume;
+      master.connect(context.destination);
+      melodyGains.current.add(master);
+      let remaining = notes.length;
+      for (const note of notes) {
+        const oscillator = context.createOscillator();
+        const envelope = context.createGain();
+        const start = context.currentTime + note.at;
+        oscillator.type = 'triangle';
+        oscillator.frequency.value = note.frequency;
+        oscillator.connect(envelope);
+        envelope.connect(master);
+        envelope.gain.setValueAtTime(0.0001, start);
+        envelope.gain.exponentialRampToValueAtTime(0.65, start + Math.min(0.018, note.duration / 4));
+        envelope.gain.exponentialRampToValueAtTime(0.0001, start + note.duration);
+        oscillator.onended = () => {
+          oscillator.disconnect();
+          envelope.disconnect();
+          if (--remaining === 0) { melodyGains.current.delete(master); master.disconnect(); }
+        };
+        oscillator.start(start);
+        oscillator.stop(start + note.duration);
+      }
+      return 'played';
+    } catch (error) {
+      console.warn('Game melody could not be played', error);
+      return 'unavailable';
+    }
+  }, [enabled, unlockAudio]);
 
   /**
    * Play a simple beep sound
@@ -549,14 +634,14 @@ export function useRetroSounds() {
   }, [isMuted]);
 
   const toggleMute = useCallback(() => {
-    setIsMuted((prev) => {
-      const newValue = !prev;
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY, String(newValue));
-      }
-      return newValue;
-    });
-  }, []);
+    if (!enabled) return;
+    const newValue = !muted;
+    updateMute(newValue);
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem(STORAGE_KEY, String(newValue)); }
+      catch (error) { console.warn('Sound preferences could not be saved', error); }
+    }
+  }, [enabled]);
 
   return {
     isMuted,
@@ -581,5 +666,7 @@ export function useRetroSounds() {
     playMatch,
     playCountdown,
     playDrop,
+    playMelody,
+    stopMelodies,
   };
 }

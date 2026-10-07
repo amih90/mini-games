@@ -1,6 +1,7 @@
 import { test, Page, Frame } from '@playwright/test';
 import * as path from 'path';
 import * as fs from 'fs';
+import { mansionThumbnailFixture, readyMansion, seedMansion } from './princess-mansion-fixtures';
 
 const GAMES_DIR = path.join(__dirname, '..', 'src', 'features', 'games');
 const SCREENSHOTS_DIR = path.join(__dirname, '..', 'public', 'images', 'games', 'screenshots');
@@ -81,6 +82,17 @@ for (const slug of slugs) {
   test(`generate thumbnail for ${slug}`, async ({ page }) => {
     // Playwright default viewport is 1280×720 — game pages should fill nicely
     const screenshotPath = path.join(SCREENSHOTS_DIR, `${slug}.png`);
+
+    if (slug === 'princess-mansion') {
+      await page.setViewportSize({ width: 1280, height: 800 });
+      await seedMansion(page, mansionThumbnailFixture());
+      await page.addInitScript(() => Object.defineProperty(document, 'hidden', { configurable: true, get: () => true }));
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await readyMansion(page);
+      await page.locator('canvas').screenshot({ path: screenshotPath, type: 'png' });
+      console.log(`Screenshot saved: ${screenshotPath}`);
+      return;
+    }
 
     await page.goto(`/en/games/${slug}`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(1500);

@@ -1,0 +1,3 @@
+Royal Princess Mansion: original Sunlit Storybook vector artwork.
+Reproducible source: scripts/generate-princess-mansion-assets.mjs
+No Disney/Pixar characters, paid assets, external fonts, or third-party asset packs are included.

@@ -4,10 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { KidButton } from '@/components/ui/KidButton';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
-import { useEffect } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { trackGameComplete } from '@/lib/gtag';
 import { usePlayAgainKey } from './usePlayAgainKey';
+import { useDialogFocus } from './useDialogFocus';
 
 interface WinModalProps {
   isOpen: boolean;
@@ -15,18 +16,28 @@ interface WinModalProps {
   onClose?: () => void;
   score?: number;
   moves?: number;
+  title?: string;
+  description?: string;
+  actionLabel?: string;
+  onSound?: () => void;
+  keyboardShortcut?: boolean;
+  theme?: 'default' | 'storybook';
+  children?: ReactNode;
 }
 
-export function WinModal({ isOpen, onPlayAgain, onClose, score, moves }: WinModalProps) {
+export function WinModal({ isOpen, onPlayAgain, onClose, score, moves, title, description, actionLabel, onSound, keyboardShortcut = true, theme = 'default', children }: WinModalProps) {
   const t = useTranslations('common');
-  const { playSuccess } = useRetroSounds();
+  const { playSuccess } = useRetroSounds({ enabled: !onSound });
   const pathname = usePathname();
+  const panel = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  useDialogFocus(isOpen, panel, onClose);
 
-  usePlayAgainKey(isOpen, onPlayAgain);
+  usePlayAgainKey(isOpen && keyboardShortcut, onPlayAgain);
 
   useEffect(() => {
     if (isOpen) {
-      playSuccess();
+      (onSound ?? playSuccess)();
       // Extract game slug from pathname (e.g. /en/games/tetris -> tetris)
       const segments = pathname.split('/');
       const gamesIdx = segments.indexOf('games');
@@ -35,7 +46,7 @@ export function WinModal({ isOpen, onPlayAgain, onClose, score, moves }: WinModa
         trackGameComplete(slug, score);
       }
     }
-  }, [isOpen, playSuccess, pathname, score]);
+  }, [isOpen, playSuccess, onSound, pathname, score]);
 
   return (
     <AnimatePresence>
@@ -48,11 +59,16 @@ export function WinModal({ isOpen, onPlayAgain, onClose, score, moves }: WinModa
           onClick={onClose}
         >
           <motion.div
+            ref={panel}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            tabIndex={-1}
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.5, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center"
+            className={`${theme === 'storybook' ? 'bg-[#fffaf0] border-2 border-[#e6d4ad]' : 'bg-white'} rounded-3xl shadow-2xl p-8 max-w-md w-full text-center`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Confetti animation */}
@@ -66,22 +82,24 @@ export function WinModal({ isOpen, onPlayAgain, onClose, score, moves }: WinModa
             </motion.div>
 
             <motion.h2
+              id={titleId}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="text-4xl font-bold text-slate-800 mb-2"
+              className={`${theme === 'storybook' ? 'font-serif text-3xl text-[#896b56]' : 'text-4xl text-slate-800'} font-bold mb-2`}
             >
-              {t('youWin')}
+              {title ?? t('youWin')}
             </motion.h2>
 
             <motion.p
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="text-2xl text-slate-600 mb-6"
+              className={`${theme === 'storybook' ? 'text-base text-[#887361]' : 'text-2xl text-slate-600'} mb-6`}
             >
-              {t('greatJob')}
+              {description ?? t('greatJob')}
             </motion.p>
+            {children}
 
             {/* Stats */}
             {(score !== undefined || moves !== undefined) && (
@@ -111,8 +129,8 @@ export function WinModal({ isOpen, onPlayAgain, onClose, score, moves }: WinModa
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
-              <KidButton variant="success" size="xl" onClick={onPlayAgain}>
-                {t('playAgain')} 🎮
+              <KidButton variant="success" size="xl" onClick={onPlayAgain} className={theme === 'storybook' ? '!bg-[#8da99b] !text-base !px-5 !min-h-12' : ''}>
+                {actionLabel ?? t('playAgain')} 🎮
               </KidButton>
             </motion.div>
           </motion.div>
