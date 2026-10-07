@@ -13,6 +13,7 @@ interface GameWrapperProps {
   showBackButton?: boolean;
   className?: string;
   onInstructionsClick?: () => void;
+  showSoundToggle?: boolean;
   /** Lock to viewport height with no scroll — use for full-screen 3D / canvas games */
   fullHeight?: boolean;
 }
@@ -23,6 +24,7 @@ export function GameWrapper({
   showBackButton = true,
   className = '',
   onInstructionsClick,
+  showSoundToggle = true,
   fullHeight = false,
 }: GameWrapperProps) {
   const t = useTranslations('common');
@@ -78,18 +80,20 @@ export function GameWrapper({
             )}
             
             {/* Sound toggle */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={toggleMute}
-              className="p-3 rounded-xl bg-white shadow-md hover:shadow-lg transition-shadow min-h-[48px] min-w-[48px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-lavender-dream/50"
-              aria-label={isMuted ? t('soundOff') : t('soundOn')}
-              aria-pressed={!isMuted}
-            >
-              <span className="text-2xl" aria-hidden="true">
-                {isMuted ? '🔇' : '🔊'}
-              </span>
-            </motion.button>
+            {showSoundToggle && (
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={toggleMute}
+                className="p-3 rounded-xl bg-white shadow-md hover:shadow-lg transition-shadow min-h-[48px] min-w-[48px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-lavender-dream/50"
+                aria-label={isMuted ? t('soundOff') : t('soundOn')}
+                aria-pressed={!isMuted}
+              >
+                <span className="text-2xl" aria-hidden="true">
+                  {isMuted ? '🔇' : '🔊'}
+                </span>
+              </motion.button>
+            )}
           </div>
         </div>
       </header>
