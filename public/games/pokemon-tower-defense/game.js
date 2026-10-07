@@ -1,8 +1,8 @@
 (() => {
   "use strict";
 
-  const WIDTH = 1600;
-  const HEIGHT = 900;
+  let WIDTH = 1600;
+  let HEIGHT = 900;
   const GRID = 80;
   const PATH_WIDTH = 96;
   const SAVE_KEY = "mini-games:pokemon-tower-defense:profile";
@@ -10,6 +10,9 @@
   const SAVE_VERSION = 1;
   const ASSET_ROOT = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon";
   const TERRAIN_ROOT = "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Tower%20Defense/Retina";
+  const GameData = window.PokemonTDData;
+  const { text, pokemonName, locale } = window.PokemonTDLocale;
+  const { DIFFICULTIES, EEVEE_EVOLUTIONS } = GameData;
   const TOWER_TYPES = {
     pikachu: {
       name: "פיקאצ׳ו",
@@ -460,31 +463,63 @@
       color: "#ffb25f",
     },
   ];
-  const PATH = [
-    { x: -60, y: 185 },
-    { x: 155, y: 185 },
-    { x: 285, y: 300 },
-    { x: 230, y: 520 },
-    { x: 370, y: 735 },
-    { x: 575, y: 800 },
-    { x: 760, y: 705 },
-    { x: 825, y: 500 },
-    { x: 710, y: 340 },
-    { x: 770, y: 185 },
-    { x: 985, y: 150 },
-    { x: 1140, y: 280 },
-    { x: 1085, y: 500 },
-    { x: 1205, y: 665 },
-    { x: 1390, y: 600 },
-    { x: 1490, y: 745 },
-    { x: 1660, y: 780 },
-  ];
-  const TERRAIN_BLOCKERS = [
-    { type: "lake", x: 1325, y: 255, rx: 185, ry: 105 },
-    { type: "pond", x: 510, y: 325, rx: 115, ry: 72 },
-    { type: "cliff", x: 1260, y: 790, rx: 145, ry: 62 },
-    { type: "grove", x: 930, y: 760, rx: 105, ry: 72 },
-  ];
+  Object.assign(TOWER_TYPES, GameData.ADDITIONAL_TOWERS);
+  Object.entries(GameData.ELEMENTS).forEach(([id, element]) => {
+    ELEMENT_TYPES[id] = { icon: element.icon, name: text(`element.${id}`) };
+  });
+  ELEMENT_TYPES.all.name = text("element.all");
+  ENEMY_FAMILIES.push(...GameData.ADDITIONAL_ENEMY_FAMILIES);
+  BOSS_STAGES.push(...GameData.ADDITIONAL_BOSSES);
+
+  const specialDetails = {
+    pikachu: "chains", magnemite: "chains", shinx: "speed",
+    charmander: "splash", vulpix: "splash", torchic: "speed",
+    bulbasaur: "slow", chikorita: "slow", rowlet: "range",
+    squirtle: "splash", mudkip: "slow", piplup: "splash",
+    abra: "psychic", ralts: "splash", eevee: "speed",
+  };
+  Object.entries(TOWER_TYPES).forEach(([id, type]) => {
+    type.name = pokemonName(id);
+    type.special = {
+      ...type.special,
+      name: text(`special.${type.special.key || id}`),
+      detail: text(`specialDetail.${specialDetails[id] || (
+        type.attack === "lightning" ? "chains" : type.slow ? "slow" : type.splash ? "splash" : "speed"
+      )}`),
+    };
+    type.evolutions.forEach((evolution) => {
+      const name = pokemonName(evolution.image.replace("Animated", ""));
+      evolution.name = evolution.mastery ? text("mastery", { name }) : name;
+    });
+  });
+  ENEMY_FAMILIES.forEach((family) => family.stages.forEach((stage) => {
+    stage.name = pokemonName(stage.image.replace("Animated", ""));
+  }));
+  const modifierIds = ["normal", "swarm", "fast", "armored"];
+  WAVE_MODIFIERS.forEach((modifier, index) => {
+    modifier.id = modifierIds[index];
+    modifier.name = text(`modifier.${modifier.id}`);
+  });
+  const originalBossWeaknesses = {
+    onix: ["water", "grass", "ice", "fighting", "ground"],
+    haunter: ["psychic", "ghost", "dark"],
+    snorlax: ["fighting"],
+    dragonite: ["ice", "dragon", "fairy", "rock"],
+  };
+  BOSS_STAGES.forEach((boss) => {
+    boss.id = boss.id || boss.image.replace("Animated", "");
+    boss.tier = boss.tier || 1;
+    boss.name = pokemonName(boss.id);
+    boss.weakness = originalBossWeaknesses[boss.id] || boss.weakness;
+    boss.weaknessLabel = boss.weakness.map((element) => ELEMENT_TYPES[element].name).join(text("or"));
+    boss.mechanic = text(`mechanic.${boss.ability}`);
+  });
+  const ENEMY_BY_IMAGE = new Map(ENEMY_FAMILIES.flatMap((family) =>
+    family.stages.map((stage) => [stage.image, stage]),
+  ));
+  let activeMap = GameData.MAPS.classic;
+  let PATH = activeMap.path;
+  let TERRAIN_BLOCKERS = activeMap.blockers;
 
   const canvas = document.getElementById("gameCanvas");
   const ctx = canvas.getContext("2d", { alpha: false });
@@ -546,6 +581,19 @@
   const selectedTowerDetail = document.getElementById("selectedTowerDetail");
   const selectedTowerPrice = document.getElementById("selectedTowerPrice");
   const continueButton = document.getElementById("continueButton");
+  const difficultyButtons = [...document.querySelectorAll("[data-difficulty]")];
+  const difficultyValue = document.getElementById("difficultyValue");
+  const difficultyDescription = document.getElementById("difficultyDescription");
+  const eeveeEvolutionChoices = document.getElementById("eeveeEvolutionChoices");
+  const eeveeEvolutionOptions = document.getElementById("eeveeEvolutionOptions");
+  const pauseButton = document.getElementById("pauseButton");
+  const pausePanel = document.getElementById("pausePanel");
+  const mapButtons = [...document.querySelectorAll("button[data-map]")];
+  const mapValue = document.getElementById("mapValue");
+  const mapDescription = document.getElementById("mapDescription");
+  const zoomInButton = document.getElementById("zoomInButton");
+  const zoomOutButton = document.getElementById("zoomOutButton");
+  const zoomValue = document.getElementById("zoomValue");
   let towerButtons = [];
 
   const images = {};
@@ -555,104 +603,10 @@
     `${TERRAIN_ROOT}/towerDefense_tile069.png`,
   ];
   const assetUrls = {
-    pikachuAnimated: `${ASSET_ROOT}/other/showdown/25.gif`,
-    charmanderAnimated: `${ASSET_ROOT}/other/showdown/4.gif`,
-    raichuAnimated: `${ASSET_ROOT}/other/showdown/26.gif`,
-    charmeleonAnimated: `${ASSET_ROOT}/other/showdown/5.gif`,
-    charizardAnimated: `${ASSET_ROOT}/other/showdown/6.gif`,
-    bulbasaurAnimated: `${ASSET_ROOT}/other/showdown/1.gif`,
-    ivysaurAnimated: `${ASSET_ROOT}/other/showdown/2.gif`,
-    venusaurAnimated: `${ASSET_ROOT}/other/showdown/3.gif`,
-    squirtleAnimated: `${ASSET_ROOT}/other/showdown/7.gif`,
-    wartortleAnimated: `${ASSET_ROOT}/other/showdown/8.gif`,
-    blastoiseAnimated: `${ASSET_ROOT}/other/showdown/9.gif`,
-    eeveeAnimated: `${ASSET_ROOT}/other/showdown/133.gif`,
-    vaporeonAnimated: `${ASSET_ROOT}/other/showdown/134.gif`,
-    magnemiteAnimated: `${ASSET_ROOT}/other/showdown/81.gif`,
-    magnetonAnimated: `${ASSET_ROOT}/other/showdown/82.gif`,
-    magnezoneAnimated: `${ASSET_ROOT}/other/showdown/462.gif`,
-    shinxAnimated: `${ASSET_ROOT}/other/showdown/403.gif`,
-    luxioAnimated: `${ASSET_ROOT}/other/showdown/404.gif`,
-    luxrayAnimated: `${ASSET_ROOT}/other/showdown/405.gif`,
-    vulpixAnimated: `${ASSET_ROOT}/other/showdown/37.gif`,
-    ninetalesAnimated: `${ASSET_ROOT}/other/showdown/38.gif`,
-    torchicAnimated: `${ASSET_ROOT}/other/showdown/255.gif`,
-    combuskenAnimated: `${ASSET_ROOT}/other/showdown/256.gif`,
-    blazikenAnimated: `${ASSET_ROOT}/other/showdown/257.gif`,
-    mudkipAnimated: `${ASSET_ROOT}/other/showdown/258.gif`,
-    marshtompAnimated: `${ASSET_ROOT}/other/showdown/259.gif`,
-    swampertAnimated: `${ASSET_ROOT}/other/showdown/260.gif`,
-    piplupAnimated: `${ASSET_ROOT}/other/showdown/393.gif`,
-    prinplupAnimated: `${ASSET_ROOT}/other/showdown/394.gif`,
-    empoleonAnimated: `${ASSET_ROOT}/other/showdown/395.gif`,
-    chikoritaAnimated: `${ASSET_ROOT}/other/showdown/152.gif`,
-    bayleefAnimated: `${ASSET_ROOT}/other/showdown/153.gif`,
-    meganiumAnimated: `${ASSET_ROOT}/other/showdown/154.gif`,
-    rowletAnimated: `${ASSET_ROOT}/other/showdown/722.gif`,
-    dartrixAnimated: `${ASSET_ROOT}/other/showdown/723.gif`,
-    decidueyeAnimated: `${ASSET_ROOT}/other/showdown/724.gif`,
-    abraAnimated: `${ASSET_ROOT}/other/showdown/63.gif`,
-    kadabraAnimated: `${ASSET_ROOT}/other/showdown/64.gif`,
-    alakazamAnimated: `${ASSET_ROOT}/other/showdown/65.gif`,
-    raltsAnimated: `${ASSET_ROOT}/other/showdown/280.gif`,
-    kirliaAnimated: `${ASSET_ROOT}/other/showdown/281.gif`,
-    gardevoirAnimated: `${ASSET_ROOT}/other/showdown/282.gif`,
-    zubatAnimated: `${ASSET_ROOT}/other/showdown/41.gif`,
-    pidgeyAnimated: `${ASSET_ROOT}/other/showdown/16.gif`,
-    pidgeottoAnimated: `${ASSET_ROOT}/other/showdown/17.gif`,
-    pidgeotAnimated: `${ASSET_ROOT}/other/showdown/18.gif`,
-    rattataAnimated: `${ASSET_ROOT}/other/showdown/19.gif`,
-    raticateAnimated: `${ASSET_ROOT}/other/showdown/20.gif`,
-    caterpieAnimated: `${ASSET_ROOT}/other/showdown/10.gif`,
-    metapodAnimated: `${ASSET_ROOT}/other/showdown/11.gif`,
-    butterfreeAnimated: `${ASSET_ROOT}/other/showdown/12.gif`,
-    weedleAnimated: `${ASSET_ROOT}/other/showdown/13.gif`,
-    kakunaAnimated: `${ASSET_ROOT}/other/showdown/14.gif`,
-    beedrillAnimated: `${ASSET_ROOT}/other/showdown/15.gif`,
-    golbatAnimated: `${ASSET_ROOT}/other/showdown/42.gif`,
-    crobatAnimated: `${ASSET_ROOT}/other/showdown/169.gif`,
-    sentretAnimated: `${ASSET_ROOT}/other/showdown/161.gif`,
-    furretAnimated: `${ASSET_ROOT}/other/showdown/162.gif`,
-    hoothootAnimated: `${ASSET_ROOT}/other/showdown/163.gif`,
-    noctowlAnimated: `${ASSET_ROOT}/other/showdown/164.gif`,
-    poochyenaAnimated: `${ASSET_ROOT}/other/showdown/261.gif`,
-    mightyenaAnimated: `${ASSET_ROOT}/other/showdown/262.gif`,
-    bidoofAnimated: `${ASSET_ROOT}/other/showdown/399.gif`,
-    bibarelAnimated: `${ASSET_ROOT}/other/showdown/400.gif`,
-    starlyAnimated: `${ASSET_ROOT}/other/showdown/396.gif`,
-    staraviaAnimated: `${ASSET_ROOT}/other/showdown/397.gif`,
-    staraptorAnimated: `${ASSET_ROOT}/other/showdown/398.gif`,
-    patratAnimated: `${ASSET_ROOT}/other/showdown/504.gif`,
-    watchogAnimated: `${ASSET_ROOT}/other/showdown/505.gif`,
-    fletchlingAnimated: `${ASSET_ROOT}/other/showdown/661.gif`,
-    fletchinderAnimated: `${ASSET_ROOT}/other/showdown/662.gif`,
-    talonflameAnimated: `${ASSET_ROOT}/other/showdown/663.gif`,
-    yungoosAnimated: `${ASSET_ROOT}/other/showdown/734.gif`,
-    gumshoosAnimated: `${ASSET_ROOT}/other/showdown/735.gif`,
-    skwovetAnimated: `${ASSET_ROOT}/other/showdown/819.gif`,
-    greedentAnimated: `${ASSET_ROOT}/other/showdown/820.gif`,
-    lechonkAnimated: `${ASSET_ROOT}/other/showdown/915.gif`,
-    oinkologneAnimated: `${ASSET_ROOT}/other/showdown/916.gif`,
-    onixAnimated: `${ASSET_ROOT}/other/showdown/95.gif`,
-    haunterAnimated: `${ASSET_ROOT}/other/showdown/93.gif`,
-    snorlaxAnimated: `${ASSET_ROOT}/other/showdown/143.gif`,
-    dragoniteAnimated: `${ASSET_ROOT}/other/showdown/149.gif`,
-    pikachuArt: `${ASSET_ROOT}/other/official-artwork/25.png`,
-    charmanderArt: `${ASSET_ROOT}/other/official-artwork/4.png`,
-    bulbasaurArt: `${ASSET_ROOT}/other/official-artwork/1.png`,
-    squirtleArt: `${ASSET_ROOT}/other/official-artwork/7.png`,
-    eeveeArt: `${ASSET_ROOT}/other/official-artwork/133.png`,
-    magnemiteArt: `${ASSET_ROOT}/other/official-artwork/81.png`,
-    shinxArt: `${ASSET_ROOT}/other/official-artwork/403.png`,
-    vulpixArt: `${ASSET_ROOT}/other/official-artwork/37.png`,
-    torchicArt: `${ASSET_ROOT}/other/official-artwork/255.png`,
-    mudkipArt: `${ASSET_ROOT}/other/official-artwork/258.png`,
-    piplupArt: `${ASSET_ROOT}/other/official-artwork/393.png`,
-    chikoritaArt: `${ASSET_ROOT}/other/official-artwork/152.png`,
-    rowletArt: `${ASSET_ROOT}/other/official-artwork/722.png`,
-    abraArt: `${ASSET_ROOT}/other/official-artwork/63.png`,
-    raltsArt: `${ASSET_ROOT}/other/official-artwork/280.png`,
-    zubatArt: `${ASSET_ROOT}/other/official-artwork/41.png`,
+    ...Object.fromEntries(Object.entries(GameData.POKEMON).flatMap(([id, pokemon]) => [
+      [`${id}Animated`, `${ASSET_ROOT}/other/showdown/${pokemon.dex}.gif`],
+      [`${id}Art`, `${ASSET_ROOT}/other/official-artwork/${pokemon.dex}.png`],
+    ])),
     grass: terrainUrls[0],
     grassFlowers: terrainUrls[1],
     grassDetails: terrainUrls[2],
@@ -663,19 +617,23 @@
   let lastTime = performance.now();
   let toastTimer = 0;
   let audioContext = null;
+  const imageLoads = new Map();
   let soundEnabled = true;
+  let portalSoundMuted = false;
   let hoverCell = null;
+  let keyboardCursor = { x: 120, y: 360 };
+  let pointerDrag = null;
   let nextId = 1;
   let tutorialIndex = 0;
   let activeShopFilter = "all";
+  let portalInstructionsOpen = false;
   let profile = loadProfile();
+  let selectedDifficulty = profile.difficulty;
+  let selectedMap = profile.mapId;
 
-  const TUTORIAL_STEPS = [
-    ["מציבים פוקימון", "בחרו פוקימון למטה ולחצו על משבצת דשא פנויה."],
-    ["משדרגים גיבור", "לחצו על פוקימון שהצבתם וקנו עוצמה, טווח ויכולת מיוחדת."],
-    ["מתכוננים לבוס", "כל גל חמישי הוא קרב בוס. חפשו את החולשה והאזהרה שלו."],
-    ["מגיעים לצורה הסופית", "אחרי הבוס הראשון ושישה שדרוגים אפשר לפתוח צורה סופית!"],
-  ];
+  const TUTORIAL_STEPS = Array.from({ length: 4 }, (_, index) => [
+    text(`tutorialTitle.${index}`), text(`tutorialText.${index}`),
+  ]);
 
   function defaultProfile() {
     return {
@@ -685,6 +643,8 @@
       discoveries: Object.keys(TOWER_TYPES),
       soundEnabled: true,
       gameSpeed: 1,
+      difficulty: "medium",
+      mapId: "classic",
       tutorialComplete: false,
     };
   }
@@ -699,10 +659,12 @@
         bestWave: Math.max(0, Math.min(999, Math.floor(Number(saved.bestWave) || 0))),
         bossStars: Math.max(0, Math.min(9999, Math.floor(Number(saved.bossStars) || 0))),
         discoveries: Array.isArray(saved.discoveries)
-          ? [...new Set([...fallback.discoveries, ...saved.discoveries.filter((item) => typeof item === "string")])].slice(0, 100)
+          ? [...new Set([...fallback.discoveries, ...saved.discoveries.filter((item) => typeof item === "string")])].slice(0, 1000)
           : fallback.discoveries,
         soundEnabled: saved.soundEnabled !== false,
         gameSpeed: saved.gameSpeed === 2 ? 2 : 1,
+        difficulty: Object.hasOwn(DIFFICULTIES, saved.difficulty) ? saved.difficulty : "medium",
+        mapId: Object.hasOwn(GameData.MAPS, saved.mapId) ? saved.mapId : "classic",
         tutorialComplete: saved.tutorialComplete === true,
       };
     } catch (error) {
@@ -715,7 +677,7 @@
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(profile));
     } catch {
-      showToast("לא ניתן לשמור במכשיר הזה");
+      showToast(text("saveProfileError"));
     }
     updateProfileUi();
   }
@@ -748,7 +710,7 @@
   function refreshContinueButton() {
     const saved = readRunCheckpoint();
     continueButton.hidden = !saved;
-    if (saved) continueButton.textContent = `המשך מגל ${Math.max(1, Number(saved.wave) + 1)}`;
+    if (saved) continueButton.textContent = text("continueWave", { wave: Math.max(1, Number(saved.wave) + 1) });
   }
 
   function saveRunCheckpoint() {
@@ -762,14 +724,22 @@
       power: state.power,
       bossesDefeated: state.bossesDefeated,
       finalEvolutionUnlocked: state.finalEvolutionUnlocked,
+      difficulty: state.difficulty,
+      mapId: state.mapId,
+      camera: { ...state.camera },
       selectedTower,
       nextEnemyFamilyId: state.nextEnemyFamily.id,
+      familyQueue: [...state.familyQueue],
+      bossHistory: [...state.bossHistory],
+      nextBossId: state.nextBoss.id,
+      nextWavePlan: state.nextWavePlan.map((enemy) => enemy.image),
       towers: state.towers.map((tower) => ({
         type: tower.type,
         x: tower.x,
         y: tower.y,
         skills: { ...tower.skills },
         evolutionStage: tower.evolutionStage,
+        eeveeEvolution: tower.eeveeEvolution || null,
         spentCoins: tower.spentCoins,
       })),
     };
@@ -778,7 +748,7 @@
       refreshContinueButton();
     } catch (error) {
       console.warn("Could not save the current run.", error);
-      showToast("לא ניתן לשמור את הסיבוב במכשיר הזה");
+      showToast(text("saveRunError"));
     }
   }
 
@@ -794,10 +764,12 @@
   function restoreRunCheckpoint() {
     const saved = readRunCheckpoint();
     if (!saved) {
-      showToast("לא נמצא משחק שמור");
+      showToast(text("noSave"));
       refreshContinueButton();
       return;
     }
+    selectedDifficulty = Object.hasOwn(DIFFICULTIES, saved.difficulty) ? saved.difficulty : "medium";
+    selectedMap = Object.hasOwn(GameData.MAPS, saved.mapId) ? saved.mapId : "classic";
     resetGame();
     state.coins = Math.max(0, Math.min(999999, Math.floor(Number(saved.coins) || 0)));
     state.lives = Math.max(1, Math.min(99, Math.floor(Number(saved.lives) || 10)));
@@ -808,15 +780,25 @@
     state.finalEvolutionUnlocked = saved.finalEvolutionUnlocked === true;
     state.nextEnemyFamily =
       ENEMY_FAMILIES.find((family) => family.id === saved.nextEnemyFamilyId) || pickEnemyFamily();
+    if (Array.isArray(saved.familyQueue)) {
+      state.familyQueue = [...new Set(saved.familyQueue.filter((id) =>
+        ENEMY_FAMILIES.some((family) => family.id === id),
+      ))];
+    }
+    state.bossHistory = Array.isArray(saved.bossHistory)
+      ? saved.bossHistory.filter((id) => BOSS_STAGES.some((boss) => boss.id === id))
+      : [];
+    state.nextBoss = BOSS_STAGES.find((boss) => boss.id === saved.nextBossId) ||
+      pickBossForWave(Math.ceil((state.wave + 1) / 5) * 5);
     selectedTower = TOWER_TYPES[saved.selectedTower] ? saved.selectedTower : "pikachu";
     const restoredCells = new Set();
     state.towers = saved.towers
       .filter((tower) => TOWER_TYPES[tower.type])
-      .slice(0, 80)
+      .slice(0, Math.ceil(WIDTH / GRID) * Math.ceil(HEIGHT / GRID))
       .map((tower) => {
         const type = TOWER_TYPES[tower.type];
         const x = Math.max(40, Math.min(WIDTH - 40, Number(tower.x) || 40));
-        const y = Math.max(160, Math.min(HEIGHT - 40, Number(tower.y) || 160));
+        const y = Math.max(activeMap.buildTop, Math.min(HEIGHT - 40, Number(tower.y) || activeMap.buildTop));
         return {
           id: nextId++,
           type: tower.type,
@@ -829,6 +811,9 @@
             special: Math.max(0, Math.min(3, Math.floor(Number(tower.skills?.special) || 0))),
           },
           evolutionStage: Math.max(0, Math.min(2, Math.floor(Number(tower.evolutionStage) || 0))),
+          eeveeEvolution: tower.type === "eevee" && Number(tower.evolutionStage) > 0
+            ? Object.hasOwn(EEVEE_EVOLUTIONS, tower.eeveeEvolution) ? tower.eeveeEvolution : "vaporeon"
+            : null,
           spentCoins: Math.max(type.cost, Math.floor(Number(tower.spentCoins) || type.cost)),
           cooldown: 0.2,
           anim: 0,
@@ -849,50 +834,85 @@
         if (valid) restoredCells.add(cellKey);
         return valid;
       });
-    for (const tower of state.towers) tower.level = getTowerLevel(tower);
+    for (const tower of state.towers) {
+      tower.level = getTowerLevel(tower);
+      loadTowerAssets(tower);
+    }
+    prepareNextWave();
+    if (Array.isArray(saved.nextWavePlan) && state.wave % 5 !== 4 &&
+        saved.nextWavePlan.length === state.nextWavePlan.length &&
+        saved.nextWavePlan.every((image) => ENEMY_BY_IMAGE.has(image))) {
+      state.nextWavePlan = saved.nextWavePlan.map((image) => ENEMY_BY_IMAGE.get(image));
+      preloadWave(state.nextWavePlan);
+    }
     startPanel.classList.add("is-hidden");
     gameOverPanel.classList.add("is-hidden");
     state.running = true;
+    if (saved.camera && Number.isFinite(saved.camera.zoom) &&
+        Number.isFinite(saved.camera.x) && Number.isFinite(saved.camera.y)) {
+      state.camera = GameData.clampCamera(saved.camera, activeMap);
+    }
     state.waveTimer = 1.8;
-    state.banner = { text: `חזרתם להרפתקה! גל ${state.wave + 1}`, time: 2.6 };
+    state.banner = { text: text("welcomeBack", { wave: state.wave + 1 }), time: 2.6 };
     updateSelectedTowerCard();
     renderTowerShop();
     updateHud();
     updateWaveUi();
+    updateDifficultyUi();
+    updateMapUi();
+    updateCameraUi();
+    updatePauseUi();
     saveRunCheckpoint();
     playTone(640, 0.12, "sine", 0.04);
   }
 
   function loadImage(key, url) {
-    return new Promise((resolve) => {
+    if (imageLoads.has(key)) return imageLoads.get(key);
+    const loading = new Promise((resolve) => {
       const image = new Image();
       image.crossOrigin = "anonymous";
+      let triedArtwork = false;
       image.onload = () => {
         images[key] = image;
         resolve(true);
       };
       image.onerror = () => {
+        const artwork = assetUrls[key.replace("Animated", "Art")];
+        if (key.endsWith("Animated") && artwork && !triedArtwork) {
+          triedArtwork = true;
+          image.src = artwork;
+          return;
+        }
         images[key] = null;
+        console.warn(`Pokémon artwork unavailable; using drawn fallback: ${key}`);
         resolve(false);
       };
       image.src = url;
     });
+    imageLoads.set(key, loading);
+    return loading;
   }
 
   function loadAssets() {
-    Object.entries(assetUrls).forEach(([key, url]) => loadImage(key, url));
+    ["grass", "grassFlowers", "grassDetails", `${selectedTower}Animated`].forEach((key) =>
+      loadImage(key, assetUrls[key]),
+    );
     updateSelectedTowerCard();
   }
 
+  function loadTowerAssets(tower) {
+    loadImage(`${tower.type}Animated`, assetUrls[`${tower.type}Animated`]);
+    for (const evolution of getEvolutionPath(tower)) {
+      loadImage(evolution.image, assetUrls[evolution.image]);
+    }
+  }
+
+  function preloadWave(plan) {
+    for (const enemy of plan) loadImage(enemy.image, assetUrls[enemy.image]);
+  }
+
   function getTowerDetail(type) {
-    const details = {
-      lightning: "ברקים ושרשראות",
-      fire: "אש ונזק אזורי",
-      water: "מים, פיצוץ והאטה",
-      seed: "זרעים ושליטה בשביל",
-      star: "אנרגיה על-חושית",
-    };
-    return details[type.attack] || "מתקפה מיוחדת";
+    return text(`attack.${type.attack}`);
   }
 
   function updateSelectedTowerCard() {
@@ -903,6 +923,7 @@
     selectedTowerName.textContent = type.name;
     selectedTowerDetail.textContent = getTowerDetail(type);
     selectedTowerPrice.textContent = String(type.cost);
+    if (!getSelectedPlacedTower()) helperText.textContent = text("selected", { name: type.name });
   }
 
   function renderTowerShop(filter = activeShopFilter) {
@@ -913,6 +934,7 @@
         button.type = "button";
         button.dataset.type = key;
         button.classList.toggle("is-selected", key === activeShopFilter);
+        button.setAttribute("aria-pressed", String(key === activeShopFilter));
         button.textContent = `${element.icon} ${element.name}`;
         button.addEventListener("click", () => renderTowerShop(key));
         return button;
@@ -928,9 +950,10 @@
         button.className = "shop-tower-card";
         button.dataset.tower = key;
         button.classList.toggle("is-selected", key === selectedTower);
+        button.setAttribute("aria-pressed", String(key === selectedTower));
         button.style.setProperty("--tower-color", type.color);
         button.innerHTML = `
-          <img src="${assetUrls[`${key}Art`] || assetUrls[`${key}Animated`]}" alt="">
+          <img src="${assetUrls[`${key}Art`]}" alt="" loading="lazy">
           <span><strong>${type.name}</strong><small>${getTowerDetail(type)}</small></span>
           <b>${type.cost}</b>
         `;
@@ -945,24 +968,119 @@
   }
 
   function pickEnemyFamily(excludeId = "") {
-    const choices = ENEMY_FAMILIES.filter((family) => family.id !== excludeId);
-    return choices[Math.floor(Math.random() * choices.length)] || ENEMY_FAMILIES[0];
+    if (!state.familyQueue.length) {
+      state.familyQueue = GameData.shuffled(ENEMY_FAMILIES.map((family) => family.id));
+    }
+    if (state.familyQueue[0] === excludeId && state.familyQueue.length > 1) {
+      [state.familyQueue[0], state.familyQueue[1]] = [state.familyQueue[1], state.familyQueue[0]];
+    }
+    const id = state.familyQueue.shift();
+    return ENEMY_FAMILIES.find((family) => family.id === id);
   }
 
-  function getEnemyForWave(family, wave, randomize = false) {
-    const maxStage = Math.min(family.stages.length - 1, Math.floor((wave - 1) / 5));
-    const stage =
-      randomize && maxStage > 0 && Math.random() < 0.3 ? maxStage - 1 : maxStage;
-    return family.stages[Math.max(0, stage)];
+  function getEnemyForWave(family, wave) {
+    const maxStage = Math.min(
+      family.stages.length - 1,
+      Math.floor((wave + DIFFICULTIES[state.difficulty].stageAdvance - 1) / 5),
+    );
+    return family.stages[Math.max(0, maxStage)];
+  }
+
+  function pickBossForWave(wave) {
+    const tier = Math.min(3, 1 + Math.floor((wave - 5) / 10));
+    const eligible = BOSS_STAGES.filter((boss) => boss.tier <= tier);
+    let choices = eligible.filter((boss) => !state.bossHistory.includes(boss.id));
+    if (!choices.length) {
+      state.bossHistory = state.bossHistory.slice(-1);
+      choices = eligible.filter((boss) => !state.bossHistory.includes(boss.id));
+    }
+    return choices[Math.floor(Math.random() * choices.length)];
+  }
+
+  function prepareNextWave() {
+    const wave = state.wave + 1;
+    if (wave % 5 === 0) {
+      state.nextWavePlan = [state.nextBoss];
+    } else {
+      const modifier = WAVE_MODIFIERS[(wave - 1) % WAVE_MODIFIERS.length];
+      const alternatives = ENEMY_FAMILIES.filter((family) => family.id !== state.nextEnemyFamily.id);
+      const secondaryFamily = alternatives[Math.floor(Math.random() * alternatives.length)];
+      state.nextWavePlan = GameData.buildWavePlan({
+        family: state.nextEnemyFamily,
+        secondaryFamily,
+        wave,
+        count: GameData.waveCount(wave, state.difficulty, modifier),
+        difficulty: state.difficulty,
+      });
+    }
+    preloadWave(state.nextWavePlan);
+  }
+
+  function waveComposition(plan) {
+    const counts = new Map();
+    for (const enemy of plan) counts.set(enemy.name, (counts.get(enemy.name) || 0) + 1);
+    return [...counts].sort((a, b) => b[1] - a[1]).map(([name, count]) => `${count}× ${name}`).join(" + ");
+  }
+
+  function updateDifficultyUi() {
+    difficultyValue.textContent = text(`difficulty.${state.difficulty}`);
+    difficultyDescription.textContent = text(`difficultyDescription.${selectedDifficulty}`);
+    difficultyButtons.forEach((button) => {
+      const selected = button.dataset.difficulty === selectedDifficulty;
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+      button.disabled = state.running;
+    });
+  }
+
+  function selectDifficulty(difficulty) {
+    if (state.running || !Object.hasOwn(DIFFICULTIES, difficulty)) return;
+    selectedDifficulty = difficulty;
+    profile.difficulty = difficulty;
+    resetGame();
+    saveProfile();
+    playTone(480, 0.06, "sine", 0.025);
+  }
+
+  function updateMapUi() {
+    mapValue.textContent = text(`map.${state.mapId}`);
+    mapDescription.textContent = text(`mapDescription.${selectedMap}`);
+    canvas.dataset.map = state.mapId;
+    canvas.dataset.worldWidth = String(WIDTH);
+    canvas.dataset.worldHeight = String(HEIGHT);
+    mapButtons.forEach((button) => {
+      const selected = button.dataset.map === selectedMap;
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+      button.disabled = state.running;
+    });
+  }
+
+  function selectMap(mapId) {
+    if (state.running || !Object.hasOwn(GameData.MAPS, mapId)) return;
+    selectedMap = mapId;
+    profile.mapId = mapId;
+    resetGame();
+    saveProfile();
+    playTone(560, 0.06, "sine", 0.025);
   }
 
   function resetGame() {
     soundEnabled = profile.soundEnabled;
+    const settings = DIFFICULTIES[selectedDifficulty];
+    activeMap = GameData.MAPS[selectedMap];
+    WIDTH = activeMap.width;
+    HEIGHT = activeMap.height;
+    PATH = activeMap.path;
+    TERRAIN_BLOCKERS = activeMap.blockers;
     state = {
       running: false,
       over: false,
-      coins: 160,
-      lives: 10,
+      difficulty: selectedDifficulty,
+      mapId: selectedMap,
+      camera: { x: 0, y: 0, zoom: 1 },
+      coins: settings.coins,
+      lives: settings.lives,
       wave: 0,
       waveLabel: 1,
       waveActive: false,
@@ -973,9 +1091,14 @@
       enemiesCompleted: 0,
       currentEnemyFamily: ENEMY_FAMILIES[0],
       currentEnemyType: ENEMY_FAMILIES[0].stages[0],
-      nextEnemyFamily: pickEnemyFamily(),
+      nextEnemyFamily: ENEMY_FAMILIES[0],
+      familyQueue: [],
+      wavePlan: [],
+      nextWavePlan: [],
       waveModifier: WAVE_MODIFIERS[0],
       currentBoss: null,
+      nextBoss: null,
+      bossHistory: [],
       isBossWave: false,
       bossesDefeated: 0,
       finalEvolutionUnlocked: false,
@@ -989,7 +1112,7 @@
       effects: [],
       floats: [],
       shake: 0,
-      banner: { text: "בחרו פוקימון!", time: 2.5 },
+      banner: { text: text("choosePokemon"), time: 2.5 },
       elapsed: 0,
       selectedTowerId: null,
       movingTowerId: null,
@@ -999,16 +1122,33 @@
       gameSpeed: profile.gameSpeed,
       newDiscoveries: 0,
       tutorialActive: false,
+      paused: false,
+      instructionsOpen: portalInstructionsOpen,
+      choosingEvolution: false,
     };
+    state.nextEnemyFamily = pickEnemyFamily();
+    state.nextBoss = pickBossForWave(5);
+    prepareNextWave();
     hoverCell = null;
+    keyboardCursor = {
+      x: 120,
+      y: Math.ceil((activeMap.buildTop + 160) / GRID) * GRID + GRID / 2,
+    };
+    pointerDrag = null;
+    towerShop.hidden = true;
+    tutorialPanel.hidden = true;
     bossHealth.hidden = true;
     bossWarning.hidden = true;
-    updateUpgradePanel();
     updateHud();
+    updateSelectedTowerCard();
     updateWaveUi();
     updateSpeedUi();
     updateSoundUi();
     updateProfileUi();
+    updateDifficultyUi();
+    updateMapUi();
+    updatePauseUi();
+    updateCameraUi();
     refreshContinueButton();
   }
 
@@ -1017,12 +1157,14 @@
     startPanel.classList.add("is-hidden");
     gameOverPanel.classList.add("is-hidden");
     state.running = true;
-    state.waveTimer = 0.6;
-    state.banner = { text: "הגנו על סל הפירות!", time: 2.3 };
+    state.waveTimer = 3;
+    state.banner = { text: text("protectBasket"), time: 2.3 };
+    updateDifficultyUi();
+    updateMapUi();
     if (!profile.tutorialComplete) showTutorial(0);
+    updatePauseUi();
     saveRunCheckpoint();
-    playTone(520, 0.09, "sine", 0.05);
-    setTimeout(() => playTone(760, 0.12, "sine", 0.05), 80);
+    playTone(520, 0.12, "sine", 0.05, "levelUp");
   }
 
   function beginWave() {
@@ -1030,18 +1172,19 @@
     state.waveLabel = state.wave;
     state.waveActive = true;
     state.isBossWave = state.wave % 5 === 0;
-    state.currentBoss = state.isBossWave
-      ? BOSS_STAGES[(state.wave / 5 - 1) % BOSS_STAGES.length]
-      : null;
+    state.currentBoss = state.isBossWave ? state.nextBoss : null;
+    state.wavePlan = state.nextWavePlan;
+    if (state.isBossWave) {
+      state.bossHistory.push(state.currentBoss.id);
+      state.nextBoss = pickBossForWave(state.wave + 5);
+    }
     if (!state.isBossWave) {
       state.currentEnemyFamily = state.nextEnemyFamily;
       state.currentEnemyType = getEnemyForWave(state.currentEnemyFamily, state.wave);
       state.nextEnemyFamily = pickEnemyFamily(state.currentEnemyFamily.id);
     }
     state.waveModifier = WAVE_MODIFIERS[(state.wave - 1) % WAVE_MODIFIERS.length];
-    state.enemiesToSpawn = state.isBossWave
-      ? 1
-      : 5 + state.wave * 2 + state.waveModifier.count;
+    state.enemiesToSpawn = state.wavePlan.length;
     state.enemiesSpawned = 0;
     state.enemiesCompleted = 0;
     state.spawnTimer = state.isBossWave ? 1.15 : 0;
@@ -1050,24 +1193,23 @@
     state.bossWarningTime = state.isBossWave ? 2.8 : 0;
     state.banner = {
       text: state.isBossWave
-        ? `קרב בוס: ${state.currentBoss.name}!`
-        : `גל ${state.wave}: ${state.currentEnemyType.name} · ${state.waveModifier.name}`,
+        ? text("bossBattle", { name: state.currentBoss.name })
+        : text("waveBanner", { wave: state.wave, name: state.currentEnemyType.name, modifier: state.waveModifier.name }),
       time: 2.4,
     };
     if (state.isBossWave) {
       bossWarningImage.src = assetUrls[state.currentBoss.image];
       bossWarningName.textContent = state.currentBoss.name;
       bossWarningDetail.textContent =
-        `חלש ל${state.currentBoss.weaknessLabel} · ${state.currentBoss.mechanic}`;
+        text("weakness", { types: state.currentBoss.weaknessLabel, mechanic: state.currentBoss.mechanic });
       bossWarning.hidden = false;
       discoverPokemon(`boss-${state.currentBoss.image}`);
     } else {
-      discoverPokemon(`enemy-${state.currentEnemyType.image}`);
+      for (const enemy of state.wavePlan) discoverPokemon(`enemy-${enemy.image}`);
     }
     updateHud();
     updateWaveUi();
-    playTone(330, 0.08, "square", 0.025);
-    setTimeout(() => playTone(440, 0.1, "square", 0.025), 90);
+    playTone(330, 0.08, "square", 0.025, "levelUp");
   }
 
   function completeWave() {
@@ -1083,33 +1225,27 @@
     state.banner = {
       text: state.isBossWave
         ? bossVictory
-          ? `הבוס הובס! ⭐ ${bonus}+ מטבעות`
-          : "הבוס עבר — מתחזקים וממשיכים!"
-        : `הגל הושלם! ${bonus}+ מטבעות`,
+          ? text("bossCompleted", { coins: bonus })
+          : text("bossEscaped")
+        : text("waveCompleted", { coins: bonus }),
       time: state.isBossWave ? 3 : 2.1,
     };
     burst(WIDTH / 2, HEIGHT / 2, "#ffe66c", 26, 150);
     profile.bestWave = Math.max(profile.bestWave, state.wave);
     saveProfile();
+    prepareNextWave();
     updateHud();
     updateWaveUi();
     saveRunCheckpoint();
-    playTone(660, 0.09, "sine", 0.04);
-    setTimeout(() => playTone(880, 0.14, "sine", 0.04), 100);
+    playTone(660, 0.09, "sine", 0.04, "success");
   }
 
   function spawnEnemy() {
     const wave = state.wave;
     const isBoss = state.isBossWave;
-    const enemyType = isBoss
-      ? state.currentBoss
-      : getEnemyForWave(state.currentEnemyFamily, wave, true);
-    const baseHealth = 52 + wave * 18 + Math.pow(wave, 1.38) * 4;
-    const health = Math.round(
-      baseHealth *
-        enemyType.health *
-        (isBoss ? 7.2 : state.waveModifier.health),
-    );
+    const enemyType = state.wavePlan[state.enemiesSpawned];
+    const stats = GameData.enemyStats(enemyType, wave, state.difficulty, state.waveModifier, isBoss);
+    const health = stats.health;
     state.enemies.push({
       id: nextId++,
       name: enemyType.name,
@@ -1119,20 +1255,15 @@
       segment: 0,
       health,
       maxHealth: health,
-      speed:
-        Math.min(124, 55 + wave * 2.45 + Math.random() * 8) *
-        enemyType.speed *
-        (isBoss ? 0.78 : state.waveModifier.speed),
-      baseSpeed:
-        Math.min(124, 55 + wave * 2.45) *
-        enemyType.speed *
-        (isBoss ? 0.78 : state.waveModifier.speed),
-      radius: enemyType.radius,
-      rewardMultiplier: isBoss ? 6 : enemyType.reward,
+      speed: stats.speed,
+      baseSpeed: stats.baseSpeed,
+      radius: stats.radius,
+      rewardMultiplier: stats.rewardMultiplier,
       boss: isBoss,
       bossData: isBoss ? enemyType : null,
-      modifier: isBoss ? "בוס" : state.waveModifier.name,
-      abilityTimer: isBoss ? 4.2 : 0,
+      modifier: isBoss ? "boss" : state.waveModifier.id,
+      abilityTimer: isBoss ? 4.2 * DIFFICULTIES[state.difficulty].abilityInterval : 0,
+      abilityMode: "",
       abilityState: "",
       abilityTime: 0,
       shielded: false,
@@ -1148,6 +1279,7 @@
   }
 
   function update(dt) {
+    if (simulationPaused()) return;
     state.elapsed += dt;
     if (state.banner.time > 0) state.banner.time -= dt;
     if (state.bossWarningTime > 0) {
@@ -1169,11 +1301,16 @@
       if (state.enemiesSpawned < state.enemiesToSpawn && state.spawnTimer <= 0) {
         spawnEnemy();
         state.enemiesSpawned += 1;
-        state.spawnTimer = Math.max(0.38, 1.05 - state.wave * 0.025);
+        state.spawnTimer = Math.max(0.38, 1.05 - state.wave * 0.025) * DIFFICULTIES[state.difficulty].spawnInterval;
       }
     }
 
     updateEnemies(dt);
+    if (state.over) {
+      cleanupEntities();
+      updateWaveUi();
+      return;
+    }
     updateTowers(dt);
     updateProjectiles(dt);
     cleanupEntities();
@@ -1207,9 +1344,12 @@
           enemy.x = PATH[enemy.segment].x;
           enemy.y = PATH[enemy.segment].y;
           enemy.health = Math.max(1, enemy.health * 0.82);
-          enemy.abilityState = "מגן הפירות הדף את הבוס!";
+          enemy.shielded = false;
+          enemy.phased = false;
+          enemy.abilityMode = "berryShield";
+          enemy.abilityState = text("bossAbility.berryShield");
           enemy.abilityTime = 1.8;
-          state.banner = { text: "🫐 מגן הפירות הציל את הסל!", time: 2.4 };
+          state.banner = { text: text("berryShield"), time: 2.4 };
           state.shake = 12;
           burst(enemy.x, enemy.y, "#9cf5ff", 38, 210);
           playTone(760, 0.18, "sine", 0.05);
@@ -1220,16 +1360,21 @@
         state.lives -= enemy.boss ? 2 : 1;
         state.shake = 8;
         burst(enemy.x, enemy.y, "#8657a4", 18, 130);
-        addFloat(enemy.x, enemy.y - 20, enemy.boss ? "הבוס לקח 2 חיים!" : "פרי נגנב!", "#fff");
+        addFloat(enemy.x, enemy.y - 20, text(enemy.boss ? "bossStoleLives" : "berryStolen"), "#fff");
         playTone(130, 0.18, "sawtooth", 0.04);
         updateHud();
-        if (state.lives <= 0) endGame();
+        if (state.lives <= 0) {
+          endGame();
+          break;
+        }
         continue;
       }
       const dx = target.x - enemy.x;
       const dy = target.y - enemy.y;
       const distance = Math.hypot(dx, dy);
-      const dashMultiplier = enemy.abilityState === "מסתער!" ? 2.15 : 1;
+      const dashMultiplier = enemy.abilityMode === "dash"
+        ? DIFFICULTIES[state.difficulty].dash
+        : enemy.abilityMode === "enrage" ? 1.35 : 1;
       const move = enemy.speed * dashMultiplier * (enemy.slow > 0 ? 0.65 : 1) * dt;
       if (distance <= move) {
         enemy.x = target.x;
@@ -1242,36 +1387,51 @@
     }
 
     function updateBossMechanic(enemy, dt) {
+      const settings = DIFFICULTIES[state.difficulty];
       if (enemy.abilityTime > 0) {
         enemy.abilityTime -= dt;
         if (enemy.abilityTime > 0) return;
-        if (enemy.abilityState === "מגן אבנים פעיל") enemy.shielded = false;
-        if (enemy.abilityState === "נעלם מהעין") enemy.phased = false;
-        if (enemy.abilityState === "מרפא...") {
-          enemy.health = Math.min(enemy.maxHealth, enemy.health + enemy.maxHealth * 0.1);
-          addFloat(enemy.x, enemy.y - 45, "התאושש!", "#9dff9f");
+        enemy.shielded = false;
+        enemy.phased = false;
+        if (enemy.abilityMode === "heal") {
+          enemy.health = Math.min(enemy.maxHealth, enemy.health + enemy.maxHealth * settings.heal);
+          addFloat(enemy.x, enemy.y - 45, text("recovered"), "#9dff9f");
         }
+        enemy.abilityMode = "";
         enemy.abilityState = "";
-        enemy.abilityTimer = 5.2 + Math.random() * 1.2;
+        enemy.abilityTimer = (5.2 + Math.random() * 1.2) * settings.abilityInterval;
       }
       enemy.abilityTimer -= dt;
       if (enemy.abilityTimer > 0) return;
       const ability = enemy.bossData.ability;
+      enemy.abilityMode = ability;
+      enemy.abilityState = text(`bossAbility.${ability}`);
       if (ability === "shield") {
         enemy.shielded = true;
-        enemy.abilityState = "מגן אבנים פעיל";
         enemy.abilityTime = 1.9;
       } else if (ability === "phase") {
         enemy.phased = true;
-        enemy.abilityState = "נעלם מהעין";
         enemy.abilityTime = 1.45;
       } else if (ability === "heal") {
-        enemy.abilityState = "מרפא...";
         enemy.abilityTime = 1.55;
         enemy.healInterruptDamage = 0;
-      } else {
-        enemy.abilityState = "מסתער!";
+      } else if (ability === "dash") {
         enemy.abilityTime = 1.5;
+      } else if (ability === "storm") {
+        enemy.abilityTime = 1.2;
+        const points = [{ x: enemy.x, y: enemy.y }];
+        for (const tower of state.towers) {
+          if (Math.hypot(tower.x - enemy.x, tower.y - enemy.y) > 300) continue;
+          tower.cooldown = Math.max(tower.cooldown, settings.storm);
+          points.push({ x: tower.x, y: tower.y });
+        }
+        if (points.length > 1) {
+          state.effects.push({ type: "lightning", points, life: 0.4, maxLife: 0.4 });
+        }
+        burst(enemy.x, enemy.y, enemy.bossData.color, 24, 180);
+      } else if (ability === "enrage") {
+        enemy.shielded = true;
+        enemy.abilityTime = 3.2;
       }
       state.shake = Math.max(state.shake, 4);
       addFloat(enemy.x, enemy.y - 50, enemy.abilityState, enemy.bossData.color);
@@ -1279,57 +1439,31 @@
   }
 
   function getTowerStats(tower) {
-    const type = TOWER_TYPES[tower.type];
-    const skills = tower.skills || { power: 0, range: 0, special: 0 };
-    const stage = tower.evolutionStage || 0;
+    return GameData.towerStats(TOWER_TYPES[tower.type], tower);
+  }
+
+  function getTowerType(tower) {
+    const type = GameData.towerType(TOWER_TYPES[tower.type], tower);
+    if (tower.type !== "eevee" || !tower.evolutionStage) return type;
     return {
-      damage: Math.round(
-        type.damage *
-          (1 +
-            skills.power * 0.27 +
-            stage * 0.42 +
-            (tower.type === "abra" ? skills.special * 0.1 : 0)),
-      ),
-      range:
-        type.range +
-        skills.range * 22 +
-        stage * 24 +
-        (tower.type === "piplup"
-          ? skills.special * 10
-          : tower.type === "rowlet"
-            ? skills.special * 15
-            : tower.type === "abra"
-              ? skills.special * 12
-              : 0),
-      rate: Math.max(
-        0.26,
-        type.rate *
-          (1 -
-            skills.special * 0.065 -
-            stage * 0.1 -
-            (stage === 2 && tower.type === "eevee" ? 0.1 : 0)),
-      ),
-      splash: type.splash
-        ? type.splash +
-          skills.special * 14 +
-          stage * 14 +
-          (stage === 2 && ["charmander", "squirtle"].includes(tower.type) ? 24 : 0)
-        : 0,
-      slow: type.slow
-        ? type.slow +
-          skills.special * 0.35 +
-          stage * 0.28 +
-          (stage === 2 && tower.type === "bulbasaur" ? 0.55 : 0)
-        : 0,
-      attack: type.attack,
-      projectileSpeed: type.projectileSpeed || 440,
-      color: type.color,
-      chains:
-        type.attack === "lightning"
-          ? 1 + skills.special + stage
-          : 0,
-      evolutionStage: stage,
+      ...type,
+      special: {
+        ...type.special,
+        name: text(`special.${type.element}`),
+        detail: text(`specialDetail.${type.attack === "lightning" ? "chains" : type.slow ? "slow" : "splash"}`),
+      },
     };
+  }
+
+  function getEvolutionPath(tower) {
+    if (tower.type !== "eevee") return TOWER_TYPES[tower.type].evolutions;
+    if (!tower.eeveeEvolution && !tower.evolutionStage) return [];
+    const evolution = tower.eeveeEvolution || "vaporeon";
+    const name = pokemonName(evolution);
+    return [
+      { name, image: `${evolution}Animated` },
+      { name: text("mastery", { name }), image: `${evolution}Animated`, mastery: true },
+    ];
   }
 
   function getSpentAbilityPoints(tower) {
@@ -1351,13 +1485,12 @@
   function getTowerName(tower) {
     const type = TOWER_TYPES[tower.type];
     const stage = tower.evolutionStage || 0;
-    return stage ? type.evolutions[stage - 1].name : type.name;
+    return stage ? getEvolutionPath(tower)[stage - 1].name : type.name;
   }
 
   function getTowerImage(tower) {
-    const type = TOWER_TYPES[tower.type];
     const stage = tower.evolutionStage || 0;
-    const evolution = stage ? type.evolutions[stage - 1] : null;
+    const evolution = stage ? getEvolutionPath(tower)[stage - 1] : null;
     if (evolution && images[evolution.image]) {
       return images[evolution.image];
     }
@@ -1370,25 +1503,28 @@
 
   function updateSelectedTowerHelper(tower) {
     const stats = getTowerStats(tower);
-    helperText.textContent = `${getTowerName(tower)} — ${stats.damage} כוח, ${stats.range} טווח. בחרו יכולת בלוח הגיבור!`;
+    helperText.textContent = text("towerHelper", { name: getTowerName(tower), damage: stats.damage, range: stats.range });
   }
 
   function updateUpgradePanel() {
     if (!state) return;
     const tower = getSelectedPlacedTower();
     upgradePanel.hidden = !tower;
-    if (!tower) return;
-    const type = TOWER_TYPES[tower.type];
+    if (!tower) {
+      state.choosingEvolution = false;
+      eeveeEvolutionChoices.hidden = true;
+      return;
+    }
+    const type = getTowerType(tower);
     const stats = getTowerStats(tower);
     tower.level = getTowerLevel(tower);
-    upgradeBadge.textContent = `רמה ${tower.level}`;
+    upgradeBadge.textContent = text("level", { level: tower.level });
     upgradeName.textContent = getTowerName(tower);
-    upgradeStats.textContent = `${stats.damage} כוח · ${stats.range} טווח · ${(
-      1 / stats.rate
-    ).toFixed(1)} לשנייה`;
+    upgradeStats.textContent = text("towerStats", { damage: stats.damage, range: stats.range, rate: (1 / stats.rate).toFixed(1) });
     const stage = tower.evolutionStage || 0;
-    const nextEvolution = type.evolutions[stage];
-    const portraitKey = stage ? type.evolutions[stage - 1].image : `${tower.type}Animated`;
+    const evolutions = getEvolutionPath(tower);
+    const nextEvolution = evolutions[stage];
+    const portraitKey = stage ? evolutions[stage - 1].image : `${tower.type}Animated`;
     heroPortrait.src = assetUrls[portraitKey] || assetUrls[`${tower.type}Art`];
     specialAbilityIcon.textContent = type.special.icon;
     specialAbilityName.textContent = type.special.name;
@@ -1397,12 +1533,17 @@
     const requiredPoints = stage === 0 ? 3 : 6;
     evolutionDetail.textContent =
       stage >= 2
-        ? "הצורה המרבית הושלמה"
+        ? text("maxFormComplete")
         : stage === 1 && !state.finalEvolutionUnlocked
-          ? "נצחו בוס לפתיחת הצורה הסופית"
+          ? text("defeatBossForFinal")
           : spent >= requiredPoints
-            ? `${nextEvolution.mastery ? "שליטה מלאה" : "התפתחות"}: ${nextEvolution.name}`
-            : `דורש עוד ${requiredPoints - spent} שדרוגים`;
+            ? tower.type === "eevee" && stage === 0
+              ? text("chooseEevee")
+              : text(nextEvolution.mastery ? "masterInto" : "evolveInto", { name: nextEvolution.name })
+            : text("moreUpgrades", { count: requiredPoints - spent });
+
+    eeveeEvolutionChoices.hidden = !(tower.type === "eevee" && stage === 0 && state.choosingEvolution);
+    if (!eeveeEvolutionChoices.hidden) renderEeveeChoices(tower);
 
     for (const button of abilityButtons) {
       const ability = button.dataset.ability;
@@ -1416,7 +1557,7 @@
         (spent < requiredPoints || (stage === 1 && !state.finalEvolutionUnlocked));
       const cost = getAbilityCost(tower, ability);
       const affordable = !maxed && !locked && state.coins >= cost;
-      button.disabled = maxed || locked || !affordable;
+      button.disabled = maxed || locked || !affordable || state.paused || state.instructionsOpen;
       button.classList.toggle("is-maxed", maxed);
       button.classList.toggle("is-locked", locked);
       button.classList.toggle("is-affordable", affordable);
@@ -1430,55 +1571,97 @@
       );
       const price = button.querySelector(".ability-price");
       price.textContent = maxed
-        ? "מלא"
+        ? text("maxed")
         : locked
           ? stage === 1 && !state.finalEvolutionUnlocked
-            ? "דורש בוס"
-            : `נעול ${spent}/${requiredPoints}`
+            ? text("requiresBoss")
+            : text("lockedRank", { spent, required: requiredPoints })
           : String(cost);
       button.setAttribute(
         "aria-label",
-        `${button.querySelector("strong").textContent}, דרגה ${rank} מתוך ${maxRank}${
-          maxed ? ", מלא" : locked ? ", נעול" : `, מחיר ${cost} מטבעות`
-        }`,
+        text("abilityLabel", {
+          name: button.querySelector("strong").textContent, rank, max: maxRank,
+          status: maxed ? text("maxed") : locked ? text("locked") : text("price", { coins: cost }),
+        }),
       );
     }
     const sellValue = Math.max(1, Math.floor((tower.spentCoins || type.cost) * 0.65));
     sellTowerValue.textContent = String(sellValue);
     moveTowerButton.classList.toggle("is-active", state.movingTowerId === tower.id);
     moveTowerButton.textContent =
-      state.movingTowerId === tower.id ? "✕ ביטול הזזה" : "↔ הזזה";
+      text(state.movingTowerId === tower.id ? "cancelMove" : "move");
   }
 
-  function purchaseAbility(ability) {
+  function renderEeveeChoices(tower) {
+    const cost = getAbilityCost(tower, "evolution");
+    if (eeveeEvolutionOptions.dataset.towerId !== String(tower.id)) {
+      eeveeEvolutionOptions.dataset.towerId = String(tower.id);
+      eeveeEvolutionOptions.replaceChildren(...Object.entries(EEVEE_EVOLUTIONS).map(([id, branch]) => {
+        const button = document.createElement("button");
+        const element = ELEMENT_TYPES[branch.element];
+        button.type = "button";
+        button.className = "evolution-choice";
+        button.dataset.evolution = id;
+        button.innerHTML = `
+          <img src="${assetUrls[`${id}Art`]}" alt="" loading="lazy">
+          <strong>${pokemonName(id)}</strong>
+          <small>${element.icon} ${element.name}</small>
+          <b>${cost}</b>
+        `;
+        button.addEventListener("click", () => purchaseAbility("evolution", id));
+        return button;
+      }));
+    }
+    eeveeEvolutionOptions.querySelectorAll("button").forEach((button) => {
+      button.disabled = state.coins < cost;
+    });
+  }
+
+  function purchaseAbility(ability, evolutionChoice) {
     const tower = getSelectedPlacedTower();
-    if (!tower || !state.running || state.over) return;
+    if (!tower || !state.running || state.over || state.paused || state.instructionsOpen) return;
+    if (!["power", "range", "special", "evolution"].includes(ability)) {
+      throw new Error(`Unknown Pokémon ability: ${ability}`);
+    }
     const isEvolution = ability === "evolution";
     const spent = getSpentAbilityPoints(tower);
     const stage = tower.evolutionStage || 0;
     const requiredPoints = stage === 0 ? 3 : 6;
     if (isEvolution && stage >= 2) {
-      showToast("הפוקימון כבר הגיע לצורה המרבית!");
+      showToast(text("alreadyMaxForm"));
       return;
     }
     if (isEvolution && stage === 1 && !state.finalEvolutionUnlocked) {
-      showToast("צריך להביס את הבוס הראשון!");
+      showToast(text("firstBossNeeded"));
       return;
     }
     if (isEvolution && spent < requiredPoints) {
-      showToast(`צריך עוד ${requiredPoints - spent} שדרוגי יכולת`);
+      showToast(text("moreAbilityUpgrades", { count: requiredPoints - spent }));
       return;
     }
     if (!isEvolution && tower.skills[ability] >= 3) {
-      showToast("היכולת כבר בדרגה המרבית!");
+      showToast(text("abilityMaxed"));
       return;
     }
     const cost = getAbilityCost(tower, ability);
     if (state.coins < cost) {
-      showToast(`חסרים ${cost - state.coins} מטבעות`);
+      showToast(text("missingCoins", { coins: cost - state.coins }));
       playTone(145, 0.07, "square", 0.018);
       return;
     }
+    if (isEvolution && tower.type === "eevee" && stage === 0) {
+      if (!evolutionChoice) {
+        state.choosingEvolution = true;
+        updateUpgradePanel();
+        return;
+      }
+      if (!Object.hasOwn(EEVEE_EVOLUTIONS, evolutionChoice)) {
+        showToast(text("invalidEvolution"));
+        return;
+      }
+      tower.eeveeEvolution = evolutionChoice;
+    }
+    state.choosingEvolution = false;
     state.coins -= cost;
     tower.spentCoins += cost;
     if (isEvolution) tower.evolutionStage += 1;
@@ -1488,6 +1671,7 @@
     tower.upgradeAnim = 1;
     tower.evolving = isEvolution ? 1 : 0;
     tower.cooldown = Math.min(tower.cooldown, 0.15);
+    if (isEvolution) loadTowerAssets(tower);
     state.shake = Math.max(state.shake, maxEvolution ? 14 : isEvolution ? 9 : 2.5);
     state.effects.push({
       type: isEvolution ? "evolution" : "upgrade",
@@ -1496,7 +1680,7 @@
       life: maxEvolution ? 1.8 : isEvolution ? 1.35 : 0.85,
       maxLife: maxEvolution ? 1.8 : isEvolution ? 1.35 : 0.85,
       maxTier: maxEvolution,
-      color: TOWER_TYPES[tower.type].color,
+      color: getTowerStats(tower).color,
     });
     burst(
       tower.x,
@@ -1509,15 +1693,15 @@
       const evolvedName = getTowerName(tower);
       const maxed = tower.evolutionStage === 2;
       state.banner = {
-        text: maxed ? `צורה מרבית: ${evolvedName}!` : `הפוקימון התפתח ל${evolvedName}!`,
+        text: text(maxed ? "finalForm" : "evolved", { name: evolvedName }),
         time: maxed ? 3.2 : 2.6,
       };
-      addFloat(tower.x, tower.y - 48, maxed ? "צורה מרבית!" : `התפתח ל${evolvedName}!`, "#fff27a");
+      addFloat(tower.x, tower.y - 48, maxed ? text("maxForm") : text("evolved", { name: evolvedName }), "#fff27a");
     } else {
       const abilityNames = {
-        power: "עוצמה",
-        range: "טווח",
-        special: TOWER_TYPES[tower.type].special.name,
+        power: text("power"),
+        range: text("range"),
+        special: getTowerType(tower).special.name,
       };
       addFloat(
         tower.x,
@@ -1527,9 +1711,7 @@
       );
     }
     updateSelectedTowerHelper(tower);
-    playTone(520, 0.08, "sine", 0.04);
-    setTimeout(() => playTone(700, 0.09, "sine", 0.04), 70);
-    setTimeout(() => playTone(900, 0.13, "sine", 0.04), 145);
+    playTone(520, 0.12, "sine", 0.04, isEvolution ? "powerUp" : "levelUp");
     updateHud();
     saveRunCheckpoint();
   }
@@ -1598,7 +1780,7 @@
     const points = [{ x: tower.x, y: tower.y - 14 }];
     chain.forEach((enemy, index) => {
       points.push({ x: enemy.x, y: enemy.y });
-      damageEnemy(enemy, stats.damage * (index === 0 ? 1 : 0.62), true, stats.attack);
+      damageEnemy(enemy, stats.damage * (index === 0 ? 1 : 0.62), true, stats.element);
       enemy.slow = 0.25;
       burst(enemy.x, enemy.y, "#fff375", 7, 95);
     });
@@ -1611,7 +1793,7 @@
       maxLife: 0.24,
       color: "#fff278",
     });
-    playTone(720 + Math.random() * 120, 0.045, "square", 0.018);
+    playTone(720 + Math.random() * 120, 0.045, "square", 0.018, "shoot");
   }
 
   function fireProjectile(tower, target, stats) {
@@ -1624,13 +1806,14 @@
       splash: stats.splash,
       slow: stats.slow,
       style: stats.attack,
+      element: stats.element,
       color: stats.color,
       level: tower.level,
       evolutionStage: tower.evolutionStage || 0,
       life: 2,
       trail: 0,
     });
-    playTone(230, 0.06, "sine", 0.018);
+    playTone(230, 0.06, "sine", 0.018, "shoot");
   }
 
   function updateProjectiles(dt) {
@@ -1669,11 +1852,11 @@
             !enemy.escaped &&
             Math.hypot(enemy.x - target.x, enemy.y - target.y) <= projectile.splash
           ) {
-            damageEnemy(enemy, projectile.damage, true, projectile.style);
+            damageEnemy(enemy, projectile.damage, true, projectile.element);
             enemy.slow = Math.max(enemy.slow, projectile.slow || 0);
           }
         }
-        playTone(155, 0.09, "triangle", 0.027);
+        playTone(155, 0.09, "triangle", 0.027, "hit");
       } else {
         projectile.x += (dx / distance) * move;
         projectile.y += (dy / distance) * move;
@@ -1690,17 +1873,18 @@
       (Array.isArray(weakness) ? weakness.includes(attackType) : weakness === attackType)
     ) {
       finalAmount *= 1.25;
-      if (Math.random() < 0.18) addFloat(enemy.x, enemy.y - 42, "סופר יעיל!", "#fff27a");
+      if (Math.random() < 0.18) addFloat(enemy.x, enemy.y - 42, text("superEffective"), "#fff27a");
     }
-    if (enemy.shielded) finalAmount *= 0.38;
+    if (enemy.shielded) finalAmount *= DIFFICULTIES[state.difficulty].shieldDamage;
     enemy.health -= finalAmount;
     enemy.hit = 1;
-    if (enemy.abilityState === "מרפא...") {
+    if (enemy.abilityMode === "heal") {
       enemy.healInterruptDamage += finalAmount;
       if (enemy.healInterruptDamage >= enemy.maxHealth * 0.04) {
-        enemy.abilityState = "הריפוי נעצר!";
+        enemy.abilityMode = "interrupted";
+        enemy.abilityState = text("bossAbility.interrupted");
         enemy.abilityTime = 0.8;
-        addFloat(enemy.x, enemy.y - 44, "הריפוי נעצר!", "#fff27a");
+        addFloat(enemy.x, enemy.y - 44, text("bossAbility.interrupted"), "#fff27a");
       }
     }
     if (enemy.health > 0) return;
@@ -1721,14 +1905,15 @@
       state.finalEvolutionUnlocked = true;
       profile.bossStars += 1;
       saveProfile();
-      state.banner = { text: `⭐ ${enemy.name} הובס! הצורות הסופיות נפתחו`, time: 3.2 };
+      state.banner = { text: text("bossUnlock", { name: enemy.name }), time: 3.2 };
       burst(enemy.x, enemy.y, "#fff27a", 58, 250);
     }
     addFloat(enemy.x, enemy.y - 18, `+${reward}`, "#ffe86b");
     if (state.combo >= 3) {
-      addFloat(enemy.x, enemy.y - 42, `רצף x${state.combo}!`, "#9ff8ff");
+      addFloat(enemy.x, enemy.y - 42, text("combo", { count: state.combo }), "#9ff8ff");
     }
     burst(enemy.x, enemy.y, "#b991df", 14, 125);
+    playTone(enemy.boss ? 880 : 620, 0.08, "sine", 0.025, enemy.boss ? "powerUp" : "success");
     updateHud();
     saveRunCheckpoint();
   }
@@ -1782,6 +1967,7 @@
     state.running = false;
     state.over = true;
     state.selectedTowerId = null;
+    updatePauseUi();
     updateUpgradePanel();
     updatePowerUi();
     updateHud();
@@ -1791,26 +1977,25 @@
     clearRunCheckpoint();
     finalWave.textContent = String(state.wave);
     gameOverRewards.textContent =
-      `אספתם ${state.bossesDefeated} כוכבי בוס וגיליתם ${state.newDiscoveries} פוקימונים חדשים בריצה הזאת.`;
+      text("runRewards", { bosses: state.bossesDefeated, discoveries: state.newDiscoveries });
     gameOverPanel.classList.remove("is-hidden");
-    playTone(220, 0.18, "sine", 0.045);
-    setTimeout(() => playTone(165, 0.28, "sine", 0.045), 160);
+    playTone(220, 0.28, "sine", 0.045, "gameOver");
   }
 
   function placeTower(x, y) {
-    if (!state.running || state.over) return;
+    if (!state.running || state.over || simulationPaused()) return;
     const cell = snapToCell(x, y);
     const type = TOWER_TYPES[selectedTower];
     if (!isInsideField(cell.x, cell.y)) {
-      showToast("לחצו בתוך אזור הדשא");
+      showToast(text("insideGrass"));
       return;
     }
     if (distanceToPath(cell.x, cell.y) < PATH_WIDTH / 2 + 34) {
-      rejectPlacement(cell.x, cell.y, "צריך להשאיר את השביל פנוי!");
+      rejectPlacement(cell.x, cell.y, text("clearPath"));
       return;
     }
     if (isTerrainBlocked(cell.x, cell.y)) {
-      rejectPlacement(cell.x, cell.y, "אי אפשר להציב על מים, עצים או צוקים");
+      rejectPlacement(cell.x, cell.y, text("blockedTerrain"));
       return;
     }
     const occupied = state.towers.find((tower) => tower.x === cell.x && tower.y === cell.y);
@@ -1819,7 +2004,7 @@
       return;
     }
     if (state.coins < type.cost) {
-      rejectPlacement(cell.x, cell.y, `חסרים ${type.cost - state.coins} מטבעות`);
+      rejectPlacement(cell.x, cell.y, text("missingCoins", { coins: type.cost - state.coins }));
       return;
     }
     state.coins -= type.cost;
@@ -1831,6 +2016,7 @@
       level: 1,
       skills: { power: 0, range: 0, special: 0 },
       evolutionStage: 0,
+      eeveeEvolution: null,
       spentCoins: type.cost,
       cooldown: 0.2,
       anim: 0,
@@ -1841,6 +2027,7 @@
       phase: Math.random() * Math.PI * 2,
     };
     state.towers.push(tower);
+    loadTowerAssets(tower);
     state.selectedTowerId = tower.id;
     burst(cell.x, cell.y, type.color, 18, 115);
     addFloat(cell.x, cell.y - 36, type.name, "#fff");
@@ -1850,6 +2037,7 @@
   }
 
   function selectPlacedTower(tower) {
+    state.choosingEvolution = false;
     state.selectedTowerId = tower.id;
     updateSelectedTowerHelper(tower);
     updateUpgradePanel();
@@ -1859,17 +2047,17 @@
 
   function toggleMoveTower() {
     const tower = getSelectedPlacedTower();
-    if (!tower || !state.running || state.over) return;
+    if (!tower || !state.running || state.over || state.paused || state.instructionsOpen) return;
     state.movingTowerId = state.movingTowerId === tower.id ? null : tower.id;
     helperText.textContent = state.movingTowerId
-      ? "בחרו משבצת דשא חדשה — ההזזה בחינם."
-      : "ההזזה בוטלה.";
+      ? text("chooseNewCell")
+      : text("moveCanceled");
     updateUpgradePanel();
   }
 
   function sellSelectedTower() {
     const tower = getSelectedPlacedTower();
-    if (!tower || !state.running || state.over) return;
+    if (!tower || !state.running || state.over || state.paused || state.instructionsOpen) return;
     const refund = Math.max(1, Math.floor((tower.spentCoins || TOWER_TYPES[tower.type].cost) * 0.65));
     state.coins += refund;
     state.towers = state.towers.filter((candidate) => candidate.id !== tower.id);
@@ -1877,7 +2065,7 @@
     state.movingTowerId = null;
     burst(tower.x, tower.y, "#ffe66c", 22, 150);
     addFloat(tower.x, tower.y - 35, `+${refund}`, "#ffe66c");
-    showToast(`הפוקימון נמכר ב-${refund} מטבעות`);
+    showToast(text("sold", { coins: refund }));
     updateHud();
     saveRunCheckpoint();
   }
@@ -1898,7 +2086,7 @@
       isTerrainBlocked(cell.x, cell.y) ||
       occupied
     ) {
-      rejectPlacement(cell.x, cell.y, "בחרו משבצת דשא פנויה");
+      rejectPlacement(cell.x, cell.y, text("emptyGrass"));
       return;
     }
     tower.x = cell.x;
@@ -1906,14 +2094,14 @@
     tower.placed = 1;
     state.movingTowerId = null;
     burst(cell.x, cell.y, TOWER_TYPES[tower.type].color, 20, 125);
-    showToast("הפוקימון עבר למקום חדש!");
+    showToast(text("moved"));
     updateSelectedTowerHelper(tower);
     updateUpgradePanel();
     saveRunCheckpoint();
   }
 
   function handleFieldTap(x, y) {
-    if (!state.running || state.over) return;
+    if (!state.running || state.over || simulationPaused()) return;
     if (state.movingTowerId) {
       tryMoveTower(x, y);
       return;
@@ -1944,7 +2132,7 @@
   }
 
   function isInsideField(x, y) {
-    return x >= 40 && x <= WIDTH - 40 && y >= 160 && y <= HEIGHT - 40;
+    return x >= 40 && x <= WIDTH - 40 && y >= activeMap.buildTop && y <= HEIGHT - 40;
   }
 
   function isTerrainBlocked(x, y) {
@@ -1983,11 +2171,13 @@
     }
     ctx.setTransform(canvas.width / WIDTH, 0, 0, canvas.height / HEIGHT, 0, 0);
     ctx.imageSmoothingEnabled = true;
+    ctx.direction = locale === "he" ? "rtl" : "ltr";
 
     const shakeX = state.shake ? (Math.random() - 0.5) * state.shake : 0;
     const shakeY = state.shake ? (Math.random() - 0.5) * state.shake : 0;
     ctx.save();
-    ctx.translate(shakeX, shakeY);
+    ctx.scale(state.camera.zoom, state.camera.zoom);
+    ctx.translate(-state.camera.x + shakeX, -state.camera.y + shakeY);
     drawField();
     drawPath();
     drawScenery();
@@ -2003,14 +2193,15 @@
   }
 
   function drawField() {
+    const theme = activeMap.theme;
     const gradient = ctx.createLinearGradient(0, 0, 0, HEIGHT);
-    gradient.addColorStop(0, "#77cf65");
-    gradient.addColorStop(1, "#43a952");
+    gradient.addColorStop(0, theme.field[0]);
+    gradient.addColorStop(1, theme.field[1]);
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
     const tiles = [images.grass, images.grassFlowers, images.grassDetails].filter(Boolean);
-    if (tiles.length) {
+    if (tiles.length && theme.grassTiles) {
       ctx.save();
       ctx.globalAlpha = 0.34;
       for (let y = 0; y < HEIGHT; y += 128) {
@@ -2021,7 +2212,7 @@
       }
       ctx.restore();
     } else {
-      ctx.fillStyle = "rgba(20, 112, 56, 0.12)";
+      ctx.fillStyle = theme.texture;
       for (let y = 14; y < HEIGHT; y += 34) {
         for (let x = (y / 34) % 2 ? 12 : 28; x < WIDTH; x += 42) {
           ctx.beginPath();
@@ -2039,22 +2230,28 @@
   }
 
   function drawTerrainFeatures() {
+    const theme = activeMap.theme;
     for (const area of TERRAIN_BLOCKERS) {
       ctx.save();
       ctx.translate(area.x, area.y);
       if (area.type === "lake" || area.type === "pond") {
-        ctx.fillStyle = "rgba(25, 105, 100, .28)";
+        ctx.fillStyle = theme.waterShadow;
         ctx.beginPath();
         ctx.ellipse(0, 8, area.rx + 12, area.ry + 12, 0, 0, Math.PI * 2);
         ctx.fill();
         const water = ctx.createLinearGradient(0, -area.ry, 0, area.ry);
-        water.addColorStop(0, "#7be4e6");
-        water.addColorStop(1, "#3ba4c8");
+        water.addColorStop(0, theme.water[0]);
+        water.addColorStop(1, theme.water[1]);
         ctx.fillStyle = water;
+        if (theme.decoration === "crystals") {
+          ctx.shadowColor = "#ff6b36";
+          ctx.shadowBlur = 18;
+        }
         ctx.beginPath();
         ctx.ellipse(0, 0, area.rx, area.ry, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = "rgba(255,255,255,.45)";
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = theme.ripples;
         ctx.lineWidth = 5;
         for (let i = -1; i <= 1; i += 1) {
           ctx.beginPath();
@@ -2070,15 +2267,15 @@
           ctx.stroke();
         }
       } else if (area.type === "cliff") {
-        ctx.fillStyle = "#8d7555";
+        ctx.fillStyle = theme.cliff[1];
         ctx.beginPath();
         ctx.ellipse(0, 12, area.rx, area.ry, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = "#b89a6c";
+        ctx.fillStyle = theme.cliff[0];
         ctx.beginPath();
         ctx.ellipse(0, 0, area.rx, area.ry * 0.68, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = "rgba(82, 61, 42, .38)";
+        ctx.strokeStyle = theme.cliffMarks;
         ctx.lineWidth = 6;
         for (let x = -90; x <= 90; x += 45) {
           ctx.beginPath();
@@ -2092,12 +2289,36 @@
           const radius = i % 2 ? area.rx * 0.62 : area.rx * 0.82;
           const x = Math.cos(angle) * radius;
           const y = Math.sin(angle) * area.ry * 0.72;
-          ctx.fillStyle = "#6b4b2d";
+          ctx.fillStyle = theme.trunk;
           ctx.fillRect(x - 6, y, 12, 35);
-          ctx.fillStyle = i % 2 ? "#237d49" : "#2f9a51";
-          ctx.beginPath();
-          ctx.arc(x, y - 10, 28, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.fillStyle = theme.leaves[i % 2];
+          if (theme.decoration === "shells") {
+            ctx.strokeStyle = theme.leaves[i % 2];
+            ctx.lineWidth = 10;
+            for (let leaf = 0; leaf < 5; leaf += 1) {
+              const direction = -Math.PI + leaf * Math.PI / 4;
+              ctx.beginPath();
+              ctx.moveTo(x, y - 15);
+              ctx.quadraticCurveTo(x + Math.cos(direction) * 28, y - 45, x + Math.cos(direction) * 48, y - 15 + Math.sin(direction) * 22);
+              ctx.stroke();
+            }
+          } else if (theme.decoration === "crystals") {
+            ctx.beginPath();
+            ctx.moveTo(x - 22, y + 12);
+            ctx.lineTo(x - 12, y - 48);
+            ctx.lineTo(x + 10, y - 62);
+            ctx.lineTo(x + 28, y - 8);
+            ctx.lineTo(x + 16, y + 18);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = "#dfc8ff";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+          } else {
+            ctx.beginPath();
+            ctx.arc(x, y - 10, 28, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
       }
       ctx.restore();
@@ -2117,29 +2338,30 @@
   }
 
   function drawPath() {
+    const theme = activeMap.theme;
     ctx.save();
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     tracePath();
-    ctx.strokeStyle = "rgba(30, 83, 43, 0.28)";
+    ctx.strokeStyle = theme.pathShadow;
     ctx.lineWidth = PATH_WIDTH + 22;
     ctx.stroke();
     tracePath();
-    ctx.strokeStyle = "#e1b56a";
+    ctx.strokeStyle = theme.pathEdge;
     ctx.lineWidth = PATH_WIDTH + 12;
     ctx.stroke();
     tracePath();
     const pathGradient = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT);
-    pathGradient.addColorStop(0, "#f4d28a");
-    pathGradient.addColorStop(0.52, "#e9bd72");
-    pathGradient.addColorStop(1, "#f5d895");
+    pathGradient.addColorStop(0, theme.path[0]);
+    pathGradient.addColorStop(0.52, theme.path[1]);
+    pathGradient.addColorStop(1, theme.path[2]);
     ctx.strokeStyle = pathGradient;
     ctx.lineWidth = PATH_WIDTH;
     ctx.stroke();
     tracePath();
     ctx.setLineDash([5, 24]);
     ctx.lineDashOffset = -state.elapsed * 11;
-    ctx.strokeStyle = "rgba(150, 98, 45, 0.19)";
+    ctx.strokeStyle = theme.pathMarks;
     ctx.lineWidth = PATH_WIDTH - 16;
     ctx.stroke();
     ctx.restore();
@@ -2157,7 +2379,33 @@
     for (const [x, y, color] of flowers) {
       const sway = Math.sin(state.elapsed * 1.7 + x) * 1.6;
       ctx.save();
-      ctx.translate(x + sway, y);
+      ctx.translate(x * WIDTH / 1600 + sway, y * HEIGHT / 900);
+      if (activeMap.theme.decoration === "shells") {
+        ctx.fillStyle = "#fff4da";
+        ctx.beginPath();
+        ctx.arc(0, 0, 11, Math.PI, 0);
+        ctx.lineTo(0, 7);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = "#c69289";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+        continue;
+      }
+      if (activeMap.theme.decoration === "crystals") {
+        ctx.fillStyle = color === "#fff" ? "#9de4ef" : "#c6a2f0";
+        ctx.beginPath();
+        ctx.moveTo(-9, 6);
+        ctx.lineTo(-4, -18);
+        ctx.lineTo(5, -26);
+        ctx.lineTo(13, -2);
+        ctx.lineTo(5, 10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        continue;
+      }
       ctx.strokeStyle = "#278c46";
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -2179,10 +2427,10 @@
     }
 
     const pollenCount = 18;
-    ctx.fillStyle = "rgba(255, 249, 167, 0.55)";
+    ctx.fillStyle = activeMap.theme.particles;
     for (let i = 0; i < pollenCount; i += 1) {
       const x = (i * 83 + state.elapsed * (6 + (i % 3))) % (WIDTH + 40) - 20;
-      const y = 105 + ((i * 131 + Math.sin(state.elapsed + i) * 38) % 680);
+      const y = HEIGHT * 0.12 + ((i * 131 + Math.sin(state.elapsed + i) * 38) % (HEIGHT * 0.76));
       ctx.beginPath();
       ctx.arc(x, y, 1.8 + (i % 2), 0, Math.PI * 2);
       ctx.fill();
@@ -2240,8 +2488,7 @@
   }
 
   function drawGoal() {
-    const x = 1535;
-    const y = 770;
+    const { x, y } = activeMap.goal;
     ctx.save();
     ctx.translate(x, y);
     ctx.fillStyle = "rgba(29, 72, 51, 0.24)";
@@ -2332,7 +2579,8 @@
         const scale = (tower.type === "pikachu" ? 1.25 : 1.35) + evolutionStage * 0.1;
         drawContainedImage(image, -43 * scale, -52 * scale, 86 * scale, 86 * scale);
       } else {
-        drawFallbackPokemon(tower.type);
+        const species = evolutionStage ? getEvolutionPath(tower)[evolutionStage - 1].image.replace("Animated", "") : tower.type;
+        drawFallbackPokemon(species, getTowerStats(tower).color);
       }
       ctx.restore();
       ctx.textAlign = "center";
@@ -2349,7 +2597,7 @@
 
   function drawEnemies() {
     for (const enemy of state.enemies) {
-      const image = images[enemy.image] || images.zubatAnimated || images.zubatArt;
+      const image = images[enemy.image];
       const bob = Math.sin(state.elapsed * 7 + enemy.bob) * 5;
       const next = PATH[enemy.segment + 1] || PATH[enemy.segment];
       const lean = next ? Math.max(-0.22, Math.min(0.22, (next.x - enemy.x) / 350)) : 0;
@@ -2366,7 +2614,7 @@
         ctx.scale(1 + enemy.hit * 0.08, 1 - enemy.hit * 0.06);
       }
       ctx.rotate(lean);
-      if (enemy.modifier === "מהיר") {
+      if (enemy.modifier === "fast") {
         ctx.strokeStyle = "rgba(134, 235, 255, .5)";
         ctx.lineWidth = 5;
         ctx.beginPath();
@@ -2376,7 +2624,7 @@
         ctx.lineTo(-enemy.radius * 2.6, 8);
         ctx.stroke();
       }
-      if (enemy.modifier === "משוריין") {
+      if (enemy.modifier === "armored") {
         ctx.strokeStyle = "rgba(210, 226, 232, .8)";
         ctx.lineWidth = 6;
         ctx.beginPath();
@@ -2430,7 +2678,14 @@
           ctx.arc(12, -6, 5, 0, Math.PI * 2);
           ctx.fill();
         } else {
-          drawFallbackPokemon("zubat");
+          ctx.save();
+          ctx.scale(enemy.radius / 24, enemy.radius / 24);
+          drawFallbackPokemon(enemy.image.replace("Animated", ""));
+          ctx.restore();
+          ctx.font = "900 14px Arial, sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillStyle = "#fff8df";
+          ctx.fillText(enemy.name, 0, enemy.radius + 20);
         }
       }
       ctx.globalAlpha = 1;
@@ -2469,7 +2724,7 @@
     ctx.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
   }
 
-  function drawFallbackPokemon(type) {
+  function drawFallbackPokemon(type, color) {
     if (type === "zubat") {
       ctx.fillStyle = "#7861ad";
       ctx.beginPath();
@@ -2498,7 +2753,7 @@
       ctx.fill();
       return;
     }
-    ctx.fillStyle = TOWER_TYPES[type]?.color || "#ef8241";
+    ctx.fillStyle = color || TOWER_TYPES[type]?.color || `hsl(${(GameData.POKEMON[type].dex * 137) % 360} 60% 65%)`;
     ctx.beginPath();
     ctx.arc(0, 0, 24, 0, Math.PI * 2);
     ctx.fill();
@@ -2516,12 +2771,13 @@
 
   function drawHealthBar(enemy) {
     if (enemy.health >= enemy.maxHealth) return;
-    const width = 52;
+    const width = enemy.boss ? Math.max(90, enemy.radius * 1.6) : 52;
+    const y = enemy.boss ? -enemy.radius * 1.7 : -48;
     ctx.fillStyle = "rgba(30, 42, 44, .72)";
-    roundRect(ctx, -width / 2 - 2, -48, width + 4, 10, 5);
+    roundRect(ctx, -width / 2 - 2, y, width + 4, 10, 5);
     ctx.fill();
     ctx.fillStyle = enemy.health / enemy.maxHealth > 0.45 ? "#66dc69" : "#ff705f";
-    roundRect(ctx, -width / 2, -46, Math.max(0, width * (enemy.health / enemy.maxHealth)), 6, 3);
+    roundRect(ctx, -width / 2, y + 2, Math.max(0, width * (enemy.health / enemy.maxHealth)), 6, 3);
     ctx.fill();
   }
 
@@ -2714,8 +2970,8 @@
     const scale = 1 + Math.max(0, state.banner.time - 1.7) * 0.08;
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.translate(WIDTH / 2, 142);
-    ctx.scale(scale, scale);
+    ctx.translate(WIDTH / 2, HEIGHT * 0.158);
+    ctx.scale(scale * HEIGHT / 900, scale * HEIGHT / 900);
     ctx.font = "900 34px Trebuchet MS, sans-serif";
     ctx.textAlign = "center";
     ctx.lineWidth = 9;
@@ -2730,16 +2986,16 @@
     if (state.combo < 2 || state.comboTimer <= 0) return;
     const pulse = 1 + Math.sin(state.elapsed * 10) * 0.06;
     ctx.save();
-    ctx.translate(WIDTH / 2, HEIGHT - 38);
-    ctx.scale(pulse, pulse);
+    ctx.translate(WIDTH / 2, HEIGHT * 0.958);
+    ctx.scale(pulse * HEIGHT / 900, pulse * HEIGHT / 900);
     ctx.textAlign = "center";
     ctx.font = `900 ${28 + Math.min(16, state.combo * 1.5)}px Arial, sans-serif`;
     ctx.lineWidth = 8;
     ctx.strokeStyle = "rgba(27, 67, 61, .78)";
     ctx.fillStyle = state.combo >= 6 ? "#fff06b" : "#9ff8ff";
-    const text = `רצף x${state.combo}`;
-    ctx.strokeText(text, 0, 0);
-    ctx.fillText(text, 0, 0);
+    const comboText = text("combo", { count: state.combo });
+    ctx.strokeText(comboText, 0, 0);
+    ctx.fillText(comboText, 0, 0);
     ctx.restore();
   }
 
@@ -2774,7 +3030,7 @@
     const nextWave = state.wave + 1;
     const previewBoss =
       !state.waveActive && nextWave % 5 === 0
-        ? BOSS_STAGES[(nextWave / 5 - 1) % BOSS_STAGES.length]
+        ? state.nextBoss
         : null;
     const type = state.waveActive
       ? state.isBossWave
@@ -2790,19 +3046,19 @@
     bossHealth.hidden = !activeBoss;
     if (activeBoss) {
       const healthPercent = Math.max(0, (activeBoss.health / activeBoss.maxHealth) * 100);
-      bossHealthName.textContent = `${activeBoss.name} · חלש ל${activeBoss.bossData.weaknessLabel}`;
+      bossHealthName.textContent = text("bossHealthName", { name: activeBoss.name, types: activeBoss.bossData.weaknessLabel });
       bossHealthStatus.textContent = activeBoss.abilityState
         ? activeBoss.abilityState
-        : `יכולת בעוד ${Math.max(1, Math.ceil(activeBoss.abilityTimer))}`;
+        : text("abilityCountdown", { seconds: Math.max(1, Math.ceil(activeBoss.abilityTimer)) });
       bossHealthFill.style.width = `${healthPercent}%`;
     }
     if (state.waveActive) {
       waveEnemyName.textContent = state.isBossWave
-        ? `גל ${state.wave}: בוס ${type.name}`
-        : `גל ${state.wave}: ${type.name} · ${modifier.icon} ${modifier.name}`;
+        ? text("bossWave", { wave: state.wave, name: type.name })
+        : text("waveBanner", { wave: state.wave, name: type.name, modifier: `${modifier.icon} ${modifier.name}` });
       waveStatus.textContent = state.isBossWave
-        ? `חלש ל${type.weaknessLabel} · ${type.mechanic}`
-        : `${state.enemiesCompleted}/${state.enemiesToSpawn} נעצרו`;
+        ? text("weakness", { types: type.weaknessLabel, mechanic: type.mechanic })
+        : text("waveProgress", { completed: state.enemiesCompleted, total: state.enemiesToSpawn, composition: waveComposition(state.wavePlan) });
       const progress = activeBoss
         ? (1 - activeBoss.health / activeBoss.maxHealth) * 100
         : state.enemiesToSpawn
@@ -2812,28 +3068,28 @@
       startWaveButton.hidden = true;
     } else {
       waveEnemyName.textContent = previewBoss
-        ? `הגל הבא: בוס ${type.name}!`
-        : `הגל הבא: ${type.name} · ${modifier.icon} ${modifier.name}`;
+        ? text("nextBoss", { name: type.name })
+        : text("nextWave", { name: type.name, modifier: `${modifier.icon} ${modifier.name}` });
       waveStatus.textContent = state.running
         ? previewBoss
-          ? `חלש ל${type.weaknessLabel} · ${type.mechanic}`
-          : `מתחיל בעוד ${Math.max(1, Math.ceil(state.waveTimer))}...`
-        : "מתכוננים...";
+          ? text("weakness", { types: type.weaknessLabel, mechanic: type.mechanic })
+          : text("waveCountdown", { seconds: Math.max(1, Math.ceil(state.waveTimer)), composition: waveComposition(state.nextWavePlan) })
+        : text("preparing");
       waveProgressFill.style.width = "0%";
       const canStartEarly = state.running && !state.over && state.wave > 0 && state.waveTimer > 0;
       startWaveButton.hidden = !canStartEarly;
       if (canStartEarly) {
-        earlyWaveBonus.textContent = `בונוס ${Math.max(2, Math.ceil(state.waveTimer) * 2)} מטבעות`;
+        earlyWaveBonus.textContent = text("earlyBonus", { coins: Math.max(2, Math.ceil(state.waveTimer) * 2) });
       }
     }
   }
 
   function startWaveEarly() {
-    if (!state.running || state.waveActive || state.wave <= 0 || state.waveTimer <= 0) return;
+    if (!state.running || simulationPaused() || state.waveActive || state.wave <= 0 || state.waveTimer <= 0) return;
     const bonus = Math.max(2, Math.ceil(state.waveTimer) * 2);
     state.coins += bonus;
     state.waveTimer = 0;
-    state.banner = { text: `הקדמתם את הגל! ${bonus}+ מטבעות`, time: 2 };
+    state.banner = { text: text("earlyWave", { coins: bonus }), time: 2 };
     playTone(620, 0.08, "sine", 0.035);
     updateHud();
     updateWaveUi();
@@ -2844,7 +3100,7 @@
     speedButton.setAttribute("aria-pressed", String(state.gameSpeed === 2));
     speedButton.setAttribute(
       "aria-label",
-      state.gameSpeed === 1 ? "מעבר למהירות משחק כפולה" : "חזרה למהירות משחק רגילה",
+      text(state.gameSpeed === 1 ? "doubleSpeedLabel" : "normalSpeedLabel"),
     );
   }
 
@@ -2853,29 +3109,29 @@
     profile.gameSpeed = state.gameSpeed;
     saveProfile();
     updateSpeedUi();
-    showToast(state.gameSpeed === 2 ? "מהירות כפולה!" : "מהירות רגילה");
+    showToast(text(state.gameSpeed === 2 ? "doubleSpeed" : "normalSpeed"));
     playTone(state.gameSpeed === 2 ? 720 : 480, 0.07, "sine", 0.025);
   }
 
   function updatePowerUi() {
-    const ready = state.power >= 100 && state.running && state.enemies.length > 0;
+    const ready = state.power >= 100 && state.running && !simulationPaused() && state.enemies.length > 0;
     powerButton.style.setProperty("--charge", `${state.power}%`);
-    powerLabel.textContent = ready ? "מוכן!" : `${Math.round(state.power)}%`;
+    powerLabel.textContent = ready ? text("powerReady") : `${Math.round(state.power)}%`;
     powerButton.disabled = !ready;
     powerButton.classList.toggle("is-ready", ready);
     powerButton.setAttribute(
       "aria-label",
-      ready ? "הפעלת כוח פוקימון" : `כוח פוקימון טעון ב-${Math.round(state.power)} אחוז`,
+      ready ? text("activatePower") : text("powerCharge", { percent: Math.round(state.power) }),
     );
   }
 
   function usePokePower() {
-    if (state.power < 100 || !state.running || state.enemies.length === 0) return;
+    if (state.power < 100 || !state.running || simulationPaused() || state.enemies.length === 0) return;
     state.power = 0;
     state.combo = Math.max(2, state.combo);
     state.comboTimer = 3;
     state.shake = 13;
-    state.banner = { text: "כוח פוקימון!", time: 2.2 };
+    state.banner = { text: text("pokePower"), time: 2.2 };
     state.effects.push({
       type: "pokePower",
       x: WIDTH / 2,
@@ -2890,9 +3146,7 @@
       burst(enemy.x, enemy.y, "#fff273", enemy.boss ? 28 : 14, 190);
       damageEnemy(enemy, 31 + enemy.maxHealth * 0.36, false);
     }
-    playTone(330, 0.12, "sine", 0.055);
-    setTimeout(() => playTone(550, 0.16, "triangle", 0.055), 90);
-    setTimeout(() => playTone(880, 0.25, "sine", 0.05), 180);
+    playTone(550, 0.25, "triangle", 0.055, "powerUp");
     updateHud();
   }
 
@@ -2916,28 +3170,133 @@
     updateSelectedTowerCard();
     renderTowerShop(activeShopFilter);
     saveRunCheckpoint();
-    helperText.textContent = `${TOWER_TYPES[type].name} נבחר — לחצו על משבצת דשא כדי להציב אותו.`;
+    helperText.textContent = text("selected", { name: TOWER_TYPES[type].name });
+    loadImage(`${type}Animated`, assetUrls[`${type}Animated`]);
     ensureAudio();
     playTone(type === "pikachu" ? 620 : 360, 0.06, "sine", 0.025);
   }
 
   function pointerPosition(event) {
     const rect = canvas.getBoundingClientRect();
-    return {
+    return GameData.screenToWorld({
       x: ((event.clientX - rect.left) / rect.width) * WIDTH,
       y: ((event.clientY - rect.top) / rect.height) * HEIGHT,
+    }, state.camera);
+  }
+
+  function simulationPaused() {
+    return state.paused || state.instructionsOpen || state.tutorialActive ||
+      state.choosingEvolution || !towerShop.hidden || document.hidden;
+  }
+
+  function updatePauseUi() {
+    pausePanel.hidden = !state.paused;
+    pauseButton.disabled = !state.running || state.over;
+    pauseButton.textContent = state.paused ? "▶" : "⏸";
+    pauseButton.setAttribute("aria-label", text(state.paused ? "resume" : "pause"));
+    pauseButton.setAttribute("aria-pressed", String(state.paused));
+    updateUpgradePanel();
+    updatePowerUi();
+  }
+
+  function togglePause() {
+    if (!state.running || state.over) return;
+    state.paused = !state.paused;
+    lastTime = performance.now();
+    updatePauseUi();
+  }
+
+  function updateCameraUi() {
+    zoomValue.textContent = `${Math.round(state.camera.zoom * 100)}%`;
+    zoomInButton.disabled = state.camera.zoom >= 3;
+    zoomOutButton.disabled = state.camera.zoom <= 1;
+    canvas.dataset.zoom = String(state.camera.zoom);
+    canvas.dataset.cameraX = String(Math.round(state.camera.x));
+    canvas.dataset.cameraY = String(Math.round(state.camera.y));
+  }
+
+  function changeZoom(zoom) {
+    const camera = state.camera;
+    const center = { x: camera.x + WIDTH / camera.zoom / 2, y: camera.y + HEIGHT / camera.zoom / 2 };
+    const next = Math.max(1, Math.min(3, zoom));
+    state.camera = GameData.clampCamera({
+      zoom: next, x: center.x - WIDTH / next / 2, y: center.y - HEIGHT / next / 2,
+    }, activeMap);
+    hoverCell = null;
+    updateCameraUi();
+    saveRunCheckpoint();
+  }
+
+  function movePlacementCursor(direction) {
+    if (!state.running || state.over || simulationPaused()) return;
+    const directions = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] };
+    const [dx, dy] = directions[direction];
+    keyboardCursor = snapToCell(
+      Math.max(GRID / 2, Math.min(WIDTH - GRID / 2, keyboardCursor.x + dx * GRID)),
+      Math.max(activeMap.buildTop + GRID / 2, Math.min(HEIGHT - GRID / 2, keyboardCursor.y + dy * GRID)),
+    );
+    hoverCell = keyboardCursor;
+    const camera = state.camera;
+    const viewWidth = WIDTH / camera.zoom;
+    const viewHeight = HEIGHT / camera.zoom;
+    state.camera = GameData.clampCamera({
+      ...camera,
+      x: Math.min(Math.max(camera.x, keyboardCursor.x + GRID - viewWidth), keyboardCursor.x - GRID),
+      y: Math.min(Math.max(camera.y, keyboardCursor.y + GRID - viewHeight), keyboardCursor.y - GRID),
+    }, activeMap);
+    updateCameraUi();
+    canvas.focus({ preventScroll: true });
+  }
+
+  function handleKeyboard(event) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      if (!towerShop.hidden) {
+        towerShop.hidden = true;
+        updatePowerUi();
+      } else if (state.choosingEvolution) {
+        state.choosingEvolution = false;
+        updateUpgradePanel();
+      } else if (state.movingTowerId) {
+        toggleMoveTower();
+      } else {
+        togglePause();
+      }
+      return;
+    }
+    if (event.target !== canvas) return;
+    const keys = {
+      ArrowLeft: "left", a: "left", ArrowRight: "right", d: "right",
+      ArrowUp: "up", w: "up", ArrowDown: "down", s: "down",
     };
+    const direction = keys[event.key] || keys[event.key.toLowerCase()];
+    if (direction) {
+      event.preventDefault();
+      movePlacementCursor(direction);
+    } else if (event.key === " " || event.key === "Enter") {
+      event.preventDefault();
+      handleFieldTap(keyboardCursor.x, keyboardCursor.y);
+    }
+  }
+
+  function isSoundEnabled() {
+    return soundEnabled && !portalSoundMuted;
   }
 
   function ensureAudio() {
-    if (!soundEnabled || audioContext) return;
+    if (window.parent !== window) return;
+    if (!isSoundEnabled() || audioContext) return;
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
     audioContext = new AudioContext();
   }
 
-  function playTone(frequency, duration, wave = "sine", volume = 0.025) {
-    if (!soundEnabled) return;
+  function playTone(frequency, duration, wave = "sine", volume = 0.025, event = "click") {
+    if (!isSoundEnabled()) return;
+    if (window.parent !== window) {
+      window.parent.postMessage({ source: "pokemon-tower-defense", type: "sound", event }, window.location.origin);
+      return;
+    }
     ensureAudio();
     if (!audioContext) return;
     if (audioContext.state === "suspended") audioContext.resume();
@@ -2954,10 +3313,16 @@
   }
 
   function toggleSound() {
-    soundEnabled = !soundEnabled;
+    soundEnabled = !isSoundEnabled();
     profile.soundEnabled = soundEnabled;
     saveProfile();
     updateSoundUi();
+    if (window.parent !== window) {
+      window.parent.postMessage({
+        source: "pokemon-tower-defense", type: "sound-preference", enabled: soundEnabled,
+      }, window.location.origin);
+      return;
+    }
     if (soundEnabled) {
       ensureAudio();
       playTone(620, 0.08, "sine", 0.03);
@@ -2965,21 +3330,22 @@
   }
 
   function updateSoundUi() {
-    soundButton.textContent = soundEnabled ? "🔊" : "🔇";
-    soundButton.setAttribute("aria-label", soundEnabled ? "השתקת צלילים" : "הפעלת צלילים");
-    soundButton.setAttribute("aria-pressed", String(!soundEnabled));
+    const enabled = isSoundEnabled();
+    soundButton.textContent = enabled ? "🔊" : "🔇";
+    soundButton.setAttribute("aria-label", text(enabled ? "mute" : "unmute"));
+    soundButton.setAttribute("aria-pressed", String(!enabled));
   }
 
   function showTutorial(index) {
     tutorialIndex = Math.max(0, Math.min(TUTORIAL_STEPS.length - 1, index));
-    const [title, text] = TUTORIAL_STEPS[tutorialIndex];
+    const [title, description] = TUTORIAL_STEPS[tutorialIndex];
     state.tutorialActive = true;
     tutorialPanel.hidden = false;
     tutorialStep.textContent = `${tutorialIndex + 1} / ${TUTORIAL_STEPS.length}`;
     tutorialTitle.textContent = title;
-    tutorialText.textContent = text;
+    tutorialText.textContent = description;
     document.getElementById("tutorialNext").textContent =
-      tutorialIndex === TUTORIAL_STEPS.length - 1 ? "מתחילים!" : "הבא";
+      text(tutorialIndex === TUTORIAL_STEPS.length - 1 ? "letsStart" : "next");
   }
 
   function finishTutorial() {
@@ -2987,7 +3353,7 @@
     state.tutorialActive = false;
     profile.tutorialComplete = true;
     saveProfile();
-    state.banner = { text: "ההרפתקה מתחילה!", time: 2 };
+    state.banner = { text: text("adventureStarts"), time: 2 };
   }
 
   function advanceTutorial() {
@@ -2999,18 +3365,98 @@
   }
 
   canvas.addEventListener("pointermove", (event) => {
+    if (pointerDrag && event.pointerId === pointerDrag.id && pointerDrag.canPan) {
+      const dx = event.clientX - pointerDrag.startX;
+      const dy = event.clientY - pointerDrag.startY;
+      if (Math.hypot(dx, dy) > 8) pointerDrag.moved = true;
+      if (pointerDrag.moved) {
+        const rect = canvas.getBoundingClientRect();
+        state.camera = GameData.clampCamera({
+          zoom: state.camera.zoom,
+          x: pointerDrag.camera.x - dx * WIDTH / rect.width / state.camera.zoom,
+          y: pointerDrag.camera.y - dy * HEIGHT / rect.height / state.camera.zoom,
+        }, activeMap);
+        hoverCell = null;
+        updateCameraUi();
+        return;
+      }
+    }
     const point = pointerPosition(event);
     hoverCell = snapToCell(point.x, point.y);
   });
   canvas.addEventListener("pointerleave", () => {
-    hoverCell = null;
+    if (!pointerDrag) hoverCell = null;
   });
   canvas.addEventListener("pointerdown", (event) => {
     event.preventDefault();
+    if (!event.isPrimary) return;
     ensureAudio();
     const point = pointerPosition(event);
     hoverCell = snapToCell(point.x, point.y);
+    keyboardCursor = hoverCell;
+    pointerDrag = {
+      id: event.pointerId, startX: event.clientX, startY: event.clientY, moved: false,
+      camera: { ...state.camera },
+      canPan: state.camera.zoom > 1 && !state.towers.some((tower) =>
+        Math.hypot(tower.x - point.x, tower.y - point.y) <= 43,
+      ),
+    };
+    canvas.setPointerCapture(event.pointerId);
+    canvas.focus({ preventScroll: true });
+  });
+  canvas.addEventListener("pointerup", (event) => {
+    if (!pointerDrag || event.pointerId !== pointerDrag.id) return;
+    const dragged = pointerDrag.moved;
+    pointerDrag = null;
+    if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+    if (dragged) {
+      saveRunCheckpoint();
+      return;
+    }
+    const point = pointerPosition(event);
     handleFieldTap(point.x, point.y);
+  });
+  canvas.addEventListener("pointercancel", () => {
+    pointerDrag = null;
+    hoverCell = null;
+  });
+  document.addEventListener("keydown", handleKeyboard);
+  document.querySelectorAll("[data-direction]").forEach((button) =>
+    button.addEventListener("click", () => movePlacementCursor(button.dataset.direction)),
+  );
+  document.getElementById("keyboardActionButton").addEventListener("click", () =>
+    handleFieldTap(keyboardCursor.x, keyboardCursor.y),
+  );
+  difficultyButtons.forEach((button) =>
+    button.addEventListener("click", () => selectDifficulty(button.dataset.difficulty)),
+  );
+  mapButtons.forEach((button) =>
+    button.addEventListener("click", () => selectMap(button.dataset.map)),
+  );
+  zoomInButton.addEventListener("click", () => changeZoom(state.camera.zoom + 0.5));
+  zoomOutButton.addEventListener("click", () => changeZoom(state.camera.zoom - 0.5));
+  document.getElementById("resetViewButton").addEventListener("click", () => changeZoom(1));
+  pauseButton.addEventListener("click", togglePause);
+  document.getElementById("resumeButton").addEventListener("click", togglePause);
+  document.getElementById("instructionsButton").addEventListener("click", () => {
+    if (window.parent !== window) {
+      window.parent.postMessage({ source: "pokemon-tower-defense", type: "instructions" }, window.location.origin);
+    } else {
+      showTutorial(0);
+    }
+  });
+  window.addEventListener("message", (event) => {
+    if (event.origin !== window.location.origin || event.source !== window.parent ||
+        event.data?.source !== "pokemon-tower-defense-portal") return;
+    if (event.data.type === "instructions-state") {
+      portalInstructionsOpen = event.data.open === true;
+      state.instructionsOpen = portalInstructionsOpen;
+      lastTime = performance.now();
+      updatePauseUi();
+    } else if (event.data.type === "sound-state" && typeof event.data.muted === "boolean") {
+      portalSoundMuted = event.data.muted;
+      updateSoundUi();
+    }
   });
   abilityButtons.forEach((button) =>
     button.addEventListener("click", () => purchaseAbility(button.dataset.ability)),
@@ -3023,12 +3469,17 @@
   openShopButton.addEventListener("click", () => {
     renderTowerShop(activeShopFilter);
     towerShop.hidden = false;
+    updatePowerUi();
   });
   closeShopButton.addEventListener("click", () => {
     towerShop.hidden = true;
+    updatePowerUi();
   });
   towerShop.addEventListener("click", (event) => {
-    if (event.target === towerShop) towerShop.hidden = true;
+    if (event.target === towerShop) {
+      towerShop.hidden = true;
+      updatePowerUi();
+    }
   });
   document.getElementById("tutorialNext").addEventListener("click", advanceTutorial);
   document.getElementById("tutorialSkip").addEventListener("click", finishTutorial);
@@ -3042,7 +3493,8 @@
     clearRunCheckpoint();
     renderTowerShop();
     resetGame();
-    startGame();
+    startPanel.classList.remove("is-hidden");
+    gameOverPanel.classList.add("is-hidden");
   });
   soundButton.addEventListener("click", toggleSound);
   document.addEventListener("visibilitychange", () => {
@@ -3061,4 +3513,9 @@
   resetGame();
   loadAssets();
   requestAnimationFrame(frame);
+  if (window.parent !== window) {
+    window.parent.postMessage({
+      source: "pokemon-tower-defense", type: "sound-state-request",
+    }, window.location.origin);
+  }
 })();

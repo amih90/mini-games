@@ -1,0 +1,177 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - banner [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Back" [ref=e8] [cursor=pointer]:
+              - /url: /en/games
+              - button "Back" [ref=e9]:
+                - generic [ref=e10]:
+                  - generic [ref=e11]: ←
+                  - generic [ref=e12]: Back
+            - heading "Royal Princess Mansion" [level=1] [ref=e13]
+          - generic [ref=e14]:
+            - button "Instructions" [ref=e15]:
+              - generic [ref=e16]: ❓
+            - button "Sound Off" [ref=e17]:
+              - generic [ref=e18]: 🔇
+      - main [ref=e19]:
+        - generic [ref=e22]:
+          - generic [ref=e23]:
+            - status "Care Hearts" [ref=e24]:
+              - generic [ref=e25]: "0"
+              - generic [ref=e26]: Care Hearts
+            - generic [ref=e27]:
+              - status [ref=e28]: Autosaved
+              - generic [ref=e29]: Medium
+              - button "Princess album" [ref=e30] [cursor=pointer]: ♛ 1 / 8
+              - button "Pause" [ref=e31] [cursor=pointer]: Ⅱ
+          - generic [ref=e32]:
+            - group "Interactive princess mansion. Drag a princess, pan between rooms, or use the room and care buttons below." [ref=e33]:
+              - generic [ref=e34]:
+                - generic "Interactive princess mansion. Drag a princess, pan between rooms, or use the room and care buttons below." [ref=e35]
+                - generic "Interactive princess mansion. Drag a princess, pan between rooms, or use the room and care buttons below." [ref=e36]
+            - generic:
+              - heading "Royal dining room" [level=2]
+              - paragraph: Warm treats, little bites, happy hearts
+            - status [ref=e37]: Opening the storybook…
+            - button "Room to the left" [disabled] [ref=e38]: ‹
+            - button "Room to the right" [disabled] [ref=e39]: ›
+          - navigation "Mansion rooms, in physical left-to-right order" [ref=e40]:
+            - button "Dream bedroom" [disabled] [ref=e41]:
+              - generic [ref=e42]: ☾
+              - generic [ref=e43]: Dream bedroom
+            - button "Story lounge" [disabled] [ref=e44]:
+              - generic [ref=e45]: 📚
+              - generic [ref=e46]: Story lounge
+            - button "Royal dining room" [disabled] [ref=e47]:
+              - generic [ref=e48]: 🍰
+              - generic [ref=e49]: Royal dining room
+            - button "Private restroom" [disabled] [ref=e50]:
+              - generic [ref=e51]: 🚪
+              - generic [ref=e52]: Private restroom
+            - button "Bubble bathroom" [disabled] [ref=e53]:
+              - generic [ref=e54]: 🫧
+              - generic [ref=e55]: Bubble bathroom
+            - button "Playroom" [disabled] [ref=e56]:
+              - generic [ref=e57]: 🧸
+              - generic [ref=e58]: Playroom
+            - button "Music ballroom" [disabled] [ref=e59]:
+              - generic [ref=e60]: ♫
+              - generic [ref=e61]: Music ballroom
+            - button "Enchanted garden" [disabled] [ref=e62]:
+              - generic [ref=e63]: 🌿
+              - generic [ref=e64]: Enchanted garden
+          - generic "Choose a princess" [ref=e65]:
+            - button "Liora" [disabled] [pressed] [ref=e66]:
+              - generic [ref=e67]: Liora
+              - generic "Would like some care" [ref=e68]
+            - button "Princess album" [ref=e69] [cursor=pointer]
+          - region "Care for Liora" [ref=e70]:
+            - generic [ref=e71]:
+              - generic [ref=e72]:
+                - strong [ref=e73]: Liora
+                - generic [ref=e74]: 80%
+              - paragraph [ref=e75]: "Favorite: Eating"
+            - generic [ref=e76]:
+              - 'generic "Food: 25%" [ref=e77]':
+                - generic [ref=e79]: Food
+                - progressbar "Food" [ref=e80]
+              - 'generic "Rest: 25%" [ref=e82]':
+                - generic [ref=e84]: Rest
+                - progressbar "Rest" [ref=e85]
+              - 'generic "Clean: 25%" [ref=e87]':
+                - generic [ref=e89]: Clean
+                - progressbar "Clean" [ref=e90]
+              - 'generic "Comfort: 25%" [ref=e92]':
+                - generic [ref=e94]: Comfort
+                - progressbar "Comfort" [ref=e95]
+              - 'generic "Fun: 25%" [ref=e97]':
+                - generic [ref=e99]: Fun
+                - progressbar "Fun" [ref=e100]
+            - button "Move princess" [disabled] [ref=e103]
+          - generic "Places to care and play" [ref=e104]:
+            - button "Place at Eating. 0 of 4 places occupied." [disabled] [ref=e105]:
+              - generic [ref=e106]: Eating
+              - generic [ref=e107]: 0/4
+            - button "Place at Eating. 0 of 1 places occupied." [disabled] [ref=e108]:
+              - generic [ref=e109]: Eating
+              - generic [ref=e110]: 0/1
+          - status [ref=e112]: Little needs, lovely moments. Pick a princess and listen to her wishes.
+    - contentinfo [ref=e113]:
+      - img [ref=e115]
+      - generic [ref=e117]:
+        - generic [ref=e118]:
+          - generic [ref=e119]:
+            - generic [ref=e120]:
+              - generic [ref=e121]: 🎮
+              - generic [ref=e122]: Mini Games
+            - paragraph [ref=e123]: Fun and educational games designed for kids. Learn while playing with our colorful collection of mini-games!
+            - generic [ref=e124]:
+              - generic [ref=e125]: 🦊
+              - generic [ref=e126]: 🐱
+              - generic [ref=e127]: 🐶
+              - generic [ref=e128]: 🐰
+          - generic [ref=e129]:
+            - heading "Quick Links" [level=3] [ref=e130]:
+              - generic [ref=e132]: Quick Links
+            - list [ref=e133]:
+              - listitem [ref=e134]:
+                - link "🏠 Home →" [ref=e135] [cursor=pointer]:
+                  - /url: /en
+                  - generic [ref=e136]: 🏠
+                  - generic [ref=e137]: Home
+                  - generic [ref=e138]: →
+              - listitem [ref=e139]:
+                - link "🎮 Games →" [ref=e140] [cursor=pointer]:
+                  - /url: /en/games
+                  - generic [ref=e141]: 🎮
+                  - generic [ref=e142]: Games
+                  - generic [ref=e143]: →
+          - generic [ref=e144]:
+            - heading "Game Categories" [level=3] [ref=e145]:
+              - generic [ref=e147]: Game Categories
+            - generic [ref=e148]:
+              - generic [ref=e149] [cursor=pointer]:
+                - generic [ref=e150]: 🎨
+                - generic [ref=e151]: Colors
+              - generic [ref=e152] [cursor=pointer]:
+                - generic [ref=e153]: 🧠
+                - generic [ref=e154]: Memory
+              - generic [ref=e155] [cursor=pointer]:
+                - generic [ref=e156]: 🔢
+                - generic [ref=e157]: Math
+              - generic [ref=e158] [cursor=pointer]:
+                - generic [ref=e159]: ⚡
+                - generic [ref=e160]: Reaction
+        - generic:
+          - generic:
+            - generic: ⭐
+        - generic [ref=e161]:
+          - paragraph [ref=e162]:
+            - text: © 2026 Mini Games. Made with
+            - generic [ref=e163]: ❤️
+            - text: for kids.
+          - generic [ref=e164]:
+            - generic [ref=e165] [cursor=pointer]: ⭐
+            - generic [ref=e166] [cursor=pointer]: 🌟
+            - generic [ref=e167] [cursor=pointer]: ✨
+            - generic [ref=e168] [cursor=pointer]: 💫
+            - generic [ref=e169] [cursor=pointer]: 🎊
+      - generic [ref=e171]:
+        - generic [ref=e172] [cursor=pointer]: 🎨
+        - generic [ref=e173] [cursor=pointer]: 🃏
+        - generic [ref=e174] [cursor=pointer]: 🎯
+        - generic [ref=e175] [cursor=pointer]: 🧩
+        - generic [ref=e176] [cursor=pointer]: 🎮
+        - generic [ref=e177] [cursor=pointer]: 🧱
+        - generic [ref=e178] [cursor=pointer]: 🐤
+        - generic [ref=e179] [cursor=pointer]: 🐔
+  - button "Open Next.js Dev Tools" [ref=e186] [cursor=pointer]:
+    - img [ref=e187]
+  - alert [ref=e190]
+```

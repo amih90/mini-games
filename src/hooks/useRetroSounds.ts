@@ -633,19 +633,21 @@ export function useRetroSounds({ enabled = true }: { enabled?: boolean } = {}) {
     }
   }, [isMuted]);
 
-  const toggleMute = useCallback(() => {
+  const setMuted = useCallback((value: boolean) => {
     if (!enabled) return;
-    const newValue = !muted;
-    updateMute(newValue);
+    updateMute(value);
     if (typeof window !== 'undefined') {
-      try { localStorage.setItem(STORAGE_KEY, String(newValue)); }
+      try { localStorage.setItem(STORAGE_KEY, String(value)); }
       catch (error) { console.warn('Sound preferences could not be saved', error); }
     }
   }, [enabled]);
 
+  const toggleMute = useCallback(() => setMuted(!muted), [setMuted]);
+
   return {
     isMuted,
     isUnlocked,
+    setMuted,
     toggleMute,
     playClick,
     playSuccess,

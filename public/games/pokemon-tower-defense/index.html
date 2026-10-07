@@ -2,11 +2,11 @@
 <html lang="he" dir="rtl">
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#2a9d58">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>מגיני השביל</title>
+    <title data-i18n="uiTitle">מגיני השביל</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
     <link rel="stylesheet" href="styles.css">
   </head>
@@ -14,16 +14,18 @@
     <main class="game-shell">
       <header class="title-bar">
         <div>
-          <p class="eyebrow">משחק הגנה קטן וכיפי</p>
-          <h1>מגיני השביל</h1>
+          <p class="eyebrow" data-i18n="uiEyebrow">הרפתקה קטנה, צוות גדול</p>
+          <h1 data-i18n="uiTitle">מגיני השביל</h1>
         </div>
         <div class="title-actions">
-          <button id="speedButton" class="icon-button speed-button" type="button" aria-label="מהירות משחק כפולה" aria-pressed="false">1×</button>
-          <button id="soundButton" class="icon-button" type="button" aria-label="השתקת צלילים" aria-pressed="false">🔊</button>
+          <button id="instructionsButton" class="icon-button" type="button" aria-label="איך משחקים" data-i18n-aria-label="uiInstructions" title="איך משחקים" data-i18n-title="uiInstructions"><span aria-hidden="true">?</span></button>
+          <button id="pauseButton" class="icon-button" type="button" aria-label="השהיית המשחק" data-i18n-aria-label="uiPause" title="השהיית המשחק" data-i18n-title="uiPause" aria-pressed="false"><span aria-hidden="true">⏸</span></button>
+          <button id="speedButton" class="icon-button speed-button" type="button" aria-label="מהירות משחק כפולה" data-i18n-aria-label="uiSpeedToggleLabel" aria-pressed="false">1×</button>
+          <button id="soundButton" class="icon-button" type="button" aria-label="השתקת צלילים" data-i18n-aria-label="uiMuteSounds" aria-pressed="false">🔊</button>
         </div>
       </header>
 
-      <section class="battle-status" aria-label="מצב הגל">
+      <section class="battle-status" aria-label="מצב הגל" data-i18n-aria-label="uiWaveStatusLabel">
         <div class="wave-info" aria-live="polite">
           <img id="waveEnemyIcon" alt="" aria-hidden="true">
           <span class="wave-info-copy">
@@ -40,72 +42,127 @@
           </span>
           <span class="boss-health-track"><i id="bossHealthFill"></i></span>
         </div>
+        <div class="difficulty-badge">
+          <small data-i18n="uiDifficultyLabel">רמת קושי</small>
+          <strong id="difficultyValue" data-i18n="uiDifficultyMedium">בינוני</strong>
+        </div>
+        <div class="map-badge">
+          <small data-i18n="uiMapLabel">מפה</small>
+          <strong id="mapValue" data-i18n="map.classic">כר דשא</strong>
+        </div>
       </section>
 
-      <section class="game-stage" aria-label="משחק הגנת פוקימונים">
-        <canvas id="gameCanvas" width="1600" height="900" aria-label="שדה המשחק. לחצו על הדשא כדי להציב את הפוקימון שנבחר.">
-          הדפדפן שלכם צריך לתמוך בקנבס כדי להפעיל את המשחק.
+      <div class="view-toolbar" role="group" aria-label="תצוגת המפה" data-i18n-aria-label="uiMapControls" aria-describedby="mapViewHint">
+        <span class="zoom-indicator"><small data-i18n="uiZoomLabel">תקריב</small><strong id="zoomValue" dir="ltr" aria-live="polite">100%</strong></span>
+        <button id="zoomOutButton" class="icon-button view-zoom-button" type="button" aria-label="התרחקות" data-i18n-aria-label="uiZoomOut" title="התרחקות" data-i18n-title="uiZoomOut" disabled><span aria-hidden="true">−</span></button>
+        <button id="zoomInButton" class="icon-button view-zoom-button" type="button" aria-label="התקרבות" data-i18n-aria-label="uiZoomIn" title="התקרבות" data-i18n-title="uiZoomIn"><span aria-hidden="true">＋</span></button>
+        <button id="resetViewButton" class="view-reset-button" type="button" aria-label="איפוס התקריב וחזרה לתצוגת המפה כולה" data-i18n-aria-label="uiResetViewHint" title="איפוס התקריב וחזרה לתצוגת המפה כולה" data-i18n-title="uiResetViewHint"><span aria-hidden="true">⤢</span> <span data-i18n="uiResetView">המפה כולה</span></button>
+      </div>
+
+      <section class="game-stage" aria-label="משחק הגנת פוקימונים" data-i18n-aria-label="uiBattlefieldLabel">
+        <canvas id="gameCanvas" width="1600" height="900" tabindex="0" aria-label="שדה המשחק. לחצו על שטח פנוי כדי להציב את הפוקימון שנבחר." data-i18n-aria-label="uiCanvasLabel" aria-describedby="controlHints mapViewHint">
+          <span data-i18n="uiCanvasFallback">הדפדפן שלכם צריך לתמוך בקנבס כדי להפעיל את המשחק.</span>
         </canvas>
 
         <div class="hud" aria-live="polite">
-          <div class="stat stat-coins"><span>●</span><strong id="coinValue">160</strong><small>מטבעות</small></div>
-          <div class="stat stat-wave"><span>★</span><strong id="waveValue">1</strong><small>גל</small></div>
-          <div class="stat stat-lives"><span>♥</span><strong id="lifeValue">10</strong><small>חיים</small></div>
+          <div class="stat stat-coins"><span aria-hidden="true">●</span><strong id="coinValue">160</strong><small data-i18n="uiCoins">מטבעות</small></div>
+          <div class="stat stat-wave"><span aria-hidden="true">★</span><strong id="waveValue">1</strong><small data-i18n="uiWave">גל</small></div>
+          <div class="stat stat-lives"><span aria-hidden="true">♥</span><strong id="lifeValue">10</strong><small data-i18n="uiLives">חיים</small></div>
         </div>
 
         <div id="bossWarning" class="boss-warning" aria-live="assertive" hidden>
           <img id="bossWarningImage" alt="" aria-hidden="true">
           <span>
-            <small>קרב בוס!</small>
+            <small data-i18n="uiBossBattle">קרב בוס!</small>
             <strong id="bossWarningName">אוניקס</strong>
             <em id="bossWarningDetail">חלש למים · מגן אבנים</em>
           </span>
         </div>
 
-        <button id="powerButton" class="power-button" type="button" disabled aria-label="כוח פוקימון עדיין לא טעון">
-          <span>⚡</span>
+        <button id="powerButton" class="power-button" type="button" disabled aria-label="כוח פוקימון עדיין לא טעון" data-i18n-aria-label="uiPowerCharging" title="כשהכוח נטען, הפעילו אותו כדי לעזור לצוות" data-i18n-title="uiPowerHint">
+          <span aria-hidden="true">⚡</span>
           <small id="powerLabel">0%</small>
         </button>
 
         <button id="startWaveButton" class="start-wave-button" type="button" hidden>
-          <strong>התחל גל עכשיו</strong>
+          <strong data-i18n="uiStartWave">התחל גל עכשיו</strong>
           <small id="earlyWaveBonus">בונוס 0 מטבעות</small>
         </button>
 
-        <div id="startPanel" class="modal-card">
-          <p class="modal-kicker">מוכנים, מאמנים?</p>
-          <h2>הגנו על סל הפירות!</h2>
-          <p>בנו צוות, הביסו בוסים והתפתחו עד לצ׳ריזארד, ונוסאור ובלסטויז!</p>
-          <div class="profile-summary" aria-label="התקדמות המאמן">
-            <span><strong id="bestWaveValue">0</strong><small>שיא גל</small></span>
-            <span><strong id="bossStarsValue">0</strong><small>כוכבי בוס</small></span>
-            <span><strong id="dexValue">5</strong><small>בפוקדקס</small></span>
+        <div id="startPanel" class="modal-card" role="region" aria-labelledby="startPanelTitle">
+          <p class="modal-kicker" data-i18n="uiStartKicker">מוכנים, מאמנים?</p>
+          <h2 id="startPanelTitle" data-i18n="uiProtectBerries">הגנו על סל הפירות!</h2>
+          <p data-i18n="uiStartIntro">בחרו מבין 65 פוקימונים, הגנו מפני גלים מעורבים והתמודדו עם בוסים אדירים!</p>
+          <fieldset class="difficulty-selector" aria-describedby="difficultyDescription">
+            <legend data-i18n="uiChooseDifficulty">בחרו את רמת האתגר</legend>
+            <div class="difficulty-options">
+              <button class="difficulty-button" data-difficulty="easy" type="button" aria-pressed="false"><span aria-hidden="true">🟢</span> <span data-i18n="uiDifficultyEasy">קל</span></button>
+              <button class="difficulty-button" data-difficulty="medium" type="button" aria-pressed="true"><span aria-hidden="true">🟡</span> <span data-i18n="uiDifficultyMedium">בינוני</span></button>
+              <button class="difficulty-button" data-difficulty="hard" type="button" aria-pressed="false"><span aria-hidden="true">🔴</span> <span data-i18n="uiDifficultyHard">קשה</span></button>
+            </div>
+          </fieldset>
+          <p id="difficultyDescription" data-i18n="uiDifficultyMediumDescription" aria-live="polite">הרפתקה מאוזנת עם גלים בקצב נעים ובוסים מאתגרים.</p>
+          <fieldset class="map-selector" aria-describedby="mapDescription">
+            <legend data-i18n="uiChooseMap">בחרו את המפה</legend>
+            <div class="map-options">
+              <button class="map-button" data-map="classic" type="button" aria-pressed="true"><span class="map-choice-icon" aria-hidden="true">🌿</span><strong data-i18n="map.classic">כר דשא</strong><small data-i18n="uiMapClassicSize">הגודל המקורי</small></button>
+              <button class="map-button" data-map="coast" type="button" aria-pressed="false"><span class="map-choice-icon" aria-hidden="true">🌊</span><strong data-i18n="map.coast">לגונת החוף</strong><small data-i18n="uiMapCoastSize">גדולה יותר</small></button>
+              <button class="map-button" data-map="volcano" type="button" aria-pressed="false"><span class="map-choice-icon" aria-hidden="true">🌋</span><strong data-i18n="map.volcano">רמות געשיות</strong><small data-i18n="uiMapVolcanoSize">גדולה מאוד</small></button>
+            </div>
+          </fieldset>
+          <p id="mapDescription" data-i18n="mapDescription.classic" aria-live="polite">כר הדשא המוכר — מפה קומפקטית וירוקה לתחילת ההרפתקה.</p>
+          <div class="profile-summary" aria-label="התקדמות המאמן" data-i18n-aria-label="uiTrainerProgress">
+            <span><strong id="bestWaveValue">0</strong><small data-i18n="uiBestWave">שיא גל</small></span>
+            <span><strong id="bossStarsValue">0</strong><small data-i18n="uiBossStars">כוכבי בוס</small></span>
+            <span><strong id="dexValue">65</strong><small data-i18n="uiPokedex">בפוקדקס</small></span>
           </div>
           <div class="start-actions">
-            <button id="continueButton" class="primary-button continue-button" type="button" hidden>המשך משחק שמור</button>
-            <button id="startButton" class="primary-button" type="button">משחק חדש</button>
+            <button id="continueButton" class="primary-button continue-button" type="button" data-i18n="uiContinue" hidden>המשך משחק שמור</button>
+            <button id="startButton" class="primary-button" type="button" data-i18n="uiNewGame">משחק חדש</button>
           </div>
         </div>
 
         <div id="gameOverPanel" class="modal-card is-hidden">
-          <p class="modal-kicker">נלחמתם מצוין!</p>
-          <h2>הגעתם לגל <span id="finalWave">1</span></h2>
+          <p class="modal-kicker" data-i18n="uiGreatEffort">נלחמתם מצוין!</p>
+          <h2><span data-i18n="uiReachedWave">הגעתם לגל</span> <span id="finalWave">1</span></h2>
           <p id="gameOverRewards">הפוקימונים שלכם מוכנים לנסות שוב.</p>
-          <button id="restartButton" class="primary-button" type="button">משחקים שוב</button>
+          <button id="restartButton" class="primary-button" type="button" data-i18n="uiBackToMenu">חזרה לבחירת מפה ואתגר</button>
+        </div>
+
+        <div id="pausePanel" class="modal-card pause-card" role="region" aria-labelledby="pauseTitle" hidden>
+          <p class="modal-kicker" data-i18n="uiPausedKicker">נושמים רגע, מאמנים</p>
+          <h2 id="pauseTitle" data-i18n="uiPausedTitle">המשחק מושהה</h2>
+          <p data-i18n="uiPausedDescription">הצוות שלכם נח. המשיכו כשתהיו מוכנים!</p>
+          <button id="resumeButton" class="primary-button" type="button" data-i18n="uiResume">ממשיכים לשחק</button>
         </div>
 
         <div id="tutorialPanel" class="tutorial-card" hidden>
           <span id="tutorialStep">1 / 4</span>
           <strong id="tutorialTitle">מציבים פוקימון</strong>
-          <p id="tutorialText">בחרו פוקימון למטה ולחצו על הדשא.</p>
+          <p id="tutorialText">בחרו פוקימון למטה ולחצו על שטח פנוי.</p>
           <div>
-            <button id="tutorialSkip" type="button">דלגו</button>
-            <button id="tutorialNext" type="button">הבא</button>
+            <button id="tutorialSkip" type="button" data-i18n="uiSkipTutorial">דלגו</button>
+            <button id="tutorialNext" type="button" data-i18n="uiTutorialNext">הבא</button>
           </div>
         </div>
 
         <div id="toast" class="toast" role="status" aria-live="polite"></div>
       </section>
+
+      <div class="field-controls">
+        <div class="direction-pad" role="group" aria-label="הזזת סמן ההצבה" data-i18n-aria-label="uiMovementControls">
+          <button type="button" data-direction="left" aria-label="הזזה שמאלה" data-i18n-aria-label="uiMoveLeft"><span aria-hidden="true">←</span></button>
+          <button type="button" data-direction="up" aria-label="הזזה למעלה" data-i18n-aria-label="uiMoveUp"><span aria-hidden="true">↑</span></button>
+          <button type="button" data-direction="down" aria-label="הזזה למטה" data-i18n-aria-label="uiMoveDown"><span aria-hidden="true">↓</span></button>
+          <button type="button" data-direction="right" aria-label="הזזה ימינה" data-i18n-aria-label="uiMoveRight"><span aria-hidden="true">→</span></button>
+        </div>
+        <button id="keyboardActionButton" class="field-action-button" type="button" title="מציבים פוקימון על שטח פנוי או בוחרים פוקימון לשדרוג" data-i18n-title="uiPlaceSelectHint" data-i18n="uiPlaceSelect">הצבה / בחירה</button>
+      </div>
+      <p id="controlHints" class="control-hints">
+        <span data-i18n="uiKeyboardHint">חצים / WASD: תזוזה · רווח / Enter: הצבה או בחירה · Esc: השהיה</span>
+        <span data-i18n="uiPointerHint">לחצו או הקישו על שטח פנוי להצבה, ועל פוקימון לשדרוג.</span>
+      </p>
+      <p id="mapViewHint" class="control-hints map-view-hint" data-i18n="uiMapViewHint">בתחילה רואים את המפה כולה. התקרבו ואז גררו שטח ריק בעכבר או במגע כדי להזיז את התצוגה. חצים / WASD עדיין מזיזים את סמן ההצבה.</p>
 
       <section id="upgradePanel" class="upgrade-panel" aria-live="polite" hidden>
         <div class="hero-header">
@@ -118,47 +175,52 @@
             </span>
           </div>
         </div>
-        <div class="ability-bar" aria-label="יכולות לשדרוג">
+        <div class="ability-bar" aria-label="יכולות לשדרוג" data-i18n-aria-label="uiAbilities">
           <button class="ability-button" type="button" data-ability="power">
-            <span class="ability-icon">⚔️</span>
-            <strong>עוצמה</strong>
-            <small class="ability-detail">יותר נזק</small>
+            <span class="ability-icon" aria-hidden="true">⚔️</span>
+            <strong data-i18n="uiPowerUpgrade">עוצמה</strong>
+            <small class="ability-detail" data-i18n="uiPowerUpgradeDetail">יותר נזק</small>
             <span class="ability-ranks" aria-hidden="true"></span>
             <span class="ability-price"></span>
           </button>
           <button class="ability-button" type="button" data-ability="range">
-            <span class="ability-icon">🎯</span>
-            <strong>טווח</strong>
-            <small class="ability-detail">פגיעה רחוקה</small>
+            <span class="ability-icon" aria-hidden="true">🎯</span>
+            <strong data-i18n="uiRangeUpgrade">טווח</strong>
+            <small class="ability-detail" data-i18n="uiRangeUpgradeDetail">פגיעה רחוקה</small>
             <span class="ability-ranks" aria-hidden="true"></span>
             <span class="ability-price"></span>
           </button>
           <button class="ability-button" type="button" data-ability="special">
-            <span class="ability-icon" id="specialAbilityIcon">✨</span>
+            <span class="ability-icon" id="specialAbilityIcon" aria-hidden="true">✨</span>
             <strong id="specialAbilityName">יכולת מיוחדת</strong>
             <small class="ability-detail" id="specialAbilityDetail">חיזוק מיוחד</small>
             <span class="ability-ranks" aria-hidden="true"></span>
             <span class="ability-price"></span>
           </button>
           <button class="ability-button ability-ultimate" type="button" data-ability="evolution">
-            <span class="ability-icon">🌟</span>
-            <strong>התפתחות</strong>
+            <span class="ability-icon" aria-hidden="true">🌟</span>
+            <strong data-i18n="uiEvolution">התפתחות</strong>
             <small class="ability-detail" id="evolutionDetail">דורש 3 שדרוגים</small>
             <span class="ability-ranks" aria-hidden="true"></span>
             <span class="ability-price"></span>
           </button>
         </div>
-        <div class="hero-actions" aria-label="פעולות פוקימון">
-          <button id="moveTowerButton" type="button">↔ הזזה</button>
-          <button id="sellTowerButton" type="button">● מכירה <span id="sellTowerValue">0</span></button>
+        <section id="eeveeEvolutionChoices" class="eevee-evolution-choices" aria-labelledby="eeveeEvolutionTitle" hidden>
+          <h3 id="eeveeEvolutionTitle" data-i18n="uiEeveeTitle">בוחרים את העתיד של איווי</h3>
+          <p data-i18n="uiEeveeHowTo">בחרו אחת משמונה התפתחויות. בדקו את הסוג ואת מחיר המטבעות, ואז הקישו כדי לאשר.</p>
+          <div id="eeveeEvolutionOptions" class="evolution-choice-grid" role="group" aria-label="שמונה התפתחויות לבחירה" data-i18n-aria-label="uiEeveeOptions"></div>
+        </section>
+        <div class="hero-actions" aria-label="פעולות פוקימון" data-i18n-aria-label="uiPokemonActions">
+          <button id="moveTowerButton" type="button"><span aria-hidden="true">↔</span> <span data-i18n="uiMove">הזזה</span></button>
+          <button id="sellTowerButton" type="button"><span aria-hidden="true">●</span> <span data-i18n="uiSell">מכירה</span> <span id="sellTowerValue">0</span></button>
         </div>
       </section>
 
-      <section class="roster-dock" aria-label="בחירת פוקימון מגן">
+      <section class="roster-dock" aria-label="בחירת פוקימון מגן" data-i18n-aria-label="uiChooseDefender">
         <button id="openShopButton" class="buy-pokemon-button" type="button">
-          <span>＋</span>
-          <strong>קניית פוקימון</strong>
-          <small>15 גיבורים לפי סוג</small>
+          <span aria-hidden="true">＋</span>
+          <strong data-i18n="uiBuyPokemon">קניית פוקימון</strong>
+          <small data-i18n="uiRosterCount">65 מגינים · מגוון סוגים</small>
         </button>
         <div class="selected-pokemon-card" aria-live="polite">
           <span class="selected-pokemon-portrait"><img id="selectedTowerPortrait" alt="" aria-hidden="true"></span>
@@ -175,18 +237,22 @@
         <section class="tower-shop-panel" role="dialog" aria-modal="true" aria-labelledby="towerShopTitle">
           <header>
             <span>
-              <small>בחרו את הגיבור הבא</small>
-              <strong id="towerShopTitle">חנות הפוקימונים</strong>
+              <small data-i18n="uiShopIntro">בחרו את הגיבור הבא</small>
+              <strong id="towerShopTitle" data-i18n="uiShopTitle">חנות הפוקימונים</strong>
             </span>
-            <button id="closeShopButton" type="button" aria-label="סגירת חנות">×</button>
+            <button id="closeShopButton" type="button" aria-label="סגירת חנות" data-i18n-aria-label="uiCloseShop">×</button>
           </header>
-          <nav id="typeTabs" class="type-tabs" aria-label="סינון לפי סוג"></nav>
+          <nav id="typeTabs" class="type-tabs" aria-label="סינון לפי סוג" data-i18n-aria-label="uiFilterTypes"></nav>
+          <p class="shop-hint" data-i18n="uiShopHint">החליקו בין הסוגים לסינון. גללו כדי לראות את כל 65 הפוקימונים.</p>
           <div id="towerGrid" class="tower-grid"></div>
         </section>
       </div>
 
-      <p class="helper-text" id="helperText">פיקאצ׳ו נבחר — לחצו על הדשא להצבה, או על פוקימון כדי לשדרג.</p>
+      <p class="helper-text" id="helperText">פיקאצ׳ו נבחר — לחצו על שטח פנוי להצבה, או על פוקימון כדי לשדרג.</p>
     </main>
+    <script src="ui-strings.js"></script>
+    <script src="i18n.js"></script>
+    <script src="data.js"></script>
     <script src="game.js"></script>
   </body>
 </html>

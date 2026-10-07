@@ -94,6 +94,177 @@ for (const slug of slugs) {
       return;
     }
 
+    if (slug === 'pokemon-tower-defense') {
+      test.setTimeout(90_000);
+      await page.setViewportSize({ width: 1280, height: 960 });
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      const runtimeErrors: string[] = [];
+      page.on('pageerror', (error) => runtimeErrors.push(error.message));
+
+      // Seed the existing version-1 checkpoint before either document loads.
+      // These cells are clear of the path and terrain; late-path legendaries
+      // leave room for a visible mixed wave near the smaller starter team.
+      const defenders = [
+        { type: 'pikachu', x: 120, y: 280, evolutionStage: 0 },
+        { type: 'charmander', x: 360, y: 200, evolutionStage: 1 },
+        { type: 'bulbasaur', x: 360, y: 520, evolutionStage: 1 },
+        { type: 'squirtle', x: 600, y: 440, evolutionStage: 1 },
+        { type: 'eevee', x: 840, y: 360, evolutionStage: 1 },
+        { type: 'mewtwo', x: 1000, y: 280, evolutionStage: 0 },
+        { type: 'dragonite', x: 1000, y: 600, evolutionStage: 0 },
+        { type: 'lugia', x: 1240, y: 520, evolutionStage: 0 },
+        { type: 'arceus', x: 1400, y: 440, evolutionStage: 0 },
+      ];
+      const profile = {
+        version: 1,
+        bestWave: 7,
+        bossStars: 1,
+        discoveries: defenders.map((tower) => tower.type),
+        soundEnabled: false,
+        gameSpeed: 1,
+        tutorialComplete: true,
+        difficulty: 'medium',
+        mapId: 'classic',
+      };
+      const run = {
+        version: 1,
+        savedAt: 0,
+        difficulty: 'medium',
+        mapId: 'classic',
+        camera: { zoom: 1, x: 0, y: 0 },
+        coins: 360,
+        lives: 10,
+        wave: 6,
+        power: 60,
+        bossesDefeated: 1,
+        finalEvolutionUnlocked: true,
+        selectedTower: 'mewtwo',
+        nextEnemyFamilyId: 'pidgey',
+        towers: defenders.map((tower) => ({
+          ...tower,
+          skills: { power: 1, range: 1, special: 1 },
+          spentCoins: 400,
+          eeveeEvolution: tower.type === 'eevee' ? 'sylveon' : null,
+        })),
+      };
+      await page.addInitScript(({ profile, run }) => {
+        // Install for every new document, before storage access. The iframe's
+        // initial about:blank document does not yet have its final pathname.
+        const NativeImage = window.Image;
+        const spriteImages: HTMLImageElement[] = [];
+        (window as Window & { __pokemonThumbnailImages?: HTMLImageElement[] })
+          .__pokemonThumbnailImages = spriteImages;
+        const TrackedImage = function (...args: ConstructorParameters<typeof Image>) {
+          const image = new NativeImage(...args);
+          spriteImages.push(image);
+          return image;
+        };
+        TrackedImage.prototype = HTMLImageElement.prototype;
+        window.Image = TrackedImage as unknown as typeof Image;
+
+        let seed = 1337;
+        Math.random = () => {
+          seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+          return seed / 4294967296;
+        };
+
+        // Root and iframe share storage; either committed document can seed
+        // the checkpoint even if the initial blank document has no access.
+        try {
+          localStorage.setItem('mini-games:pokemon-tower-defense:profile', JSON.stringify(profile));
+          localStorage.setItem('mini-games:pokemon-tower-defense:run', JSON.stringify(run));
+        } catch { /* Storage is unavailable in the initial blank document. */ }
+      }, { profile, run });
+
+      await page.goto('/en/games/pokemon-tower-defense', { waitUntil: 'networkidle' });
+      await page.getByRole('dialog').waitFor();
+      const embedded = page.frames().find((frame) =>
+        frame.url().includes('/games/pokemon-tower-defense/index.html'),
+      );
+      if (!embedded) throw new Error('Pokémon Tower Defense iframe did not load');
+
+      const waitForSprites = async (expectedIds: number[] = []) => {
+        await embedded.waitForFunction((expected) => {
+          const tracked =
+            (window as Window & { __pokemonThumbnailImages?: HTMLImageElement[] })
+              .__pokemonThumbnailImages ?? [];
+          const sprites = tracked.filter((image) => image.src.includes('/sprites/pokemon/'));
+          const loaded = (image: HTMLImageElement) => image.complete && image.naturalWidth > 0;
+          const unavailable = sprites.filter((image) => image.complete && !image.naturalWidth);
+          if (unavailable.length) {
+            throw new Error(
+              `Real Pokémon artwork failed to load: ${unavailable.map((image) => image.src).join(', ')}`,
+            );
+          }
+          const loadedIds = new Set(
+            sprites.filter(loaded).map((image) =>
+              Number(image.src.match(/\/(\d+)\.(?:gif|png)(?:\?|$)/)?.[1]),
+            ),
+          );
+          return (
+            sprites.length > 0 &&
+            sprites.every(loaded) &&
+            expected.every((id) => loadedIds.has(id))
+          );
+        }, expectedIds, { timeout: 30_000, polling: 100 });
+        await embedded.evaluate(async () => {
+          const tracked =
+            (window as Window & { __pokemonThumbnailImages?: HTMLImageElement[] })
+              .__pokemonThumbnailImages ?? [];
+          const visibleImages = [...document.images].filter((image) =>
+            image.src.includes('/sprites/pokemon/') && image.getClientRects().length > 0,
+          );
+          await Promise.all(
+            [...new Set([...tracked, ...visibleImages])]
+              .filter((image) => image.src.includes('/sprites/pokemon/'))
+              .map((image) => image.decode()),
+          );
+          await new Promise<void>((resolve) =>
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+          );
+        });
+      };
+
+      // Restore underneath the real instructions modal: its onLoad pause sync
+      // keeps the wave timer still until all placed/evolved sprites are ready.
+      await embedded.locator('button[data-difficulty="medium"]').evaluate((button) =>
+        (button as HTMLButtonElement).click(),
+      );
+      await embedded.locator('#continueButton').evaluate((button) =>
+        (button as HTMLButtonElement).click(),
+      );
+      await embedded.locator('#startPanel').waitFor({ state: 'hidden' });
+      await waitForSprites([25, 5, 2, 8, 700, 150, 149, 249, 493]);
+      await page.getByRole('button', { name: /Got it.*Let.s Play/ }).click();
+      await page.getByRole('dialog').waitFor({ state: 'hidden' });
+      await tryClick(embedded, '#tutorialSkip');
+      await embedded.waitForFunction(
+        () => Number(document.getElementById('waveValue')?.textContent) >= 7,
+        null,
+        { timeout: 10_000 },
+      );
+      await page.waitForTimeout(5500);
+      // Freeze the activity snapshot with the existing portal protocol while
+      // any newly requested mixed-wave sprites finish decoding.
+      await page.evaluate(() => {
+        document.querySelector<HTMLIFrameElement>(
+          'iframe[src*="/games/pokemon-tower-defense/index.html"]',
+        )?.contentWindow?.postMessage(
+          {
+            source: 'pokemon-tower-defense-portal',
+            type: 'instructions-state',
+            open: true,
+          },
+          window.location.origin,
+        );
+      });
+      await waitForSprites();
+      if (runtimeErrors.length) throw new Error(runtimeErrors.join('\n'));
+      await embedded.locator('.game-stage').screenshot({ path: screenshotPath, type: 'png' });
+      console.log(`Screenshot saved: ${screenshotPath}`);
+      return;
+    }
+
     await page.goto(`/en/games/${slug}`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(1500);
 
