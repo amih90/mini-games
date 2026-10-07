@@ -1,4 +1,4 @@
-import { test, Page } from '@playwright/test';
+import { test, Page, Frame } from '@playwright/test';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -48,7 +48,7 @@ function getGameSlugs(): string[] {
     });
 }
 
-async function tryClick(page: Page, selector: string, timeout = 800): Promise<boolean> {
+async function tryClick(page: Page | Frame, selector: string, timeout = 800): Promise<boolean> {
   try {
     const el = page.locator(selector).first();
     if (await el.isVisible({ timeout })) {
@@ -85,6 +85,16 @@ for (const slug of slugs) {
     await page.goto(`/en/games/${slug}`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(1500);
 
+    // Standalone games can be embedded in a same-origin iframe. Interact with
+    // their document directly so the thumbnail still captures the game canvas.
+    const embeddedGame =
+      slug === 'pokemon-tower-defense'
+        ? page.frames().find((frame) =>
+            frame.url().includes('/games/pokemon-tower-defense/index.html')
+          )
+        : undefined;
+    const gamePage: Page | Frame = embeddedGame ?? page;
+
     // 1. Dismiss instruction modals (auto-shown on first load for some games)
     await tryClick(page, 'button:has-text("Got it")');
     await tryClick(page, 'button:has-text("Let\'s Play")');
@@ -112,10 +122,11 @@ for (const slug of slugs) {
     } else if (!GAMES_DIRECT_TO_PLAYING.has(slug)) {
       // Try common start-button labels (partial text match via :has-text)
       const started =
-        (await tryClick(page, 'button:has-text("Play")')) ||
-        (await tryClick(page, 'button:has-text("Start")')) ||
-        (await tryClick(page, 'button:has-text("Click to Start")')) ||
-        (await tryClick(page, 'button:has-text("Tap to Start")'));
+        (await tryClick(gamePage, '#startButton')) ||
+        (await tryClick(gamePage, 'button:has-text("Play")')) ||
+        (await tryClick(gamePage, 'button:has-text("Start")')) ||
+        (await tryClick(gamePage, 'button:has-text("Click to Start")')) ||
+        (await tryClick(gamePage, 'button:has-text("Tap to Start")'));
       if (started) {
         await page.waitForTimeout(2800);
       } else {
@@ -133,7 +144,7 @@ for (const slug of slugs) {
 
     // 4. Take the screenshot — prefer the canvas element for games that use one,
     //    so we get a clean crop of the actual game content.
-    const canvas = page.locator('canvas').first();
+    const canvas = gamePage.locator('canvas').first();
     const canvasVisible = await canvas.isVisible({ timeout: 500 }).catch(() => false);
 
     if (canvasVisible) {

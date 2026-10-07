@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+    <meta name="theme-color" content="#2a9d58">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>מגיני השביל</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="title-bar">
+        <div>
+          <p class="eyebrow">משחק הגנה קטן וכיפי</p>
+          <h1>מגיני השביל</h1>
+        </div>
+        <div class="title-actions">
+          <button id="speedButton" class="icon-button speed-button" type="button" aria-label="מהירות משחק כפולה" aria-pressed="false">1×</button>
+          <button id="soundButton" class="icon-button" type="button" aria-label="השתקת צלילים" aria-pressed="false">🔊</button>
+        </div>
+      </header>
+
+      <section class="battle-status" aria-label="מצב הגל">
+        <div class="wave-info" aria-live="polite">
+          <img id="waveEnemyIcon" alt="" aria-hidden="true">
+          <span class="wave-info-copy">
+            <strong id="waveEnemyName">גל 1: פידג׳י</strong>
+            <small id="waveStatus">מתכוננים...</small>
+            <span class="wave-progress"><i id="waveProgressFill"></i></span>
+          </span>
+        </div>
+
+        <div id="bossHealth" class="boss-health" aria-live="polite" hidden>
+          <span class="boss-health-copy">
+            <strong id="bossHealthName">בוס</strong>
+            <small id="bossHealthStatus">מתקרב...</small>
+          </span>
+          <span class="boss-health-track"><i id="bossHealthFill"></i></span>
+        </div>
+      </section>
+
+      <section class="game-stage" aria-label="משחק הגנת פוקימונים">
+        <canvas id="gameCanvas" width="1600" height="900" aria-label="שדה המשחק. לחצו על הדשא כדי להציב את הפוקימון שנבחר.">
+          הדפדפן שלכם צריך לתמוך בקנבס כדי להפעיל את המשחק.
+        </canvas>
+
+        <div class="hud" aria-live="polite">
+          <div class="stat stat-coins"><span>●</span><strong id="coinValue">160</strong><small>מטבעות</small></div>
+          <div class="stat stat-wave"><span>★</span><strong id="waveValue">1</strong><small>גל</small></div>
+          <div class="stat stat-lives"><span>♥</span><strong id="lifeValue">10</strong><small>חיים</small></div>
+        </div>
+
+        <div id="bossWarning" class="boss-warning" aria-live="assertive" hidden>
+          <img id="bossWarningImage" alt="" aria-hidden="true">
+          <span>
+            <small>קרב בוס!</small>
+            <strong id="bossWarningName">אוניקס</strong>
+            <em id="bossWarningDetail">חלש למים · מגן אבנים</em>
+          </span>
+        </div>
+
+        <button id="powerButton" class="power-button" type="button" disabled aria-label="כוח פוקימון עדיין לא טעון">
+          <span>⚡</span>
+          <small id="powerLabel">0%</small>
+        </button>
+
+        <button id="startWaveButton" class="start-wave-button" type="button" hidden>
+          <strong>התחל גל עכשיו</strong>
+          <small id="earlyWaveBonus">בונוס 0 מטבעות</small>
+        </button>
+
+        <div id="startPanel" class="modal-card">
+          <p class="modal-kicker">מוכנים, מאמנים?</p>
+          <h2>הגנו על סל הפירות!</h2>
+          <p>בנו צוות, הביסו בוסים והתפתחו עד לצ׳ריזארד, ונוסאור ובלסטויז!</p>
+          <div class="profile-summary" aria-label="התקדמות המאמן">
+            <span><strong id="bestWaveValue">0</strong><small>שיא גל</small></span>
+            <span><strong id="bossStarsValue">0</strong><small>כוכבי בוס</small></span>
+            <span><strong id="dexValue">5</strong><small>בפוקדקס</small></span>
+          </div>
+          <div class="start-actions">
+            <button id="continueButton" class="primary-button continue-button" type="button" hidden>המשך משחק שמור</button>
+            <button id="startButton" class="primary-button" type="button">משחק חדש</button>
+          </div>
+        </div>
+
+        <div id="gameOverPanel" class="modal-card is-hidden">
+          <p class="modal-kicker">נלחמתם מצוין!</p>
+          <h2>הגעתם לגל <span id="finalWave">1</span></h2>
+          <p id="gameOverRewards">הפוקימונים שלכם מוכנים לנסות שוב.</p>
+          <button id="restartButton" class="primary-button" type="button">משחקים שוב</button>
+        </div>
+
+        <div id="tutorialPanel" class="tutorial-card" hidden>
+          <span id="tutorialStep">1 / 4</span>
+          <strong id="tutorialTitle">מציבים פוקימון</strong>
+          <p id="tutorialText">בחרו פוקימון למטה ולחצו על הדשא.</p>
+          <div>
+            <button id="tutorialSkip" type="button">דלגו</button>
+            <button id="tutorialNext" type="button">הבא</button>
+          </div>
+        </div>
+
+        <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      </section>
+
+      <section id="upgradePanel" class="upgrade-panel" aria-live="polite" hidden>
+        <div class="hero-header">
+          <span class="hero-portrait"><img id="heroPortrait" alt="" aria-hidden="true"></span>
+          <div class="upgrade-identity">
+            <span id="upgradeBadge" class="level-badge">רמה 1</span>
+            <span>
+              <strong id="upgradeName">פיקאצ׳ו</strong>
+              <small id="upgradeStats">13 כוח · 190 טווח</small>
+            </span>
+          </div>
+        </div>
+        <div class="ability-bar" aria-label="יכולות לשדרוג">
+          <button class="ability-button" type="button" data-ability="power">
+            <span class="ability-icon">⚔️</span>
+            <strong>עוצמה</strong>
+            <small class="ability-detail">יותר נזק</small>
+            <span class="ability-ranks" aria-hidden="true"></span>
+            <span class="ability-price"></span>
+          </button>
+          <button class="ability-button" type="button" data-ability="range">
+            <span class="ability-icon">🎯</span>
+            <strong>טווח</strong>
+            <small class="ability-detail">פגיעה רחוקה</small>
+            <span class="ability-ranks" aria-hidden="true"></span>
+            <span class="ability-price"></span>
+          </button>
+          <button class="ability-button" type="button" data-ability="special">
+            <span class="ability-icon" id="specialAbilityIcon">✨</span>
+            <strong id="specialAbilityName">יכולת מיוחדת</strong>
+            <small class="ability-detail" id="specialAbilityDetail">חיזוק מיוחד</small>
+            <span class="ability-ranks" aria-hidden="true"></span>
+            <span class="ability-price"></span>
+          </button>
+          <button class="ability-button ability-ultimate" type="button" data-ability="evolution">
+            <span class="ability-icon">🌟</span>
+            <strong>התפתחות</strong>
+            <small class="ability-detail" id="evolutionDetail">דורש 3 שדרוגים</small>
+            <span class="ability-ranks" aria-hidden="true"></span>
+            <span class="ability-price"></span>
+          </button>
+        </div>
+        <div class="hero-actions" aria-label="פעולות פוקימון">
+          <button id="moveTowerButton" type="button">↔ הזזה</button>
+          <button id="sellTowerButton" type="button">● מכירה <span id="sellTowerValue">0</span></button>
+        </div>
+      </section>
+
+      <section class="roster-dock" aria-label="בחירת פוקימון מגן">
+        <button id="openShopButton" class="buy-pokemon-button" type="button">
+          <span>＋</span>
+          <strong>קניית פוקימון</strong>
+          <small>15 גיבורים לפי סוג</small>
+        </button>
+        <div class="selected-pokemon-card" aria-live="polite">
+          <span class="selected-pokemon-portrait"><img id="selectedTowerPortrait" alt="" aria-hidden="true"></span>
+          <span>
+            <small id="selectedTowerType">⚡ חשמל</small>
+            <strong id="selectedTowerName">פיקאצ׳ו</strong>
+            <em id="selectedTowerDetail">ברקים מהירים</em>
+          </span>
+          <b id="selectedTowerPrice">60</b>
+        </div>
+      </section>
+
+      <div id="towerShop" class="tower-shop" hidden>
+        <section class="tower-shop-panel" role="dialog" aria-modal="true" aria-labelledby="towerShopTitle">
+          <header>
+            <span>
+              <small>בחרו את הגיבור הבא</small>
+              <strong id="towerShopTitle">חנות הפוקימונים</strong>
+            </span>
+            <button id="closeShopButton" type="button" aria-label="סגירת חנות">×</button>
+          </header>
+          <nav id="typeTabs" class="type-tabs" aria-label="סינון לפי סוג"></nav>
+          <div id="towerGrid" class="tower-grid"></div>
+        </section>
+      </div>
+
+      <p class="helper-text" id="helperText">פיקאצ׳ו נבחר — לחצו על הדשא להצבה, או על פוקימון כדי לשדרג.</p>
+    </main>
+    <script src="game.js"></script>
+  </body>
+</html>

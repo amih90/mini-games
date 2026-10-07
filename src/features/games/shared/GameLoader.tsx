@@ -332,6 +332,11 @@ const MergeTankTacticsGame = dynamic(
   { loading: () => <GameLoadingSkeleton />, ssr: false }
 );
 
+const PokemonTowerDefenseGame = dynamic(
+  () => import('@/features/games/pokemon-tower-defense/PokemonTowerDefenseGame'),
+  { loading: () => <GameLoadingSkeleton />, ssr: false }
+);
+
 function GameLoadingSkeleton() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-peach-glow-light via-white to-sky-bubble-light flex items-center justify-center">
@@ -451,6 +456,8 @@ export function GameLoader({ slug }: GameLoaderProps) {
       return <WildFriendsGame locale={locale} />;
     case 'merge-tank-tactics':
       return <MergeTankTacticsGame />;
+    case 'pokemon-tower-defense':
+      return <PokemonTowerDefenseGame />;
     default:
       return null;
   }
