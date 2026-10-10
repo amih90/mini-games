@@ -106,9 +106,9 @@ for (const slug of slugs) {
       // leave room for a visible mixed wave near the smaller starter team.
       const defenders = [
         { type: 'pikachu', x: 120, y: 280, evolutionStage: 0 },
-        { type: 'charmander', x: 360, y: 200, evolutionStage: 1 },
+        { type: 'cyndaquil', x: 360, y: 200, evolutionStage: 1 },
         { type: 'bulbasaur', x: 360, y: 520, evolutionStage: 1 },
-        { type: 'squirtle', x: 600, y: 440, evolutionStage: 1 },
+        { type: 'totodile', x: 600, y: 440, evolutionStage: 1 },
         { type: 'eevee', x: 840, y: 360, evolutionStage: 1 },
         { type: 'mewtwo', x: 1000, y: 280, evolutionStage: 0 },
         { type: 'dragonite', x: 1000, y: 600, evolutionStage: 0 },
@@ -234,7 +234,7 @@ for (const slug of slugs) {
         (button as HTMLButtonElement).click(),
       );
       await embedded.locator('#startPanel').waitFor({ state: 'hidden' });
-      await waitForSprites([25, 5, 2, 8, 700, 150, 149, 249, 493]);
+      await waitForSprites([25, 156, 2, 159, 700, 150, 149, 249, 493]);
       await page.getByRole('button', { name: /Got it.*Let.s Play/ }).click();
       await page.getByRole('dialog').waitFor({ state: 'hidden' });
       await tryClick(embedded, '#tutorialSkip');
@@ -260,7 +260,13 @@ for (const slug of slugs) {
       });
       await waitForSprites();
       if (runtimeErrors.length) throw new Error(runtimeErrors.join('\n'));
-      await embedded.locator('.game-stage').screenshot({ path: screenshotPath, type: 'png' });
+      await page.addStyleTag({ content: 'nextjs-portal { visibility: hidden !important; }' });
+      // Include the tablet cockpit as well as the battlefield: the thumbnail
+      // should show where children buy, place and upgrade without scrolling.
+      await embedded.locator('.game-shell').screenshot({
+        path: screenshotPath, type: 'png',
+        style: 'nextjs-portal { visibility: hidden !important; }',
+      });
       console.log(`Screenshot saved: ${screenshotPath}`);
       return;
     }

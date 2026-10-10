@@ -1,142 +1,207 @@
-# Pokémon Path Protectors
+# Pokémon Path Protectors — Fieldnotes redesign
 
-A colorful, mobile-first HTML5 Canvas tower-defense adventure made for simple tap play. Build a team of animated Pokémon, defeat cinematic bosses, unlock final evolutions, and protect the berry basket.
+A modern illustrated 2D tower-defense game. The presentation and pointer
+interactions have been rebuilt; the shop offers **137 choices**: base forms from
+all nine generations of starter trios, 50 additional base-form families, and
+independent defenders. Evolution forms are earned through upgrades rather than
+bought directly. The full
+species/evolution catalog remains available to the game and existing saves.
+The endless waves, enemy families, boss squads and three difficulties are unchanged.
+No campaign or gameplay rebalance was introduced.
 
-The complete interface supports English, Hebrew/RTL, Chinese, and Spanish.
-The three original battlefields have different routes, environments, and tactical placement pockets; none copies a proprietary game map.
+### Fifty new base-form families
 
-## Play
+The shop adds exactly 50 distinct, previously unavailable base-form choices:
+Bellsprout, Tentacool, Doduo, Drowzee, Krabby, Horsea, Spinarak, Aipom, Gligar,
+Lotad, Seedot, Aron, Electrike, Trapinch, Shroomish, Cranidos, Shieldon,
+Shellos, Drifloon, Snover, Stunky, Sandile, Darumaka, Joltik, Litwick, Axew,
+Golett, Honedge, Skiddo, Goomy, Phantump, Bergmite, Grubbin, Salandit,
+Mareanie, Jangmo-o, Morelull, Rookidee, Blipbug, Toxel, Impidimp, Silicobra,
+Cufant, Sizzlipede, Pawmi, Tarountula, Nacli, Tadbulb, Shroodle and Frigibax.
+Their species and evolution forms include dex numbers and English, Hebrew,
+Chinese and Spanish names. Every new defender uses the shared tower-stat,
+attack, skill-price, evolution and save model. The existing shop roster remains
+available, and evolved forms are earned through training rather than bought.
 
-Open `index.html` in a modern browser. There is no build step and no dependency to install.
-Standalone play defaults to Hebrew; use `index.html?locale=en`, `?locale=he`,
-`?locale=zh`, or `?locale=es` to choose a language. The portal supplies its current locale automatically.
+### Johto team expansion
 
-For the most consistent remote-asset loading, you can optionally serve the folder locally:
+Exactly 30 Johto species join the original catalog (Lugia and Ho-Oh were
+already included and are retained): Totodile, Croconaw, Feraligatr, Cyndaquil,
+Quilava, Typhlosion, Mareep, Flaaffy, Ampharos, Chinchou, Lanturn, Marill,
+Azumarill, Hoppip, Skiploom, Jumpluff, Sunkern, Sunflora, Wooper, Quagsire,
+Teddiursa, Ursaring, Slugma, Magcargo, Swinub, Piloswine, Houndour, Houndoom,
+Skarmory and Shuckle. Twelve base members of those chains appear in the shop;
+their other 16 forms evolve in play. Skarmory and Shuckle remain as single-form
+shop choices. All 27 official grass/fire/water starter lines from Generations I–IX are
+represented with their real forms and artwork. Eevee still chooses any of its
+eight branches through its evolution upgrade. Standalone defenders such as
+Lugia and Ho-Oh remain purchasable.
 
-```sh
-python3 -m http.server 8080
-```
+Buy now has an original colorful capture-ball shop illustration. Sell shows
+the selected hero returning a gold coin, its short localized label and the
+exact 65% investment refund. Sell remains separate from the four upgrades,
+only appears for a placed hero and keeps its original single-click behavior.
+The controls use 48–64px artwork and at least 48px touch targets, including RTL
+and compact portrait layouts, without changing the cockpit's row heights.
 
-Then open <http://localhost:8080>.
+## Play and language
 
-## Difficulty and maps
+Open `index.html?locale=en` (also `he`, `zh`, `es`; Hebrew is RTL), or play through
+the Mini-Games Portal. Standalone defaults to Hebrew. The portal supplies its
+locale, shared `InstructionsModal`, and `useRetroSounds` audio owner. For local
+standalone serving, run `python3 -m http.server 8080` in this directory.
 
-Choose a difficulty and a map before starting a new run. They are locked during
-play and restored by **Continue Saved Game**. After game over, **Play Again**
-returns to the selection screen.
+## Interface
 
-| Difficulty | Starting coins | Lives | Challenge |
-| --- | --- | --- | --- |
-| Easy | 220 | 15 | Slower, weaker enemies, fewer spawns, later evolutions, and gentler boss abilities |
-| Medium | 180 | 10 | Balanced mixed waves, evolved enemies, and large bosses |
-| Hard | 150 | 7 | More enemies, faster spawns, earlier final forms, and much stronger, larger bosses |
+- Dark-slate translucent surfaces, mint/gold accents, custom SVG controls,
+  picture-first Pokémon cards and live illustrated map previews.
+- One compact status strip; a bounded shop; a reserved team/inspector workspace
+  **above** the battlefield. Opening upgrades never moves the canvas.
+- The opt-in portal header is 51px tall with 48px back/help targets; embedded
+  play omits the repeated internal title. Other games' headers are unchanged.
+- The map stays 16:9, with no page scroll in tablet portrait or landscape.
+  Shop browsing scrolls only inside the modal. Primary touch controls are 48px.
+- The five original landscapes have layered painted glades, foliage, rocks,
+  shorelines and distinct biomes. Static terrain is cached once per map;
+  previews are generated from the same scene, not unrelated stock pictures.
 
-| Map | Logical size | Environment |
+| Map | Logical size | Illustration / route |
 | --- | --- | --- |
-| Current: Meadow | 1600×900 | The original green meadow, lakes, groves, cliffs, and winding route |
-| Bigger: Coastal Lagoon | 2240×1260 | A longer sandy trail, turquoise lagoons, reefs, shells, and palm groves |
-| Extra-large: Volcanic Highlands | 2880×1620 | A vast zigzag route, glowing lava, ash cliffs, crystals, and drifting embers |
-
-The whole map is visible initially. Use **+ / −** to zoom between 100% and 300%,
-drag empty battlefield space with a mouse or finger to pan, and use **Reset
-View** to see the whole map again. A drag never buys or places a defender.
-The maps have genuinely larger playable areas and longer routes, not just
-different background colors.
+| Meadow | 1600×900 | Sunny grass, rounded trail, lily ponds and berry sanctuary |
+| Coastal Lagoon | 2240×1260 | Turquoise lagoons, sand trail, reefs and palms |
+| Volcanic Highlands | 2880×1620 | Basalt, warm lava pools, hardy highland foliage |
+| Switchback Garden | 1600×900 | Long alternating lanes around garden pockets |
+| Spiral Island | 1600×900 | Clear rounded spiral ending at an inner sanctuary, **no crossings** |
 
 ## Controls
 
-- Tap **Buy Pokémon** to open the hero shop and filter by any of its 16 types, or All.
-- The roster now has **65 selectable defenders**: the original 15 plus 50 additions, including Mew, Mewtwo, Dragonite, Lugia, Zapdos, Moltres, Arceus, Articuno, Rayquaza, Kyogre, Groudon, and all eight Eevee forms. Affordable new evolution chains include Dratini, Gastly, Geodude, Machop, Magikarp, Riolu, Bagon, Gible, Beldum, and Togepi.
-- Tap or click open ground to place the selected Pokémon. With the canvas focused, arrows or WASD move the placement cursor, and Space or Enter places or selects a defender. On-screen direction/action buttons support touch.
-- Water, lava, cliffs, groves, occupied cells, and the route itself cannot be used, creating meaningful strong and weak placement locations.
-- Escape closes the shop or evolution choice, cancels a move, or pauses. The pause button also pauses/resumes. Instructions, the shop, evolution choices, and hidden tabs pause the simulation without losing countdown time.
-- Tap a placed Pokémon to open its Dota-inspired hero ability panel and see its exact attack range.
-- Spend coins on three ranked abilities: power, range, and a unique species skill. Every ability has three ranks with live stat updates.
-- Evolution is a two-rank ultimate. The first rank unlocks after three ability purchases. After six ability ranks and the first defeated boss, the second rank unlocks the final form or mastery.
-- Full progression paths include Pikachu → Raichu → Mastery, Charmander → Charmeleon → Charizard, Bulbasaur → Ivysaur → Venusaur, and Squirtle → Wartortle → Blastoise.
-- Eevee's first evolution opens a player-choice grid: **Vaporeon, Jolteon, Flareon, Espeon, Umbreon, Leafeon, Glaceon, or Sylveon**. Each changes its actual element and combat style: water splash, chained lightning, fire bursts, long-range psychic attacks, dark slowing, binding seeds, icy slowing, or wide fairy splash. Its second evolution masters the chosen form rather than changing branches. Species with no further evolution can also buy two mastery ranks.
-- New chains include Magnemite → Magneton → Magnezone, Shinx → Luxio → Luxray, Vulpix → Ninetales → Fire Mastery, Torchic → Combusken → Blaziken, Mudkip → Marshtomp → Swampert, Piplup → Prinplup → Empoleon, Chikorita → Bayleef → Meganium, Rowlet → Dartrix → Decidueye, Abra → Kadabra → Alakazam, and Ralts → Kirlia → Gardevoir.
-- Pokémon attack automatically when an enemy enters range.
-- Pikachu attacks quickly and can chain lightning to a nearby enemy.
-- Charmander launches slower fireballs that damage a small group.
-- Bulbasaur throws slowing seeds, Squirtle fires splashy water bubbles, and Eevee launches fast stars.
-- Regular waves rotate through a shuffled bag of **32 enemy families**, so a family does not repeat until that rotation is exhausted. The next wave is planned before its countdown and the preview matches the actual spawns.
-- Waves contain guaranteed mixtures rather than independently rolling identical enemies: middle-form waves use about 70% base forms and 30% evolved forms, such as 7 Pidgey + 3 Pidgeotto in a ten-enemy group. Later waves add final forms such as Pidgeot, Gengar, Garchomp, and Metagross, with an increasing final-form share. Higher difficulties introduce evolutions earlier. Later waves also mix a second family into the same wave.
-- Every fifth wave is a dedicated battle from **17 different bosses**. Onix, Haunter, Snorlax, Dragonite, Articuno, Zapdos, and Moltres can appear early; later boss pools add Mew, Mewtwo, Lugia, Ho-Oh, Kyogre, Groudon, Rayquaza, Dialga, Giratina, and Arceus. Bosses do not repeat until the eligible pool has been used.
-- Boss mechanics include shields, phasing, interruptible healing, dashes, storms that briefly delay nearby defenders, and enraged speed/armor. Boss size and strength increase with difficulty and later milestones.
-- Boss warnings show the encounter mechanic and weakness. Matching attacks deal bonus damage, but every team can still win.
-- A boss health bar shows its next ability. A one-use berry shield automatically pushes back the boss the first time it reaches the basket.
-- The animated wave panel shows the current species, countdown, and remaining progress.
-- Waves rotate through normal, swarm, fast, and armored modifiers, each with visible rules and different enemy count, health, or speed.
-- Use the 1×/2× button to control pacing. Between waves, call the next wave early to earn a countdown-based coin bonus.
-- The sound button reflects both the game preference and the portal's shared mute setting. Enabling sound clears the shared mute in one click; standalone sound remains local to this game.
-- Use the selected hero panel to move a misplaced Pokémon for free or sell it for 65% of all coins invested in it.
-- Difficulty scales more strongly after the opening waves; milestone bosses are tougher and cost two lives if they reach the basket.
-- Consecutive defeats build a coin-boosting combo. Defeats also charge the Poké Power button for a dramatic field-wide attack.
-- Defeated enemies award coins. Any enemy reaching the basket removes one life.
-- Waves become progressively larger, faster, and tougher. The game ends at zero lives.
-- Best wave, boss stars, Pokédex discoveries, sound, speed, preferred difficulty/map, and tutorial completion are saved locally.
-- The current run is checkpointed between rounds, including difficulty, map, camera, coins, lives, Poké Power, placed towers, positions, ability ranks, chosen Eevee branches, evolutions, boss rotation, selected defender, family rotation, and the exact next-wave composition.
-- Returning players can choose **Continue Saved Game** or **New Game**. A checkpoint resumes safely before the next wave rather than restoring enemies halfway along the route.
-- Original version 1 checkpoints remain compatible: missing difficulty/map fields mean Medium/Meadow, and an already evolved Eevee without a branch remains Vaporeon.
+1. Press **Buy Pokémon** to open the shop. Choose one of its 137 base-form or
+   independent defenders using the type filters; choosing closes the shop.
+   Tap clear ground to place and pay its price. Train it with upgrades to evolve
+   it; evolved forms are not separate purchases. Selection is still free
+   and affordability is checked only when placing.
+   Buy Pokémon stays available beside an open defender inspector.
+2. Tap a defender's visible body to inspect its range, power, speed and upgrades.
+   Tap empty ground to dismiss inspection without buying or spending coins.
+   Choosing a Pokémon in the shop exits inspection, so the next clear-ground
+   tap intentionally places the newly chosen Pokémon.
+3. **Hold the body for 480ms**, watching the immediate progress ring. Small
+   pre-lift finger drift is tolerated. When lifted, drag and release on green
+   ground to move **for free**. No Move button is needed.
+4. The pointer keeps its original grab offset even when grabbing an upper body.
+   The original location remains occupied until a valid drop. Red/occupied/path
+   drops return safely to that location without spending coins.
+5. A stationary hold can also be released before tapping the destination.
+   Escape, close inspector, pointer cancellation, pause, instructions, shop,
+   hiding the tab and losing pointer capture safely cancel an active drag.
+6. For keyboard play focus the field: arrows/WASD move the cursor,
+   Space/Enter place/select. With a defender selected, **M** lifts it or cancels
+   relocation; arrows/WASD choose its new spot and Space/Enter drops it.
+   Escape cancels relocation, or pauses when not moving.
+7. Mouse wheel zoom (100–300%), drag **empty** ground to pan; Whole map resets the view.
+   A pan does not place or buy a defender. Pause and 1×/2× preserve existing rules.
+8. Right-click **only the battlefield**, or click the inspector's attached **X**,
+   to cancel inspection, an armed shop purchase and relocation. No tower or coins
+   change; no pause is triggered. Choose a Pokémon in the shop to build again.
+   Hold timers and pointer capture are released, and ghost/range previews clear.
 
-## Development
+## Compact cockpit
 
-`data.js` contains the additional roster, localized species names, combat
-profiles, difficulty settings, map definitions, and deterministic wave/stat/
-camera helpers. `i18n.js` contains dynamic interface translations and merges
-the static HTML translations from `ui-strings.js`. `game.js` owns simulation,
-rendering, inputs, and checkpointing. The portal wrapper forwards the locale,
-uses the shared instructions modal, and owns embedded audio through
-`useRetroSounds`; standalone play retains procedural Web Audio.
+The responsive game frame is centered and capped at 1200px, with height-aware
+width on short, wide displays. A single 968px HUD groups enemy preview, illustrated
+coin/heart/wave chips and nearby controls. The numeric wave count appears only
+in its chip; all chips retain localized accessible labels and tooltips.
+The stable 168px command row pairs Buy/large illustrated upgrades (X attached)
+with a separate 96px Poké Power orb. Its circular gauge shows charging percent;
+ready power glows with a reduced-motion-aware aura. Early-wave action has a
+reserved slot below it. No detached utility band or zoom +/- buttons remain.
+Start/map and shop dialogs are capped at 760px/840px; internal roster scrolling
+exposes every purchasable base or independent defender. The battlefield has no
+stretched dark outer card.
+
+## Preserved gameplay
+
+| Difficulty | Coins | Lives | Existing challenge |
+| --- | --- | --- | --- |
+| Easy | 220 | 15 | Slower enemies and gentle bosses; strikes only briefly stun |
+| Medium | 180 | 10 | Mixed forms, boss squads of 2–5; three warned hits knock out defenders |
+| Hard | 150 | 7 | Faster/stronger waves and squads of 3–5; earlier evolved enemies |
+
+Defenders attack automatically. Buy three ranks of power, range and species skill.
+The first evolution needs three ability purchases; final evolution/mastery needs
+six and a defeated boss. Eevee retains all eight selectable branches and masters
+the chosen branch. All 32 enemy families, guaranteed mixed-form waves, shuffled
+family rotation, every-fifth-wave boss squads and all 17 boss species remain.
+Boss abilities include shields, phasing, interruptible healing, dashes, storms
+and enrage. Warned ground strikes are dodgeable by moving; knockouts still return
+65% investment. Combo rewards, Poké Power, early-wave bonuses and endless
+progression retain their existing calculations.
+
+## Routes and saves
+
+`data.js` deterministically samples rounded corners into `map.route`.
+Road painting, travel (including multiple segments in a frame), build exclusion
+and furthest-progress targeting all use this exact route. Camera transforms
+change presentation only. A boss berry-shield rewind uses world distance,
+not an arbitrary number of newly sampled points.
+
+Profile/run storage keys and checkpoint `version: 1` stay compatible.
+`routeVersion: 2` identifies new geometry. Missing map/difficulty still defaults
+to Meadow/Medium; old evolved Eevee still defaults to Vaporeon. Ability ranks,
+branches, durability, coins and progression are retained. If a restored placement
+is no longer valid, its **entire recorded investment** is returned and a localized
+10-second notice explains the recovery. Defenders are never silently discarded.
+
+## Artwork and rights
+
+The redesign reuses the project's existing PokéAPI **official-artwork** collection
+for cards and battlefield characters:
+
+- [Repository and usage documentation](https://github.com/PokeAPI/sprites)
+- [Pikachu](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png)
+- [Eevee](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png)
+
+The repository documents the collection for application use; that is **not**
+a separate license grant from the Pokémon rights holders. Pokémon names and
+imagery remain subject to Nintendo, Game Freak and Creatures' rights. This is
+the existing personal non-commercial fan project, not a claim of ownership or
+commercial permission. No new Pokémon art was generated or proprietary maps
+copied. Landscape illustration and interface icons are original code in this
+project. Kenney tiles and Showdown GIFs are no longer fetched.
+
+Original idle/attack/lift/hit transforms animate the high-resolution portraits.
+Reduced motion disables decorative movement. Failed portraits retry the existing
+PokéAPI Home collection where available; an explicit localized notice and drawn
+fallback preserve play rather than pretending artwork loaded.
+
+## Development and checks
+
+`landscape.js` owns cached terrain; `data.js` owns route/model helpers;
+`game.js` owns gameplay, input, UI assembly and storage; `i18n.js` and
+`ui-strings.js` own four-locale copy. Portal chrome uses the opt-in `fieldnotes`
+GameWrapper and InstructionsModal themes; unrelated games keep their theme.
 
 ```sh
-npx playwright test e2e/pokemon-tower-defense-model.spec.ts e2e/pokemon-tower-defense.spec.ts
+npx playwright test e2e/pokemon-tower-defense-model.spec.ts e2e/pokemon-tower-defense.spec.ts e2e/pokemon-tower-defense-redesign.spec.ts
 GAME_SLUG=pokemon-tower-defense npm run test:screenshots
+npx eslint public/games/pokemon-tower-defense/*.js src/features/games/pokemon-tower-defense src/features/games/shared/GameWrapper.tsx src/features/games/shared/InstructionsModal.tsx
+npx tsc --noEmit
+npm run build
 ```
 
-## External artwork
+Redesign tests cover real dispatched Chromium touch with pre-lift drift, upper-body
+grabs, camera transforms, RTL, free drops, invalid/occupied drops, cancellation,
+save recovery and live high-speed boss routes on every map. Numeric model checks
+verify every contact point stays on the shared route. Screenshots use live artwork.
+Browser emulation does not replace physical iPad/Safari validation.
 
-Battlefield characters use transparent animated Pokémon Showdown GIFs hosted by PokéAPI:
-
-- [Animated Pikachu](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif)
-- [Animated Charmander](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/4.gif)
-- [Animated Zubat](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/41.gif)
-- [Animated Raichu](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/26.gif)
-- [Animated Charmeleon](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/5.gif)
-- [Animated Charizard](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/6.gif)
-- [Animated Bulbasaur](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/1.gif)
-- [Animated Ivysaur](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/2.gif)
-- [Animated Venusaur](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/3.gif)
-- [Animated Squirtle](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/7.gif)
-- [Animated Wartortle](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/8.gif)
-- [Animated Blastoise](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/9.gif)
-- [Animated Eevee](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/133.gif)
-- [Animated Vaporeon](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/134.gif)
-- [Animated Pidgey](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/16.gif)
-- [Animated Rattata](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/19.gif)
-- [Animated Caterpie](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/10.gif)
-- [Animated Weedle](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/13.gif)
-- [Animated Onix](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/95.gif)
-- [Animated Haunter](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/93.gif)
-- [Animated Snorlax](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/143.gif)
-- [Animated Dragonite](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/149.gif)
-
-The same PokéAPI sprite collections provide the additional multi-generation defenders, their evolutions, and evolving enemy families. Battlefield artwork loads on demand instead of fetching the entire expanded Pokédex at startup. Missing animated sprites fall back to official artwork, then to species-colored procedural art, so unavailable artwork cannot stop a run or disguise every enemy as Zubat.
-
-Tower cards and animated-image fallbacks use PokéAPI official artwork:
-
-- [Pikachu artwork](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png)
-- [Charmander artwork](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png)
-- [Bulbasaur artwork](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png)
-- [Squirtle artwork](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png)
-- [Eevee artwork](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png)
-- [Zubat artwork](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/41.png)
-
-The grass textures are selected from Kenney's CC0 [Tower Defense (Top-Down)](https://kenney.nl/assets/tower-defense-top-down) pack:
-
-- [Grass base](https://raw.githubusercontent.com/shorepine/kenney/main/2d/Tower%20Defense/Retina/towerDefense_tile024.png)
-- [Grass variation](https://raw.githubusercontent.com/shorepine/kenney/main/2d/Tower%20Defense/Retina/towerDefense_tile038.png)
-- [Grass detail](https://raw.githubusercontent.com/shorepine/kenney/main/2d/Tower%20Defense/Retina/towerDefense_tile069.png)
-
-Pokémon and Pokémon character names are trademarks of Nintendo, Game Freak, and Creatures. Pokémon imagery is used here in a personal, non-commercial fan project and remains subject to its respective rights holders. Pokémon Showdown sprite credits belong to their original contributors. The game remains playable with procedural fallback art when remote images are unavailable.
+Inspector tiles use 104px (92px on portrait tablets) original filled
+power/target/chain illustrations and the existing next-evolution portrait.
+Only numbers, graphical rank dots and lock/check symbols are visible on the
+tiles. Localized names and descriptions remain in accessible labels, tooltips
+and instructions. Gentle four-second auras and slow orbiting sparks decorate
+available upgrades and the selected portrait; purchases get a short glow.
+Reduced motion disables all these animations; effects never cover the battlefield.
+Purchase regression coverage restores a run, opens the inspector, buys arbitrary
+species from the full shop and checks exact cost, unchanged existing defenders,
+repeat purchases, affordability-independent selection and Hebrew tablet touch.

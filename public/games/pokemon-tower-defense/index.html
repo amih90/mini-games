@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#2a9d58">
+    <meta name="theme-color" content="#101c29">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <title data-i18n="uiTitle">מגיני השביל</title>
@@ -53,21 +53,19 @@
       </section>
 
       <div class="view-toolbar" role="group" aria-label="תצוגת המפה" data-i18n-aria-label="uiMapControls" aria-describedby="mapViewHint">
-        <span class="zoom-indicator"><small data-i18n="uiZoomLabel">תקריב</small><strong id="zoomValue" dir="ltr" aria-live="polite">100%</strong></span>
-        <button id="zoomOutButton" class="icon-button view-zoom-button" type="button" aria-label="התרחקות" data-i18n-aria-label="uiZoomOut" title="התרחקות" data-i18n-title="uiZoomOut" disabled><span aria-hidden="true">−</span></button>
-        <button id="zoomInButton" class="icon-button view-zoom-button" type="button" aria-label="התקרבות" data-i18n-aria-label="uiZoomIn" title="התקרבות" data-i18n-title="uiZoomIn"><span aria-hidden="true">＋</span></button>
         <button id="resetViewButton" class="view-reset-button" type="button" aria-label="איפוס התקריב וחזרה לתצוגת המפה כולה" data-i18n-aria-label="uiResetViewHint" title="איפוס התקריב וחזרה לתצוגת המפה כולה" data-i18n-title="uiResetViewHint"><span aria-hidden="true">⤢</span> <span data-i18n="uiResetView">המפה כולה</span></button>
       </div>
 
+      <div id="commandDeck" class="command-deck"></div>
       <section class="game-stage" aria-label="משחק הגנת פוקימונים" data-i18n-aria-label="uiBattlefieldLabel">
         <canvas id="gameCanvas" width="1600" height="900" tabindex="0" aria-label="שדה המשחק. לחצו על שטח פנוי כדי להציב את הפוקימון שנבחר." data-i18n-aria-label="uiCanvasLabel" aria-describedby="controlHints mapViewHint">
           <span data-i18n="uiCanvasFallback">הדפדפן שלכם צריך לתמוך בקנבס כדי להפעיל את המשחק.</span>
         </canvas>
 
         <div class="hud" aria-live="polite">
-          <div class="stat stat-coins"><span aria-hidden="true">●</span><strong id="coinValue">160</strong><small data-i18n="uiCoins">מטבעות</small></div>
-          <div class="stat stat-wave"><span aria-hidden="true">★</span><strong id="waveValue">1</strong><small data-i18n="uiWave">גל</small></div>
-          <div class="stat stat-lives"><span aria-hidden="true">♥</span><strong id="lifeValue">10</strong><small data-i18n="uiLives">חיים</small></div>
+          <div class="stat stat-coins" role="img"><span aria-hidden="true">●</span><strong id="coinValue" dir="ltr">160</strong><small data-i18n="uiCoins">מטבעות</small></div>
+          <div class="stat stat-lives" role="img"><span aria-hidden="true">♥</span><strong id="lifeValue" dir="ltr">10</strong><small data-i18n="uiLives">חיים</small></div>
+          <div class="stat stat-wave" role="img"><span aria-hidden="true">★</span><strong id="waveValue" dir="ltr">1</strong><small data-i18n="uiWave">גל</small></div>
         </div>
 
         <div id="bossWarning" class="boss-warning" aria-live="assertive" hidden>
@@ -89,10 +87,10 @@
           <small id="earlyWaveBonus">בונוס 0 מטבעות</small>
         </button>
 
-        <div id="startPanel" class="modal-card" role="region" aria-labelledby="startPanelTitle">
+        <div id="startPanel" class="modal-card" role="dialog" aria-modal="true" aria-labelledby="startPanelTitle">
           <p class="modal-kicker" data-i18n="uiStartKicker">מוכנים, מאמנים?</p>
           <h2 id="startPanelTitle" data-i18n="uiProtectBerries">הגנו על סל הפירות!</h2>
-          <p data-i18n="uiStartIntro">בחרו מבין 65 פוקימונים, הגנו מפני גלים מעורבים והתמודדו עם בוסים אדירים!</p>
+          <p data-i18n="uiStartIntro">בחרו פוקימון פתיחה מכל דור או מגן מיוחד. שדרגו את פוקימוני הפתיחה כדי לפתח אותם!</p>
           <fieldset class="difficulty-selector" aria-describedby="difficultyDescription">
             <legend data-i18n="uiChooseDifficulty">בחרו את רמת האתגר</legend>
             <div class="difficulty-options">
@@ -108,13 +106,15 @@
               <button class="map-button" data-map="classic" type="button" aria-pressed="true"><span class="map-choice-icon" aria-hidden="true">🌿</span><strong data-i18n="map.classic">כר דשא</strong><small data-i18n="uiMapClassicSize">הגודל המקורי</small></button>
               <button class="map-button" data-map="coast" type="button" aria-pressed="false"><span class="map-choice-icon" aria-hidden="true">🌊</span><strong data-i18n="map.coast">לגונת החוף</strong><small data-i18n="uiMapCoastSize">גדולה יותר</small></button>
               <button class="map-button" data-map="volcano" type="button" aria-pressed="false"><span class="map-choice-icon" aria-hidden="true">🌋</span><strong data-i18n="map.volcano">רמות געשיות</strong><small data-i18n="uiMapVolcanoSize">גדולה מאוד</small></button>
+              <button class="map-button" data-map="switchback" type="button" aria-pressed="false"><span class="map-choice-icon" aria-hidden="true">↪️</span><strong data-i18n="map.switchback"></strong></button>
+              <button class="map-button" data-map="spiral" type="button" aria-pressed="false"><span class="map-choice-icon" aria-hidden="true">🌀</span><strong data-i18n="map.spiral"></strong></button>
             </div>
           </fieldset>
           <p id="mapDescription" data-i18n="mapDescription.classic" aria-live="polite">כר הדשא המוכר — מפה קומפקטית וירוקה לתחילת ההרפתקה.</p>
           <div class="profile-summary" aria-label="התקדמות המאמן" data-i18n-aria-label="uiTrainerProgress">
             <span><strong id="bestWaveValue">0</strong><small data-i18n="uiBestWave">שיא גל</small></span>
             <span><strong id="bossStarsValue">0</strong><small data-i18n="uiBossStars">כוכבי בוס</small></span>
-            <span><strong id="dexValue">65</strong><small data-i18n="uiPokedex">בפוקדקס</small></span>
+            <span><strong id="dexValue">0</strong><small data-i18n="uiPokedex">בפוקדקס</small></span>
           </div>
           <div class="start-actions">
             <button id="continueButton" class="primary-button continue-button" type="button" data-i18n="uiContinue" hidden>המשך משחק שמור</button>
@@ -122,14 +122,14 @@
           </div>
         </div>
 
-        <div id="gameOverPanel" class="modal-card is-hidden">
+        <div id="gameOverPanel" class="modal-card is-hidden" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
           <p class="modal-kicker" data-i18n="uiGreatEffort">נלחמתם מצוין!</p>
-          <h2><span data-i18n="uiReachedWave">הגעתם לגל</span> <span id="finalWave">1</span></h2>
+          <h2 id="gameOverTitle"><span data-i18n="uiReachedWave">הגעתם לגל</span> <span id="finalWave">1</span></h2>
           <p id="gameOverRewards">הפוקימונים שלכם מוכנים לנסות שוב.</p>
           <button id="restartButton" class="primary-button" type="button" data-i18n="uiBackToMenu">חזרה לבחירת מפה ואתגר</button>
         </div>
 
-        <div id="pausePanel" class="modal-card pause-card" role="region" aria-labelledby="pauseTitle" hidden>
+        <div id="pausePanel" class="modal-card pause-card" role="dialog" aria-modal="true" aria-labelledby="pauseTitle" hidden>
           <p class="modal-kicker" data-i18n="uiPausedKicker">נושמים רגע, מאמנים</p>
           <h2 id="pauseTitle" data-i18n="uiPausedTitle">המשחק מושהה</h2>
           <p data-i18n="uiPausedDescription">הצוות שלכם נח. המשיכו כשתהיו מוכנים!</p>
@@ -149,15 +149,6 @@
         <div id="toast" class="toast" role="status" aria-live="polite"></div>
       </section>
 
-      <div class="field-controls">
-        <div class="direction-pad" role="group" aria-label="הזזת סמן ההצבה" data-i18n-aria-label="uiMovementControls">
-          <button type="button" data-direction="left" aria-label="הזזה שמאלה" data-i18n-aria-label="uiMoveLeft"><span aria-hidden="true">←</span></button>
-          <button type="button" data-direction="up" aria-label="הזזה למעלה" data-i18n-aria-label="uiMoveUp"><span aria-hidden="true">↑</span></button>
-          <button type="button" data-direction="down" aria-label="הזזה למטה" data-i18n-aria-label="uiMoveDown"><span aria-hidden="true">↓</span></button>
-          <button type="button" data-direction="right" aria-label="הזזה ימינה" data-i18n-aria-label="uiMoveRight"><span aria-hidden="true">→</span></button>
-        </div>
-        <button id="keyboardActionButton" class="field-action-button" type="button" title="מציבים פוקימון על שטח פנוי או בוחרים פוקימון לשדרוג" data-i18n-title="uiPlaceSelectHint" data-i18n="uiPlaceSelect">הצבה / בחירה</button>
-      </div>
       <p id="controlHints" class="control-hints">
         <span data-i18n="uiKeyboardHint">חצים / WASD: תזוזה · רווח / Enter: הצבה או בחירה · Esc: השהיה</span>
         <span data-i18n="uiPointerHint">לחצו או הקישו על שטח פנוי להצבה, ועל פוקימון לשדרוג.</span>
@@ -211,16 +202,20 @@
           <div id="eeveeEvolutionOptions" class="evolution-choice-grid" role="group" aria-label="שמונה התפתחויות לבחירה" data-i18n-aria-label="uiEeveeOptions"></div>
         </section>
         <div class="hero-actions" aria-label="פעולות פוקימון" data-i18n-aria-label="uiPokemonActions">
-          <button id="moveTowerButton" type="button"><span aria-hidden="true">↔</span> <span data-i18n="uiMove">הזזה</span></button>
-          <button id="sellTowerButton" type="button"><span aria-hidden="true">●</span> <span data-i18n="uiSell">מכירה</span> <span id="sellTowerValue">0</span></button>
+          <button id="closeUpgradeButton" type="button" aria-label="" data-i18n-aria-label="closeUpgrades">×</button>
+          <button id="sellTowerButton" type="button">
+            <span class="commerce-art sell-art" aria-hidden="true"><img id="sellTowerPortrait" alt=""><span class="sell-return-art"></span></span>
+            <span class="sell-label" data-i18n="uiSell">מכירה</span>
+            <span class="sell-refund"><span id="sellTowerValue">0</span><span class="refund-coin" aria-hidden="true"></span></span>
+          </button>
         </div>
       </section>
 
       <section class="roster-dock" aria-label="בחירת פוקימון מגן" data-i18n-aria-label="uiChooseDefender">
         <button id="openShopButton" class="buy-pokemon-button" type="button">
-          <span aria-hidden="true">＋</span>
+          <span class="commerce-art buy-art" aria-hidden="true"></span>
           <strong data-i18n="uiBuyPokemon">קניית פוקימון</strong>
-          <small data-i18n="uiRosterCount">65 מגינים · מגוון סוגים</small>
+          <small data-i18n="uiRosterCount">צורות בסיס · התפתחויות במשחק</small>
         </button>
         <div class="selected-pokemon-card" aria-live="polite">
           <span class="selected-pokemon-portrait"><img id="selectedTowerPortrait" alt="" aria-hidden="true"></span>
@@ -243,7 +238,7 @@
             <button id="closeShopButton" type="button" aria-label="סגירת חנות" data-i18n-aria-label="uiCloseShop">×</button>
           </header>
           <nav id="typeTabs" class="type-tabs" aria-label="סינון לפי סוג" data-i18n-aria-label="uiFilterTypes"></nav>
-          <p class="shop-hint" data-i18n="uiShopHint">החליקו בין הסוגים לסינון. גללו כדי לראות את כל 65 הפוקימונים.</p>
+          <p class="shop-hint" data-i18n="uiShopHint">בחרו צורת בסיס. שדרגו את הפוקימון כדי לפתוח את ההתפתחויות שלו.</p>
           <div id="towerGrid" class="tower-grid"></div>
         </section>
       </div>
@@ -253,6 +248,7 @@
     <script src="ui-strings.js"></script>
     <script src="i18n.js"></script>
     <script src="data.js"></script>
+    <script src="landscape.js"></script>
     <script src="game.js"></script>
   </body>
 </html>

@@ -10,8 +10,10 @@ to work with the deployment base path.
 The catalog includes **Pokémon Tower Defense** at
 `/[locale]/games/pokemon-tower-defense`, with its self-contained game bundle in
 `public/games/pokemon-tower-defense/`. It supports English, Hebrew/RTL, Chinese,
-and Spanish, 65 selectable Pokémon, all eight player-chosen Eevee evolutions,
-three difficulties, mixed evolving enemy waves, and 17 bosses. Choose the
+and Spanish, a shop with 137 base-form and independent-defender choices,
+including 50 new base-form families and all 27 official starter lines across
+Generations I–IX. It also has all eight player-chosen Eevee evolutions, three
+difficulties, mixed evolving enemy waves, and 17 bosses. Choose the
 original Meadow, bigger Coastal Lagoon, or extra-large Volcanic Highlands
 before playing; each has its own route and environment, with whole-map view,
 zoom, and mouse/touch panning. See the bundle's README for controls and checks.

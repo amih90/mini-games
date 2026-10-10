@@ -20,7 +20,7 @@ interface InstructionsModalProps {
   }[];
   tip?: string;
   locale?: string;
-  theme?: 'default' | 'storybook';
+  theme?: 'default' | 'storybook' | 'fieldnotes';
 }
 
 const modalLabels: Record<string, { howToPlay: string; controls: string; proTip: string; letsPlay: string; close: string }> = {
@@ -52,6 +52,7 @@ export function InstructionsModal({
   const titleId = useId();
   useDialogFocus(isOpen, panel, onClose);
   const storybook = theme === 'storybook';
+  const fieldnotes = theme === 'fieldnotes';
   return (
     <AnimatePresence>
       {isOpen && (
@@ -72,11 +73,11 @@ export function InstructionsModal({
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className={`${fieldnotes ? 'bg-[#192b3a] text-[#edf5f7] border border-white/15 max-h-[90dvh]' : 'bg-white max-h-[90vh]'} rounded-3xl shadow-2xl max-w-2xl w-full overflow-y-auto`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className={`sticky top-0 p-6 rounded-t-3xl ${storybook ? 'bg-[#91afa1] border-b-4 border-[#e8d6ac]' : 'bg-gradient-to-r from-[#f7941d] to-[#ffb74d] border-b-4 border-[#ffdd00]'}`}>
+            <div className={`sticky top-0 p-6 rounded-t-3xl ${fieldnotes ? 'z-10 bg-[#192b3a]/95 backdrop-blur-md border-b border-white/10' : storybook ? 'bg-[#91afa1] border-b-4 border-[#e8d6ac]' : 'bg-gradient-to-r from-[#f7941d] to-[#ffb74d] border-b-4 border-[#ffdd00]'}`}>
               <div className="flex items-center justify-between">
                 <h2 id={titleId} className="text-3xl font-bold text-white drop-shadow-md">
                   {title}
@@ -95,8 +96,8 @@ export function InstructionsModal({
             <div className="p-6 space-y-6">
               {/* How to Play Section */}
               <div>
-                <h3 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${storybook ? 'text-[#789486]' : 'text-[#f7941d]'}`}>
-                  <span aria-hidden="true">🎯</span>
+                <h3 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${fieldnotes ? 'text-[#a6ecdb]' : storybook ? 'text-[#789486]' : 'text-[#f7941d]'}`}>
+                  {!fieldnotes && <span aria-hidden="true">🎯</span>}
                   <span>{labels.howToPlay}</span>
                 </h3>
                 <div className="space-y-4">
@@ -106,16 +107,16 @@ export function InstructionsModal({
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className={`flex gap-4 items-start p-4 rounded-2xl border-2 ${storybook ? 'bg-[#f7efe0] border-[#e3d3b0]' : 'bg-gradient-to-r from-[#f7941d]/10 to-[#ffb74d]/10 border-[#f7941d]/20'}`}
+                      className={`flex gap-4 items-start p-4 rounded-2xl ${fieldnotes ? 'border bg-white/5 border-white/10' : storybook ? 'border-2 bg-[#f7efe0] border-[#e3d3b0]' : 'border-2 bg-gradient-to-r from-[#f7941d]/10 to-[#ffb74d]/10 border-[#f7941d]/20'}`}
                     >
-                      <span className="text-4xl flex-shrink-0" aria-hidden="true">
-                        {instruction.icon}
+                      <span className={fieldnotes ? 'flex-shrink-0 flex h-10 w-10 items-center justify-center rounded-xl bg-[#a6ecdb]/10 text-[#a6ecdb] font-bold' : 'text-4xl flex-shrink-0'} aria-hidden="true">
+                        {fieldnotes ? String(index + 1).padStart(2, '0') : instruction.icon}
                       </span>
                       <div>
-                        <h4 className="text-lg font-bold text-gray-800 mb-1">
+                        <h4 className={`text-lg font-bold mb-1 ${fieldnotes ? 'text-[#edf5f7]' : 'text-gray-800'}`}>
                           {instruction.title}
                         </h4>
-                        <p className="text-gray-600 leading-relaxed">
+                        <p className={`${fieldnotes ? 'text-[#aec2ce]' : 'text-gray-600'} leading-relaxed`}>
                           {instruction.description}
                         </p>
                       </div>
@@ -126,8 +127,8 @@ export function InstructionsModal({
 
               {/* Controls Section */}
               <div>
-                <h3 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${storybook ? 'text-[#789486]' : 'text-[#f7941d]'}`}>
-                  <span aria-hidden="true">🎮</span>
+                <h3 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${fieldnotes ? 'text-[#a6ecdb]' : storybook ? 'text-[#789486]' : 'text-[#f7941d]'}`}>
+                  {!fieldnotes && <span aria-hidden="true">🎮</span>}
                   <span>{labels.controls}</span>
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -137,12 +138,17 @@ export function InstructionsModal({
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.3 + index * 0.05 }}
-                      className={`flex items-center gap-3 p-3 bg-white border-2 rounded-xl shadow-sm ${storybook ? 'border-[#dcccaf]' : 'border-[#ffdd00]'}`}
+                      className={`flex gap-3 p-3 rounded-xl ${fieldnotes ? 'items-start border bg-white/5 border-white/10' : storybook ? 'items-center border-2 bg-white shadow-sm border-[#dcccaf]' : 'items-center border-2 bg-white shadow-sm border-[#ffdd00]'}`}
                     >
-                      <span className="text-2xl" aria-hidden="true">
-                        {control.icon}
+                      <span className={fieldnotes ? 'flex-shrink-0 pt-1' : 'text-2xl'} aria-hidden="true">
+                        {fieldnotes ? (
+                          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#a6ecdb" strokeWidth="1.5">
+                            <rect x="4" y="3" width="16" height="18" rx="5" />
+                            <path d="M12 6v5M8 15h8" />
+                          </svg>
+                        ) : control.icon}
                       </span>
-                      <span className="text-gray-700 font-medium">
+                      <span className={`${fieldnotes ? 'text-[#aec2ce]' : 'text-gray-700'} font-medium`}>
                         {control.description}
                       </span>
                     </motion.div>
@@ -156,15 +162,15 @@ export function InstructionsModal({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className={`p-4 rounded-2xl border-2 ${storybook ? 'bg-[#edf1e4] border-[#b4c3a2]' : 'bg-gradient-to-r from-purple-100 to-pink-100 border-purple-300'}`}
+                  className={`p-4 rounded-2xl ${fieldnotes ? 'border bg-[#ead4a5]/5 border-[#ead4a5]/25' : storybook ? 'border-2 bg-[#edf1e4] border-[#b4c3a2]' : 'border-2 bg-gradient-to-r from-purple-100 to-pink-100 border-purple-300'}`}
                 >
                   <div className="flex gap-3 items-start">
-                    <span className="text-3xl" aria-hidden="true">💡</span>
+                    {!fieldnotes && <span className="text-3xl" aria-hidden="true">💡</span>}
                     <div>
-                      <h4 className={`text-lg font-bold mb-1 ${storybook ? 'text-[#658473]' : 'text-purple-800'}`}>
+                      <h4 className={`text-lg font-bold mb-1 ${fieldnotes ? 'text-[#ead4a5]' : storybook ? 'text-[#658473]' : 'text-purple-800'}`}>
                         {labels.proTip}
                       </h4>
-                      <p className={storybook ? 'text-[#718773]' : 'text-purple-700'}>{tip}</p>
+                      <p className={fieldnotes ? 'text-[#aec2ce]' : storybook ? 'text-[#718773]' : 'text-purple-700'}>{tip}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -176,9 +182,9 @@ export function InstructionsModal({
                   variant="primary"
                   size="lg"
                   onClick={onClose}
-                  className={storybook ? '!bg-[#8da99b] !text-[#fffaf0] hover:!bg-[#79998a]' : ''}
+                  className={fieldnotes ? '!bg-[#a6ecdb] !text-[#192b3a] !border-0 !shadow-none !rounded-xl hover:!bg-[#c3f5e8]' : storybook ? '!bg-[#8da99b] !text-[#fffaf0] hover:!bg-[#79998a]' : ''}
                 >
-                  {labels.letsPlay}
+                  {fieldnotes ? labels.letsPlay.replace('🚀', '').trim() : labels.letsPlay}
                 </KidButton>
               </div>
             </div>
