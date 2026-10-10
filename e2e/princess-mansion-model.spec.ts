@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { ACTIVITIES, DIFFICULTIES, PRINCESS_IDS, ROOM_WIDTH, STATIONS } from '../src/features/games/princess-mansion/data';
+import { ACTIVITIES, DIFFICULTIES, LEGACY_ROOM_IDS, PRINCESS_IDS, ROOM_WIDTH, STATIONS } from '../src/features/games/princess-mansion/data';
 import { MansionController, advance, command, createAdventure, occupiedSlots, type MansionState } from '../src/features/games/princess-mansion/model';
 import { BACKUP_KEY, MansionSaveStore, SAVE_KEY, parseSave } from '../src/features/games/princess-mansion/persistence';
+import legacy from './fixtures/princess-mansion-legacy.json';
+
+const originalStations = STATIONS.filter(station => LEGACY_ROOM_IDS.some(room => room === station.room));
 
 function adventure(): MansionState {
   return createAdventure('medium', 'model-test-adventure');
@@ -51,7 +54,7 @@ test.describe('Princess Mansion care model', () => {
   });
 
   test('every activity restores its own intended need', () => {
-    for (const station of STATIONS) {
+    for (const station of originalStations) {
       let state = adventure();
       state = { ...state, princesses: [{ ...state.princesses[0], room: station.room, needs: { satiety: 25, energy: 25, hygiene: 25, toiletComfort: 25, fun: 25 } }] };
       const result = command(state, { type: 'place', id: 'liora', room: station.room, x: station.x, y: 480, stationId: station.id });
@@ -163,6 +166,7 @@ test.describe('Princess Mansion gentle autonomy', () => {
   test('walks into a neighboring room, plays by herself and leaves the camera alone', () => {
     let state = adventure();
     state.activeTime = 60000;
+    state.destinationClocks.home = 60000;
     state.cameraRoom = 'yard';
     state.cameraCenterX = ROOM_WIDTH * 7.5;
     state.princesses[0].autonomy.nextDecisionAt = 0;
@@ -220,7 +224,7 @@ test.describe('Princess Mansion gentle autonomy', () => {
   });
 
   test('reservations and occupied slots prevent an automatic crowd at one attraction', () => {
-    let state = { ...adventure(), hearts: 100, activeTime: 60000 };
+    let state = { ...adventure(), hearts: 100, activeTime: 60000, destinationClocks: { home: 60000, mall: 0, beach: 0 } };
     for (const id of PRINCESS_IDS.slice(1)) state = command(state, { type: 'invite', id }).state;
     state.princesses = state.princesses.map(princess => ({
       ...princess, room: 'lounge', needs: { ...princess.needs, fun: 20 }, autonomy: { nextDecisionAt: 0, walk: null },
@@ -235,22 +239,17 @@ test.describe('Princess Mansion gentle autonomy', () => {
 
 test.describe('Princess Mansion persistence', () => {
   test('migrates the original save and its unfinished care without losing progress', () => {
-    const started = command(adventure(), { type: 'place', id: 'liora', room: 'dining', x: 660, y: 480, stationId: 'royal-table' }).state;
-    const mid = advance(started, 2000).state;
-    const raw = JSON.stringify({
-      ...mid, schemaVersion: 1, ambientEnabled: undefined, autonomyEnabled: undefined,
-      princesses: mid.princesses.map(princess => ({ ...princess, autonomy: undefined, activity: princess.activity ? { ...princess.activity, source: undefined } : null })),
-    });
+    const raw = JSON.stringify(legacy.schema1);
     const parsed = parseSave(raw);
     expect(parsed.kind).toBe('valid');
     if (parsed.kind !== 'valid') throw new Error('Original save migration failed');
-    expect(parsed.state.schemaVersion).toBe(2);
-    expect(parsed.state.adventureId).toBe(mid.adventureId);
-    expect(parsed.state.princesses[0].needs).toEqual(mid.princesses[0].needs);
-    expect(parsed.state.princesses[0].activity).toEqual(mid.princesses[0].activity);
+    expect(parsed.state.schemaVersion).toBe(3);
+    expect(parsed.state.adventureId).toBe(legacy.schema1.adventureId);
+    expect(parsed.state.princesses[0].needs).toEqual(legacy.schema1.princesses[0].needs);
+    expect(parsed.state.princesses[0].activity).toMatchObject(legacy.schema1.princesses[0].activity);
     expect(parsed.state.ambientEnabled).toBe(true);
     expect(parsed.state.autonomyEnabled).toBe(true);
-    expect(advance(parsed.state, 6500).state.hearts).toBe(2);
+    expect(advance(parsed.state, 7200).state.hearts).toBe(2);
     const port = storage();
     port.items.set(SAVE_KEY, raw);
     const store = new MansionSaveStore(port);
@@ -274,7 +273,7 @@ test.describe('Princess Mansion persistence', () => {
   });
 
   test('round-trips every mid-activity state without offline decay or duplicate rewards', () => {
-    for (const station of STATIONS) {
+    for (const station of originalStations) {
       const initial = adventure();
       initial.princesses[0].needs = { satiety: 25, energy: 25, hygiene: 25, toiletComfort: 25, fun: 25 };
       const started = command(initial, { type: 'place', id: 'liora', room: station.room, x: station.x, y: 480, stationId: station.id }).state;
@@ -293,12 +292,12 @@ test.describe('Princess Mansion persistence', () => {
 
   test('rejects corrupt JSON, non-finite values, unknown content and unsupported versions', () => {
     const state = adventure();
-    for (const value of ['not-json', JSON.stringify({ ...state, hearts: -1 }), JSON.stringify({ ...state, schemaVersion: 3 }),
+    for (const value of ['not-json', JSON.stringify({ ...state, hearts: -1 }), JSON.stringify({ ...state, schemaVersion: 4 }),
       JSON.stringify({ ...state, princesses: [{ ...state.princesses[0], x: -1 }] }),
       JSON.stringify({ ...state, princesses: [{ ...state.princesses[0], id: 'not-a-princess' }] }),
       JSON.stringify({ ...state, activeTime: Infinity })]) expect(parseSave(value).kind).toBe('invalid');
     expect(parseSave(JSON.stringify({ ...state, schemaVersion: 2.5 }))).toEqual({ kind: 'invalid', error: 'corruptSave' });
-    expect(parseSave(JSON.stringify({ ...state, schemaVersion: 3 }))).toEqual({ kind: 'invalid', error: 'newerSave' });
+    expect(parseSave(JSON.stringify({ ...state, schemaVersion: 4 }))).toEqual({ kind: 'invalid', error: 'newerSave' });
   });
 
   test('rejects duplicate station ownership rather than restoring an inconsistent stall', () => {

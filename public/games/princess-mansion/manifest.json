@@ -2,6 +2,193 @@
   "version": 1,
   "artDirection": "Sunlit Storybook",
   "authorship": "Original artwork created for mini-games; no paid or third-party character art.",
+  "expansion": {
+    "collection": "Outings and enchanted play",
+    "originalAssetsPreserved": 122,
+    "recommendedActorAnchors": {
+      "coordinateSystem": "Actor root/feet in room-local pixels; offsets are relative to the station center at ground y=480. Props use origin (0.5, 1).",
+      "rig": {
+        "width": 240,
+        "height": 340,
+        "origin": [
+          120,
+          325
+        ],
+        "leftArmPivot": [
+          85,
+          164
+        ],
+        "rightArmPivot": [
+          155,
+          164
+        ],
+        "leftLegPivot": [
+          92,
+          303
+        ],
+        "rightLegPivot": [
+          154,
+          303
+        ]
+      },
+      "slide": {
+        "station": [
+          310,
+          480
+        ],
+        "size": [
+          400,
+          310
+        ],
+        "offsets": {
+          "approach": [
+            -159,
+            0
+          ],
+          "ladderBottom": [
+            -156,
+            -6
+          ],
+          "ladderMiddle": [
+            -132,
+            -108
+          ],
+          "platform": [
+            -110,
+            -225
+          ],
+          "chuteEntry": [
+            -52,
+            -132
+          ],
+          "chuteMiddle": [
+            30,
+            -48
+          ],
+          "chuteExit": [
+            150,
+            8
+          ],
+          "landing": [
+            150,
+            0
+          ]
+        },
+        "seatedPoseRotationsDegrees": {
+          "chuteEntry": -20,
+          "chuteMiddle": -50,
+          "chuteExit": -68
+        },
+        "seatedHipReference": [
+          120,
+          190
+        ]
+      },
+      "treehouse": {
+        "station": [
+          840,
+          480
+        ],
+        "size": [
+          400,
+          360
+        ],
+        "offsets": {
+          "approach": [
+            -76,
+            0
+          ],
+          "ladderBottom": [
+            -76,
+            -5
+          ],
+          "ladderMiddle": [
+            -60,
+            -96
+          ],
+          "ladderTop": [
+            -43,
+            -186
+          ],
+          "entrance": [
+            -20,
+            -190
+          ],
+          "lookout": [
+            50,
+            -190
+          ],
+          "exit": [
+            -76,
+            0
+          ]
+        }
+      },
+      "hammock": {
+        "station": [
+          905,
+          480
+        ],
+        "size": [
+          360,
+          290
+        ],
+        "offsets": {
+          "approach": [
+            -135,
+            0
+          ],
+          "seatedRest": [
+            0,
+            -5
+          ]
+        },
+        "seatContact": [
+          905,
+          394
+        ]
+      },
+      "cauldron": {
+        "stations": [
+          [
+            320,
+            480
+          ],
+          [
+            835,
+            480
+          ]
+        ],
+        "size": [
+          360,
+          250
+        ],
+        "offsets": {
+          "mixing": [
+            0,
+            -10
+          ],
+          "pourHand": [
+            -60,
+            -96
+          ],
+          "bowlCenter": [
+            0,
+            -84
+          ],
+          "stirTip": [
+            3,
+            -80
+          ]
+        },
+        "armRotationsRadians": {
+          "left": 0.78,
+          "right": 1.8
+        },
+        "frontMaskStartsAtY": 404
+      }
+    }
+  },
   "assets": [
     {
       "file": "characters/liora-hair.svg",
@@ -976,6 +1163,1406 @@
       "width": 60,
       "height": 60,
       "sha256": "154769c4f99bf8a838bffa9cb41ae8b9de5e8fe80efd4c5429960a6cc63ca32b",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "rooms/boutique.svg",
+      "width": 1160,
+      "height": 515,
+      "sha256": "ff4f02565b6ec3a96bc6cf0cfeaeaeb5f5bba224d560755f67c6bd7bc47e328f",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "rooms/toyshop.svg",
+      "width": 1160,
+      "height": 515,
+      "sha256": "19e81e2462b59e04509f5e7ae02238350e3e16c19fb7c5221b43344be6643dc5",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "rooms/icecream.svg",
+      "width": 1160,
+      "height": 515,
+      "sha256": "226f56fdfab12668fc65f98bdd36efc322ddbec27f102e660cd15f1f8a8622e6",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "rooms/playground.svg",
+      "width": 1160,
+      "height": 515,
+      "sha256": "d82c8acc16663c6833ea5c6d377b3e7a7ecb9703573d71b18ac13c0fcc4f0470",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "rooms/basement.svg",
+      "width": 1160,
+      "height": 515,
+      "sha256": "f9fec367089c4c00fee562a69df9f6681720c91251b0557032218a4ecd57ba5e",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "rooms/beach.svg",
+      "width": 1160,
+      "height": 515,
+      "sha256": "bfa15dc49d57ef2cd5f6d1cbee4388457bdea192409bc172d23e190afaeeed2e",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "rooms/beach-shade.svg",
+      "width": 1160,
+      "height": 515,
+      "sha256": "269b775c9e075e71e58aa3b66fe1921bf753c86492ee94d6849e41aa09667542",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "props/slide-back.svg",
+      "width": 400,
+      "height": 310,
+      "sha256": "86ee9455e840d23b34a672d3fa7806eb3ee53dc0018cf79c969432ec9de7bed6",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "props/slide-front.svg",
+      "width": 400,
+      "height": 310,
+      "sha256": "3453b3da1e9a61999e037111dbe6e4c8988ec84226b1e156660218a72a8cc9af",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "props/treehouse-back.svg",
+      "width": 400,
+      "height": 360,
+      "sha256": "4913819a060c6dbbe651d33a00485af5bb8c06d1d6b2559ce10c0ae3cb3e616d",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "props/treehouse-front.svg",
+      "width": 400,
+      "height": 360,
+      "sha256": "5398efa4c4ffd45afbeebbd9d83bc3b0cc6ffb3d522368949f9bd13067402740",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "props/cauldron-back.svg",
+      "width": 360,
+      "height": 250,
+      "sha256": "e32f491b6d942a1f225d25140adb1cf9b6e77490d170917dfd9524dd547b97f9",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "props/cauldron-front.svg",
+      "width": 360,
+      "height": 250,
+      "sha256": "95f6105ab85d6df71cdc29c13065c0808292887cda9f36ab85303dad96e9fccc",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "props/sandcastle.svg",
+      "width": 325,
+      "height": 175,
+      "sha256": "007985e973a182bcedaa8f8376f1f71b34837d46b9de38436d459ddd7ac179e3",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "props/shells.svg",
+      "width": 295,
+      "height": 165,
+      "sha256": "e7dc760bf2e32d37561d44ff16ec5f3c14b238012cfa4e66ea8b9d05a38a5deb",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "props/splash-back.svg",
+      "width": 410,
+      "height": 250,
+      "sha256": "fe15dbb1d578fb7fb2f2b8a3086ac1b89711391fc73f48abd8331eee591acac2",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "props/splash-front.svg",
+      "width": 410,
+      "height": 250,
+      "sha256": "b7ad70329fb296e4498d5f5ba7ea4d6c5604af1b5594bb2eff1260a03d03faa6",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "props/hammock.svg",
+      "width": 360,
+      "height": 290,
+      "sha256": "2c0e0600384f11786efdfe1a9a98fb5cefe37c9eb2af62aaabf52f323ea93bbe",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/liora-rose-gala-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "5e92c5965bab0510a5568de406c81c0f4b0a99bfc02b733f6a80c044379f4648",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/liora-rose-gala-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "b117cc855492bba4a7b75b5a2485b035a0ca49cb83f749a2a5e3394dcceb549d",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/liora-rose-gala-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "4842bddb5f2dc6119e084732971baf33af4818cb44a1cb22557ed5d849fdd804",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/liora-rose-gala-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "8532c9209c2318a74162b0ea1e3492e93d3bebf3a3771b1ee50501a6106c0fdd",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/liora-rose-gala-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "3213cb8ec6df731e190b9a4b437b4fe17754ba59ef77b3e87626cf795ce3d1f5",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/liora-seaside-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "da3a0de0b5cb672a2af71e09edd8125e8f19fc3cc20cb4b7c4e8b282e06bdec1",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/liora-seaside-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "7e5de593fb9c7919dfbc86b601576c415e7050a175987bed23a864163bc943e8",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/liora-seaside-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "2fb3dbbe52af3d57c97afc40d59071a11b930024d9508083c53958de8773358d",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/liora-seaside-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "571b852fe950c6455dfd54381bda622b199474f2782cb5f0ffe13b243001d83b",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/liora-seaside-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "ced110becc9c2005cf3939c5878d763cfff2b7eddc498b0836753372881e7eba",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/liora-forest-cape-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "360f87403aaa8118a5c98bb5fab3608a2ac2704bd058adc5263f86bef16114cc",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/liora-forest-cape-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "7652e46b80b8ff6b13a7c26e8bdf1ec644139e81f15638ed5ea2ee8a81e3313f",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/liora-forest-cape-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "97646e6e77ea8894caea9cc7f1def34a9cf63e52bf3c2be1793413c1cc66cf6a",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/liora-forest-cape-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "0a3cfe55d43860ac63bc93a1f4b3789a9cce62eb44a62a6c06ce46cfb794918b",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/liora-forest-cape-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "6498d1d9975b40da40f5ca17e15493b9d2e4fba9ed638848200122d9db88e48d",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/mira-rose-gala-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "a8d35660adb69f715d94f593099518409589ec16c63f488899a436b304d18c5d",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/mira-rose-gala-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "6189e680a11df2f584c299881a47046b1ede3eef314508b7e198dbec8db9c7db",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/mira-rose-gala-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "3689f090bf6f7d4db84a07db0ebb25ca40e7226ad2b0a8c52c28a57bfe18e6b2",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/mira-rose-gala-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "57e35c2d33473ee3480873be2b95e9f35ca5d600b7ca6302479e45b9165869fc",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/mira-rose-gala-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "3dcbc2a7462b3f339f7d7a10a527b0350bcbcdaab74796e757dadba51a02ab8c",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/mira-seaside-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "a7b2fc43886e1a73d48012855521b9d139c95f460c4a5513f041d9bc22f7375b",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/mira-seaside-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "efdfb422f14a7d91d8dedd52074d0facbc7c3ea8f7af2bdadd598e6ac6a9d446",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/mira-seaside-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "5b61db4626ee879e3d92e60ba7e76fffdcb5a3ff9612be7345328273c794b73e",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/mira-seaside-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "75bb22631336deacb3bc4dda06e14f6a2b6cdccf5fc6a0f2802f723d2df2a136",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/mira-seaside-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "9acc3240876edd31252d39c0d13fa1bbb8f9a9bb0cebba63b118cd89957a864b",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/mira-forest-cape-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "22765039a913a029dbddaf67ac2a4b459212207643b9e1166ae50a4ca6cf3d4e",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/mira-forest-cape-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "859daa08f00a72c18b2fa9d4f54f8522cc121dab6dca4e457a2d19256e2e14ae",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/mira-forest-cape-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "5587093c04fbb18fcc8ab5113f1d089233ce537203d829c04e5316958c4bde4d",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/mira-forest-cape-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "b202fdae9012f9e9faf6f98dbd0f639f0ebd7e76d5b351efd9d920b4d87f633c",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/mira-forest-cape-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "4c6aca09c1498f19c1ff2ea7f5f92dcf74d281e12acd0632de4799dba54ae4e6",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/coral-rose-gala-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "d6ed3434cc0233d868d191de4a3aaab46e24f9ea8f76b8afb44c6489842419ea",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/coral-rose-gala-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "8e0323d32ae04dc9108537a2e46431fa53c69cec3c8afb540099218cd2ed433f",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/coral-rose-gala-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "4046a5217e7e00db0acc6082a72b9cc300bbcbd00e71310c9827ed05ee8984ec",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/coral-rose-gala-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "51f94a7af44945bb5aca1099d763556e56832f550fd0b568064080d63351b75f",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/coral-rose-gala-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "b31f9c28e2d3da61ce220c04c4703cd548b57ff0915924a4c455d54a34d31cbf",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/coral-seaside-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "092c9399727973a2e1cee7e986ed4817a3e1b33c525bed212f90ff436c08e73d",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/coral-seaside-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "76e7dd0badfc986f716b610b8b9838624a1e3a939a87200a28d3c944dd518de3",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/coral-seaside-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "f8a4c7f0f26ba6074dc5dbc9d496c88d995b72a4e39689ff17b0144265cbf8d0",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/coral-seaside-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "86b606ca990cc4e7f0d0ae65103e95d1db55ec61689499c990f309de47a771ee",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/coral-seaside-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "79cf1a9f2bc89762df5614674337b60309d0e51c61b807cff62218d037d0858a",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/coral-forest-cape-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "b8b33e784d22fd32f13c2f7f627161ea2558fa0a9cf9ea2aca51fe96412782cf",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/coral-forest-cape-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "851f73605b12139615118fc9f80381ef84525d188d5da2c0dc76c494a952b4de",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/coral-forest-cape-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "5d103b3152d22fe044fab015288bfdc2f92e18227f0272e7d2fde83162ecae12",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/coral-forest-cape-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "d4bd8d811443d37183a2eeeff298c4c88cf1e688bbefc83543258c95286ba5b4",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/coral-forest-cape-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "e203aae668ac2af052825f35c06639b7de23283331714ca54eb30fc143e108ec",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/flora-rose-gala-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "175842a1235300d2054d8c302dfe87ca80c4680b42ac465245e71f86df40a288",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/flora-rose-gala-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "2f3d47b15e7c75f92978fd221f94b3408d2dd2625fd2e20fb1637ca74be98220",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/flora-rose-gala-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "7b4cc68d5c841f657cd22ba9134b684dc040fe31e9881369f06bfceed73ed1e0",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/flora-rose-gala-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "0d827628efe12ff903f37b886ec6ab06c067d1ed5107c98d9bc92e2277c5a77c",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/flora-rose-gala-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "3ef69cf00c8ee5d91908a9972ce89312e53856ede6c93b193d8c04531ce25c62",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/flora-seaside-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "564c3231146a10181bfda7a039e571741abecc1c329af989343a60fbdd617ca6",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/flora-seaside-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "a116df959fa25346867796bfe31d124397d6625d0477d217c50ba252711104d0",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/flora-seaside-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "6bcd52475d4efa6eb39e939f6100906834be8c855ba1a40dbe92a020fad2c9b4",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/flora-seaside-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "5b233fab93dca1dbbd56fa42f420b2c74f9d351dfb140a2f319ed656c0372027",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/flora-seaside-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "2a833358e1c542dbd4febebd47e25ec14a79a025cfbefb1c67bbbef373228d82",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/flora-forest-cape-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "e7397cb04cec812a0749753822c0c53c9a3f0f6191fc437a4dd125059a8cc045",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/flora-forest-cape-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "fccfb25e0f6ec57d1bd37306ea4767403543c26a3472a4a90a9e2f2b30f12cf0",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/flora-forest-cape-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "1e0f9ecebb5ce27e079db5f46bc08666794365885c0e26a02ebf68c5e717d2ec",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/flora-forest-cape-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "65ed0e687dcaaaf2b0d683f76c0bb974365ccbfa31548980537b0071f58d2ce7",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/flora-forest-cape-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "09949aa9aab2a5ca96feab70e1fb2b639c7fcfc60fe26f72f1a0b94fd1f01638",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/ruby-rose-gala-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "b7ef0c1790e6899c48a34c6371011b5d026b2bb3a8209c3aac4c9124bff53342",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/ruby-rose-gala-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "b86ad666ebf26e79216aaca5a5133711637a8a43a891c06271422f4808f12cb7",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/ruby-rose-gala-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "8293b16a545989f6baf5c3a0f1ea11b51a4a4ae95c79f81623a574bdfa16aa1d",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/ruby-rose-gala-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "b33d0315793c7fb048a84764b1d7a6acb6cc808a8bf4fdc554fe4170446f151b",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/ruby-rose-gala-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "414d0ad0209ba8519a11d45e1f816e6936e4aa2121ff7bd8e4368238d353f9ba",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/ruby-seaside-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "e6f663d86b5d46573dcb4d6766b8f46d332e60c0701dd4c5b51cbb42b0e609d6",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/ruby-seaside-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "5e7d4f92f5ce303ceaa5d819a6e8fcadb4a17c85b16dfd341dfc6385fa47cab1",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/ruby-seaside-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "e047e2596d62b8b9bb3ddf04475c22ae8ce6bf670d8cbbadb1d0d1e64b1cc4c0",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/ruby-seaside-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "4a379e25bc8c9c3cbe63b78a9f1ef11c32d9fc082d96a9fc3188fc320e95b90e",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/ruby-seaside-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "eaefbd658c9ec7c092387935b100aa4e7f3c1658c3f3410fbe6d804c0f2e47ff",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/ruby-forest-cape-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "ae39afbc979c5f20e50e1c458a9ebc9e820789d12d6d20e3840d6be79ad49e06",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/ruby-forest-cape-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "2d8f7b7e0b198858ece1b66d2e6e9e70aa3b6e3173f071a55c660b603fa6fee1",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/ruby-forest-cape-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "10f5448f5624b3cd8b455ec21340e09ddb54ddb7492a5ce77f5885a0ab41d28b",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/ruby-forest-cape-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "5d743a2e32e75431e54f42519d943e394a7d09c4bc5f9897374d88a58b420b87",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/ruby-forest-cape-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "61abf660af6f1a2e78222a7ed9e3cfb1919989e210b963539648ee25d259f6e4",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/celeste-rose-gala-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "b2d2af9d2348982315c6ed6c3c2db73604abdb88d4f78e159904e56492283a2e",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/celeste-rose-gala-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "cfe88e65101199d6a3c1d7ca7678245011feaef97c96af324e381bb05befa10b",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/celeste-rose-gala-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "c7cba568696667da3547ab4a2f25a66f133281c7d4af72184ee89c1bc859e5f9",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/celeste-rose-gala-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "28c414fe29620eccd5a7a4ed9ee8fa83882e9e3143d829ae3ee7b8bb450184d3",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/celeste-rose-gala-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "250558a5dccadf07a3948d3855dc604a0cde9ac52df1931621a63ad71366ed21",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/celeste-seaside-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "dfcdd97857473e8fa35ab43e2c8c0a7ead9323e1a8359c1fbe0e8523e30ac3c4",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/celeste-seaside-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "c67e9b0d7f739d7e6c424823af39f658b5cf23b462962dab6d5d102298560d18",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/celeste-seaside-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "7849512d900bd2f57ced9e49dd1b9c2fa11a938b6d803b357fc28f220babd96e",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/celeste-seaside-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "7a26bf4656ea962f839f8d2427bb185e5789bf997f84ead68761dd389571b79d",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/celeste-seaside-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "dbc11c0e30c9ee50f3779e965040ca0da181e673489906aae4707955560a0e44",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/celeste-forest-cape-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "b131e25bfbb7ad9c3d4337953302cd92ac4604ffef3096d518671bf0501900f6",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/celeste-forest-cape-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "dad25f3c7d7467b46e29a930afaa98dedc1b2cd648dd092ef2c7a71eff53e9db",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/celeste-forest-cape-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "bee794418dabe57f2936aaefa9214d424d011d4dff9a8c8ed2381c220dcfb7ed",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/celeste-forest-cape-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "93ecbf6509f088714b77b3babc242b45289546fb77ef62f382bd9fbc9419df47",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/celeste-forest-cape-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "7332f1c5ece68e31f65c0fe3668f00bba27595b268112efe9d2c0e377f43d651",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/hazel-rose-gala-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "a8f1ea82f1c4bca610eddded0191e46080b1d25071ff56ad8ee100e9be0c3c76",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/hazel-rose-gala-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "cc35825e1f531b2a3385b5ab0866b518845db686654add600cdb515b07223bde",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/hazel-rose-gala-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "1d359e0501e12a495e9a976b631e494f13075e14b53edcc996b67747cff5caaf",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/hazel-rose-gala-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "b19616ad02c01efca50235d6e0c01bc0616a6231982365031b499e075b7c99be",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/hazel-rose-gala-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "784aa3aacb74c1adbe8f9a0564adaf06328f3059f0d2ea242a3112a457b614e8",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/hazel-seaside-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "6a8d6abc3dbe4a1d73aa284eb7ea2b015c42f148407095d9879d37b5c828e6fa",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/hazel-seaside-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "4e46311af596157e6f4486efce28446ddfa45d240b055c123608c1fe70caa3df",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/hazel-seaside-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "fec83d1000a97698df3c9dba2e255841e097d04518938e80398654e95e5522b5",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/hazel-seaside-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "87e8503f384462392f72ea79248622ec357cee3082057922d905e39d17281844",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/hazel-seaside-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "9950842367477c7eda63599a50f52c5401ef2107c95737c0099999bbbba512ac",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/hazel-forest-cape-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "2089673a886a658ce0327225387750148b240fa1ee226cbb60cd686620dd42f9",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/hazel-forest-cape-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "a6524b9798da3e212b2b83d9ebc92c8e915c2c3a1014596bbc36794efc9a0001",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/hazel-forest-cape-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "b1c1213482212dfeb87b09754605a27eca4e39435dfcafa25bc4d167bc273dcb",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/hazel-forest-cape-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "3c7c9e4703e5af1ab56a47de878e4793c3ba68e1c5639921833008a15872bbfa",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/hazel-forest-cape-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "715a32c1087ea49c10fd5742027f516a5ba2809654a53d7a840e62f02258a655",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/nova-rose-gala-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "791ebbc3d6e6791442c0917566b6d3b6fc711efff81d84919acf71b75e8bf3a8",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/nova-rose-gala-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "45cdeb74e137d2ce2fd63d10006f275796d4f57cfcdcb452c0cf88e71613cef0",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/nova-rose-gala-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "85b80ba977ae3d313ccdf0e619ceb7a4ebc471283af22fed4d6de99c3958c7ad",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/nova-rose-gala-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "fa0013989a4d711d04c7f7de040e3dd5221fcd978e4dee5ccbe7194879497452",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/nova-rose-gala-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "b30dd2acf8d309f311a6e924ecf5a6feb18194a6ffa9891ba2537d3449f90e69",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/nova-seaside-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "0c104f03c31d04d0dd9f4f59acebeeb742f826d2b38348ecf51bc7aaf4c57fcd",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/nova-seaside-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "f8b3e2ad98c057ded10c4752bcbc9656f2db6a7f75c3598228c315c39e6152c3",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/nova-seaside-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "624984e894bebd852f70d9feae03274aec8d4e7a764f0dc3ec683cd8a12b949f",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/nova-seaside-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "19c8e1b4d67803e1c5c04e9b01eb9a0239d284d3049c0792703da43f08474673",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/nova-seaside-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "4e082ba9743249a5bd80009a078e4e69e080329d3a72ae3c0206a38d1387c3d2",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/nova-forest-cape-dress.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "3747decc475437e66d832afad1fc9bc01b0a0847738ec632f966b87b472153ac",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/nova-forest-cape-seated.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "e4287cd5b121de3df03d77ca0559b4b728e44317594b80e3358e5632f43cd24d",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/nova-forest-cape-left-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "7a8feac48c35ddcdb34540b4cc429f6df107211c2632c0baa0a3b9ba8a7bd9b3",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/nova-forest-cape-right-arm.svg",
+      "width": 240,
+      "height": 340,
+      "sha256": "884d588fc0df2a36840ccfe21b3d3a404122159a99f2979a1a956f86f644aaec",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "characters/nova-forest-cape-portrait.svg",
+      "width": 240,
+      "height": 240,
+      "sha256": "14f8447b47b4f4b8762029863b3d6cd80417363ef84451ef7bbb567089447c6b",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "items/rose-gala.svg",
+      "width": 280,
+      "height": 240,
+      "sha256": "311c61b146fbbfedf361dcc6e741d9f42c0dc2c0a45550a4eb77fb1f3d4d0842",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "items/seaside.svg",
+      "width": 280,
+      "height": 240,
+      "sha256": "f0c0617eaae7f7144b70dac692cfe53e5a4dbcf40e9f52435b5e484c8174c54f",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "items/forest-cape.svg",
+      "width": 280,
+      "height": 240,
+      "sha256": "562a409b24301f1db7ea57557bf91302cb01f48a025248fbe823400e701fc988",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "items/plush-dragon.svg",
+      "width": 280,
+      "height": 240,
+      "sha256": "e268d782f7f19dd9b2a78af0f68271353348a64241bd294fe3da95df068215d5",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "items/royal-train.svg",
+      "width": 280,
+      "height": 240,
+      "sha256": "9eae132dda24751a3b794bf1ff9b628a7ee4e25ace83feb74ea9aacf595697f8",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "items/bubble-wand.svg",
+      "width": 280,
+      "height": 240,
+      "sha256": "9c5d442f6a5a22681ae1e9ffd5931e2b29dbd2767b07a445ebd38d9e45a39000",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "items/strawberry.svg",
+      "width": 280,
+      "height": 240,
+      "sha256": "09bb1a7e126d37e58124fd313165e5e02ecf3494db994fd457bbdb5fb3fecad1",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "items/vanilla.svg",
+      "width": 280,
+      "height": 240,
+      "sha256": "ecabc2686db775a6decc1d2a9a739636fdb9c4709c544e54e684e776a4fd4885",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "items/blueberry.svg",
+      "width": 280,
+      "height": 240,
+      "sha256": "bac9cd0fa76627b6e56474631d4fafb3686f2668915b1105da7afb83a7f00a08",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "props/shop-boutique.svg",
+      "width": 610,
+      "height": 330,
+      "sha256": "600ebdd11aacc1f5fe1d58578048506f7906b7b1e6e7ed868239888430b4074c",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "props/shop-toys.svg",
+      "width": 610,
+      "height": 320,
+      "sha256": "1d74cbe2244ad00b908597c6cab67b42ef5f3d408dad6e6047fcd009e4325941",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "props/shop-icecream.svg",
+      "width": 610,
+      "height": 310,
+      "sha256": "b6953aebf8bb64440bc4c66e889f56fa9dc88e3c2f3fab0386069ba53d905e29",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/eat.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "d5d7dd36775a01aecfcb47765214a40900042d993e8f87fc14aa2a48b289632e",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/sleep.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "6befdabe4d2a1d9ca1e4b5f05a3707ad5f8dfdd09e9a65a2e24732be3beba91a",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/bath.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "9c1103aec660ef48b63d17061b4958743dd42088f464bfcc00c53775fd81aa59",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/toilet.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "f744d366d37ef89d865b45f65d4d2be5642fa28063cb32c287a992d20df2242c",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/potion.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "9672cc7cc984e0947f88a81490305b61c27911800e603715be587da3372ad5e1",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/home.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "4aa038dfe0c1ab467837d6dff02a4217e7d024e8f76dff6645946dd4ef62d4a4",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/grab.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "b73a3f9e241e9690d0c331cd4babdb9e1631b72fe1002b85e850ddc49600a404",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/stop.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "29ad4e4b0c3df839c2c3e32ef5b8fe1f614dc363f8591c0144f564f29dd39afd",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/pause.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "f28aa3dbfa1672d9ac315867aec98ebaea370baab4e27bb149265dbf8e8c55f6",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/play.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "2d4dffe045e491c8c873a032d45439c360082f7eebbb2df83bb3c64058676ecf",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/album.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "357dc25b032a466563b3260a14a3b3e0625f098b9161c0526237e91cc5d236fa",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/check.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "efacc93348029059db3db2a795e0771aae4c99f135261d4526a0481f8fd3cdbb",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/cart.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "e305bcacf101c8e8e48afac9adfce7d12776e7cb5896428a5102159559820da9",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/coin.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "f145526a33744050d63cf4f470968bf2146d0ed6502ec6355a53494940f8cd44",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/travel.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "3aec4f0f577b1bfc0e38955fd3d9bb3ac9a5b0c57b1aeb36fd4bae85b985ec9e",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/stairs.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "27830f9357d5bca69aa46549933f77eede4ea7ddde931b750c57732effd709a7",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/wardrobe.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "db774a084f126270698be1f4bed02960a55a9ee408dd726479700740e7afd686",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/bag.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "a0dd581a2927dfb62c81f2b21248337a046a3c8b9364d5dc6f8e4d3853ea6c1f",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/stardust.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "ee072d5e06fca9b89225c14afb6eff9be2dc51e2bca0708c415e7fdabe2e610b",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/moonwater.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "8bee1b9971ab1e62f5448702f071c699fc5b66043cf74854294a3b735413b18c",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/petals.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "fa1811c5bdeedf4edf35b2fcb4399a8c0b712c69b049a39c5e249a1528daedd6",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/crystal.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "7cfc52ce7d493e72af3ef0df83b8e51583bba5ea83111f1af3156107b40c232f",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/dewdrop.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "c243077f0f0933db14ffbd2000a9dcdc2e6dc1dad3e398f97170f9075b02a7b9",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/recipe-starlight.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "4ddccedcd2814ff22f369e06b58136a3fd9cbb5b98ae6da42525181bbf1305e9",
+      "origin": "Original Sunlit Storybook artwork",
+      "source": "scripts/generate-princess-mansion-assets.mjs"
+    },
+    {
+      "file": "icons/recipe-blossom.svg",
+      "width": 60,
+      "height": 60,
+      "sha256": "72454fb978f9760eb1dd278685ca6fae361b73cebab42c6757ebeb281f31974d",
       "origin": "Original Sunlit Storybook artwork",
       "source": "scripts/generate-princess-mansion-assets.mjs"
     }

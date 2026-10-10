@@ -2,7 +2,8 @@ import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { test, expect } from '@playwright/test';
-import { CHARACTER_PARTS, NEED_IDS, PRINCESS_IDS, PROP_TEXTURES, ROOM_IDS } from '../src/features/games/princess-mansion/data';
+import { CHARACTER_PARTS, ICON_TEXTURES, NEED_IDS, PRINCESS_IDS, PROP_TEXTURES, ROOM_IDS } from '../src/features/games/princess-mansion/data';
+import { CATALOG, OUTFIT_IDS, OUTFIT_PARTS } from '../src/features/games/princess-mansion/catalog';
 
 test('all original asset contracts, SVG references and hashes are complete', async ({ page }) => {
   const root = path.join(process.cwd(), 'public/games/princess-mansion');
@@ -11,9 +12,11 @@ test('all original asset contracts, SVG references and hashes are complete', asy
   };
   const expected = [
     ...PRINCESS_IDS.flatMap(id => [...CHARACTER_PARTS, 'portrait'].map(part => `characters/${id}-${part}.svg`)),
+    ...PRINCESS_IDS.flatMap(id => OUTFIT_IDS.flatMap(outfit => OUTFIT_PARTS.map(part => `characters/${id}-${outfit}-${part}.svg`))),
     ...ROOM_IDS.map(id => `rooms/${id}.svg`),
     ...PROP_TEXTURES.map(id => `props/${id}.svg`),
-    ...['meal', 'moon', 'bubble', 'door', 'star', 'heart'].map(id => `icons/${id}.svg`),
+    ...ICON_TEXTURES.map(id => `icons/${id}.svg`),
+    ...CATALOG.map(item => `items/${item.id}.svg`),
   ];
   expect(manifest.artDirection).toBe('Sunlit Storybook');
   expect(manifest.assets.map(asset => asset.file).sort()).toEqual(expected.sort());
@@ -66,7 +69,7 @@ test('joyful audio is local, licensed, hashed and the ambience loops quietly wit
   const manifest = JSON.parse(await readFile(path.join(root, 'manifest.json'), 'utf8')) as {
     assets: { file: string; sha256: string; bytes: number; creator: string; source: string; license: string }[];
   };
-  expect(manifest.assets).toHaveLength(9);
+  expect(manifest.assets).toHaveLength(14);
   expect(await readFile(path.join(root, 'kenney-LICENSE.txt'), 'utf8')).toContain('Creative Commons Zero, CC0');
   for (const asset of manifest.assets) {
     const bytes = await readFile(path.join(root, asset.file));
@@ -77,14 +80,16 @@ test('joyful audio is local, licensed, hashed and the ambience loops quietly wit
       expect(asset.source).toBe('https://kenney.nl/assets/interface-sounds');
     } else expect(asset.source).toBe('scripts/generate-princess-mansion-audio.mjs');
   }
-  const ambient = await readFile(path.join(root, 'palace-ambient.wav'));
-  expect(ambient.toString('ascii', 0, 4)).toBe('RIFF');
-  expect(ambient.readUInt32LE(24)).toBe(22050);
-  expect((ambient.length - 44) / 2 / 22050).toBe(24);
-  expect(ambient.readInt16LE(44)).toBe(ambient.readInt16LE(ambient.length - 2));
-  let squares = 0;
-  for (let index = 44; index < ambient.length; index += 2) squares += (ambient.readInt16LE(index) / 32767) ** 2;
-  const rms = Math.sqrt(squares / ((ambient.length - 44) / 2));
-  expect(rms).toBeGreaterThan(0.01);
-  expect(rms * 0.13).toBeLessThan(0.01);
+  for (const file of ['palace-ambient.wav', 'beach-ambient.wav']) {
+    const ambient = await readFile(path.join(root, file));
+    expect(ambient.toString('ascii', 0, 4)).toBe('RIFF');
+    expect(ambient.readUInt32LE(24)).toBe(22050);
+    expect((ambient.length - 44) / 2 / 22050).toBe(24);
+    expect(ambient.readInt16LE(44)).toBe(ambient.readInt16LE(ambient.length - 2));
+    let squares = 0;
+    for (let index = 44; index < ambient.length; index += 2) squares += (ambient.readInt16LE(index) / 32767) ** 2;
+    const rms = Math.sqrt(squares / ((ambient.length - 44) / 2));
+    expect(rms).toBeGreaterThan(0.01);
+    expect(rms * 0.13).toBeLessThan(0.01);
+  }
 });

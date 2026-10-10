@@ -1,69 +1,88 @@
 .shell { font-family: var(--font-nunito, ui-rounded), system-ui, sans-serif; }
-.shell header { background: linear-gradient(100deg, #fff1cf, #fbe4e1 50%, #eaf2df); }
+.shell header { height: 80px; flex: 0 0 80px; background: linear-gradient(100deg, #fff1cf, #fbe4e1 50%, #eaf2df); }
+.shell header button { min-width: 56px !important; min-height: 56px !important; padding: 6px !important; border-radius: 17px !important; }
+.shell header button > span { font-size: 30px; }
+.shell header a button > span > span:last-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.shell header h1 { font-family: inherit; font-size: 21px; font-weight: 800; }
 .game { height: 100%; display: flex; flex-direction: column; position: relative; color: #66544b; }
-.playArea { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
-.toolbar { min-height: 52px; padding: 4px 20px; display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #fbf5e9; border-bottom: 1px solid #e5d5b6; }
-.hearts { display: flex; align-items: center; gap: 6px; font-weight: 800; color: #97676a; }
-.softLabel { font-size: 12px; font-weight: 500; color: #8c7767; }
-.toolbarActions { display: flex; align-items: center; gap: 7px; }
-.saveStatus { font-size: 11px; color: #638578; }
-.difficultyBadge { padding: 4px 8px; border: 1px solid #ddd2b9; border-radius: 12px; font-size: 11px; white-space: nowrap; }
-.difficultyBadge[data-level="easy"] { background: #ecf5df; border-color: #b6ceaa; color: #4e7251; }
-.difficultyBadge[data-level="medium"] { background: #fce7e8; border-color: #e2b7c1; color: #985e74; }
-.difficultyBadge[data-level="hard"] { background: #ede6f5; border-color: #c5b2d8; color: #795c9b; }
-.button, .iconButton, .roomButton, .portraitButton, .albumButton, .attractionButton, .cameraArrow, .difficultyChoice { font: inherit; cursor: pointer; border: 1px solid #dbc8a7; background: #fffaf0; color: #705a4e; transition: background 180ms, box-shadow 180ms, transform 180ms; }
-.button { min-height: 44px; padding: 7px 15px; border-radius: 13px; font-size: 13px; font-weight: 650; }
+.playArea { position: relative; display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: clip; }
+.screenReaderOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.toolbar { position: absolute; inset-inline-end: 12px; top: 12px; z-index: 10; display: flex; align-items: center; gap: 8px; }
+.hearts, .wallet { display: flex; align-items: center; gap: 3px; padding: 5px 8px; min-height: 54px; background: #fff9e9ee; border: 2px solid #e0bbbe; border-radius: 20px; color: #986879; box-shadow: 0 4px 0 #b9978820; }
+.hearts strong, .wallet strong { font-size: 23px; font-weight: 850; font-variant-numeric: tabular-nums; }
+.wallet { color: #8b653e; border-color: #dfc28c; background: #fff2ccee; }
+.toolbarActions { display: flex; align-items: center; }
+.button, .iconButton, .pictureButton, .wishButton, .roomButton, .portraitButton, .albumButton, .attractionButton, .cameraArrow, .difficultyChoice { font: inherit; cursor: pointer; border: 1px solid #dbc8a7; background: #fffaf0; color: #705a4e; transition: background 180ms, box-shadow 180ms, transform 180ms; }
+.button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 48px; min-height: 56px; padding: 7px 15px; border-radius: 16px; font-size: 13px; font-weight: 750; }
+.button > img { flex-shrink: 0; object-fit: contain; }
 .button:hover, .iconButton:hover, .attractionButton:hover { background: #f5e8d0; }
 .button:not(:disabled):hover, .difficultyChoice:hover { transform: translateY(-2px); box-shadow: 0 4px 12px #bc937026; }
 .button:not(:disabled):active, .difficultyChoice:active { transform: translateY(1px); }
-.button:disabled, .iconButton:disabled, .roomButton:disabled, .portraitButton:disabled, .albumButton:disabled, .attractionButton:disabled, .cameraArrow:disabled { cursor: default; opacity: 0.48; }
-.button:focus-visible, .iconButton:focus-visible, .roomButton:focus-visible, .portraitButton:focus-visible, .albumButton:focus-visible, .attractionButton:focus-visible, .cameraArrow:focus-visible, .difficultyChoice:focus-visible { outline: 3px solid #678f82; outline-offset: 2px; }
-.iconButton { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: 12px; font-size: 20px; flex-shrink: 0; }
+.button:disabled, .iconButton:disabled, .pictureButton:disabled, .wishButton:disabled, .roomButton:disabled, .portraitButton:disabled, .albumButton:disabled, .attractionButton:disabled, .cameraArrow:disabled { cursor: default; opacity: 0.48; }
+.button:focus-visible, .iconButton:focus-visible, .pictureButton:focus-visible, .wishButton:focus-visible, .roomButton:focus-visible, .portraitButton:focus-visible, .albumButton:focus-visible, .attractionButton:focus-visible, .cameraArrow:focus-visible, .difficultyChoice:focus-visible { outline: 4px solid #658e85; outline-offset: 2px; }
+.iconButton { display: inline-flex; align-items: center; justify-content: center; min-width: 56px; min-height: 56px; border-radius: 16px; font-size: 30px; flex-shrink: 0; }
+.pictureButton { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 68px; height: 68px; padding: 4px; flex-shrink: 0; border: 2px solid #d5b6c4; border-radius: 21px; background: linear-gradient(#fffcf4, #fce8e5); box-shadow: 0 4px 0 #b08e9c24; }
+.pictureButton > img { width: 56px; height: 56px; object-fit: contain; }
+.pictureButton:hover:not(:disabled), .wishButton:hover:not(:disabled) { background: #f5e6f6; transform: translateY(-2px); }
+.pictureButton[aria-pressed="true"]::after, .currentRoom::after, .selectedPortrait::after, .chosenRecipe::after { content: "✓"; position: absolute; inset-inline-end: 2px; top: 1px; display: grid; place-items: center; width: 21px; height: 21px; border-radius: 50%; color: #fffaf0; background: #628c79; font-size: 15px; font-weight: 850; border: 2px solid #fff9e9; }
 .inviteReady { background: #f7e5b9; box-shadow: 0 0 0 3px #efdbab55; }
-.world { min-height: 220px; flex: 1; position: relative; overflow: hidden; background: #ead5bd; isolation: isolate; touch-action: none; }
+.world { min-height: 0; flex: 1 1 0; position: relative; overflow: hidden; background: #ead5bd; isolation: isolate; touch-action: none; }
 .canvasHost { width: 100%; height: 100%; position: absolute; inset: 0; }
 .canvasHost canvas { display: block; position: absolute; inset: 0; touch-action: none; }
 .canvasHost canvas:focus-visible { outline: 3px solid #789b8c; outline-offset: -3px; }
 .cover { width: 100%; height: 100%; background-size: cover; background-position: center; }
-.roomHeading { position: absolute; top: 17px; left: 50%; transform: translateX(-50%); background: #fff9e8ed; border: 1px solid #ddc498; border-radius: 17px; padding: 7px 23px; text-align: center; box-shadow: 0 4px 18px #856e4510; max-width: calc(100% - 115px); pointer-events: none; }
-.roomHeading h2 { font-family: Georgia, serif; font-size: 19px; font-weight: 600; margin: 0; color: #7b6351; }
+.roomHeading { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); background: #fff9e8de; border: 1px solid #ddc498; border-radius: 17px; padding: 7px 20px; text-align: center; max-width: calc(100% - 560px); pointer-events: none; }
+.roomHeading h2 { font-size: 19px; font-weight: 800; margin: 0; color: #7b6351; }
 .roomHeading p { margin: 1px 0 0; font-size: 11px; color: #927b65; }
-.cameraArrow { position: absolute; top: 48%; border-radius: 50%; width: 44px; height: 44px; background: #fff9e6dd; font-family: Georgia, serif; font-size: 33px; line-height: 36px; box-shadow: 0 2px 12px #806a4520; }
-.previous { left: 12px; }
+.cameraArrow { position: absolute; top: 44%; border: 2px solid #d8b3bc; border-radius: 50%; width: 56px; height: 56px; background: #fff9e6e8; font-size: 42px; line-height: 44px; box-shadow: 0 4px 0 #b38b9224; }
+.previous { left: 104px; }
 .next { right: 12px; }
-.roomMap { display: flex; overflow-x: auto; background: #f7eedc; padding: 4px 12px; gap: 4px; border-top: 1px solid #ceb796; border-bottom: 1px solid #e7d7bd; scrollbar-width: thin; }
-.roomButton { flex: 1 0 83px; min-height: 48px; border-color: transparent; border-radius: 10px; padding: 3px 7px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 11px; line-height: 15px; white-space: nowrap; }
-.roomButton > span { font-size: 20px; line-height: 23px; }
-.currentRoom { background: #e2e9db; border-color: #a0b2a0; color: #4d705f; }
-.princessStrip { display: flex; align-items: center; gap: 7px; min-height: 59px; padding: 4px 16px; overflow-x: auto; scrollbar-width: thin; background: #fffbf3; }
-.portraitButton { min-height: 48px; border-radius: 14px; padding: 0 8px 0 0; display: flex; align-items: center; gap: 3px; font-size: 12px; position: relative; flex-shrink: 0; border-color: transparent; background: transparent; }
-.portraitButton img { border-radius: 50%; }
-.selectedPortrait { background: #f8eedb; border-color: #cba982; }
-.needDot { width: 9px; height: 9px; border-radius: 50%; background: #c5847b; border: 2px solid #fffaf0; position: absolute; top: 1px; inset-inline-start: 32px; }
-.albumButton { min-height: 44px; padding: 6px 13px; border-radius: 13px; font-size: 12px; margin-inline-start: auto; white-space: nowrap; background: #edf0e3; border-color: #bac5ab; flex-shrink: 0; }
-.carePanel { display: flex; align-items: center; gap: 18px; padding: 8px 20px 9px; border-top: 1px solid #eadcc3; background: #fcf7eb; }
-.princessSummary { min-width: 160px; }
-.princessSummary > div { display: flex; align-items: center; gap: 10px; }
-.princessSummary strong { font-family: Georgia, serif; font-size: 17px; color: #7b6257; }
-.princessSummary p { font-size: 10px; margin: 2px 0 0; color: #8c7967; max-width: 190px; }
-.happiness { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; color: #98696b; }
-.needs { display: flex; flex: 1; gap: 12px; min-width: 0; }
-.need { flex: 1; min-width: 0; }
-.needLabel { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #87715f; margin-bottom: 5px; white-space: nowrap; }
-.needLabel span { overflow: hidden; text-overflow: ellipsis; }
-.needTrack { height: 7px; border-radius: 5px; background: #e8dec9; position: relative; overflow: hidden; }
+.placeDock { display: flex; align-items: center; justify-content: center; gap: 12px; height: 96px; flex: 0 0 96px; padding: 4px 12px; background: linear-gradient(100deg, #fbefd8, #fae5ec 55%, #eaf0dd); border-top: 2px solid #e4c8af; }
+.roomMap { display: flex; flex: 1 1 0; min-width: 116px; overflow-x: auto; overflow-y: hidden; padding: 4px; gap: 8px; scrollbar-width: thin; }
+.roomMap[data-single="true"] { flex: 0 1 auto; }
+.roomButton { position: relative; flex: 0 0 116px; min-height: 80px; border: 2px solid #e2c9b5; border-radius: 16px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; line-height: 15px; background: #fff9ef; }
+.roomButton bdi { max-width: 104px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.roomPicture { display: block; position: relative; width: 104px; height: 58px; overflow: hidden; border-radius: 11px; background: #f8e4d6; }
+.roomPicture img:first-child { width: 100%; height: 100%; object-fit: cover; opacity: 0.75; }
+.roomPicture img:last-child { position: absolute; top: 0; left: calc(50% - 30px); width: 60px; height: 58px; object-fit: contain; filter: drop-shadow(0 2px 1px #78546955); }
+.currentRoom { background: #edf2df; border-color: #88a58b; box-shadow: 0 3px 0 #83a28130; }
+.princessStrip { position: absolute; left: 10px; top: 94px; bottom: 10px; z-index: 4; display: flex; flex-direction: column; align-items: center; gap: 7px; width: 82px; overflow-y: auto; overflow-x: hidden; padding: 4px; scrollbar-width: thin; }
+.portraitButton { width: 72px; min-height: 86px; border-radius: 21px; padding: 1px 2px 4px; display: flex; flex-direction: column; align-items: center; gap: 0; font-size: 10px; font-weight: 750; position: relative; flex-shrink: 0; border: 2px solid #e3c6b6; background: #fff9ecee; box-shadow: 0 3px 0 #a7878524; }
+.portraitButton > img:first-child { border-radius: 50%; }
+.selectedPortrait { background: #f7dfec; border-color: #b881a2; }
+.needDot { border-radius: 50%; background: #fffaf0; border: 2px solid #d8a29b; position: absolute; bottom: 13px; inset-inline-end: -2px; }
+.restingBadge { position: absolute; top: 1px; inset-inline-end: 1px; font-size: 18px; font-weight: 850; color: #876c98; }
+.albumButton { position: relative; width: 72px; min-height: 72px; padding: 5px; border: 2px solid #b9a2c9; border-radius: 21px; background: #f3e9f6ee; flex-shrink: 0; display: grid; place-items: center; }
+.collectionCount { position: absolute; inset-inline-end: 1px; bottom: 1px; width: 23px; height: 23px; display: grid; place-items: center; border-radius: 50%; background: #fff2be; border: 2px solid #c1a071; font-size: 15px; font-weight: 850; }
+.carePanel { display: flex; align-items: center; justify-content: center; gap: 14px; height: 88px; flex: 0 0 88px; padding: 4px 12px; border-top: 2px solid #e7cfb3; background: #fff8eb; }
+.princessSummary { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 68px; flex-shrink: 0; }
+.princessSummary > img { border-radius: 50%; }
+.happiness { display: inline-flex; align-items: center; gap: 2px; font-size: 11px; font-weight: 750; color: #98696b; margin-top: -4px; }
+.needs { display: flex; flex: 0 1 520px; gap: 12px; min-width: 0; }
+.need { flex: 1; min-width: 48px; max-width: 92px; }
+.wishButton { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 64px; min-width: 48px; padding: 2px; border: 2px solid #dbc3d2; border-radius: 18px; background: #f8edf3; }
+.wishButton > img { width: 56px; height: 56px; object-fit: contain; max-width: 100%; }
+.wishMarker { position: absolute; top: -3px; inset-inline-end: -2px; display: grid; place-items: center; min-width: 20px; height: 22px; font-weight: 850; font-size: 17px; color: #678774; background: #fffbef; border: 2px solid #dbc3d2; border-radius: 50%; }
+.wishMarker:empty { display: none; }
+.need[data-low="true"] .wishButton { border-color: #d79586; background: #ffebd6; }
+.need[data-low="true"] .wishMarker { color: #a85b64; border-color: #d79586; }
+.needTrack { height: 12px; margin-top: 4px; border: 1px solid #d5c9ad; border-radius: 8px; background: #e8dec9; position: relative; overflow: hidden; }
 .needFill { height: 100%; background: #9ab8a1; border-radius: 5px; transition: width 250ms linear; }
 .lowNeed { background: #d59e83; }
-.careActions { display: flex; gap: 5px; flex-shrink: 0; }
-.activeMove { background: #e6cfa3; }
-.attractions { display: flex; justify-content: center; gap: 6px; padding: 4px 12px; background: #fcf7eb; overflow-x: auto; min-height: 52px; scrollbar-width: thin; }
-.attractionButton { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; border-radius: 12px; padding: 5px 12px; font-size: 11px; white-space: nowrap; }
-.occupancy { color: #8b927d; font-size: 10px; font-variant-numeric: tabular-nums; }
-.footerNote { display: flex; justify-content: center; align-items: center; flex-direction: column; min-height: 25px; padding: 3px 12px; background: #fbf3e4; }
-.feedback { font-size: 10px; color: #967861; text-align: center; }
+.careActions { position: absolute; right: 12px; top: 96px; z-index: 4; display: flex; gap: 8px; }
+.activeMove { background: #f5daaf; border-color: #bc935a; }
+.attractions { display: flex; flex: 0 1 auto; min-width: 80px; max-width: 45%; align-items: center; gap: 7px; padding: 4px; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+.attractionButton { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 80px; min-width: 80px; height: 80px; flex-shrink: 0; border: 2px solid #d6b7c4; border-radius: 18px; padding: 3px; background: #fffbf3; }
+.attractionButton > img { width: 60px; height: 60px; object-fit: contain; }
+.attractionButton > .shopBadge { width: 24px; height: 24px; }
+.occupancy { display: flex; gap: 3px; color: #7e9785; font-size: 13px; line-height: 13px; }
+.occupancy > span[data-occupied="true"] { color: #ac7792; }
+.shopBadge { position: absolute; bottom: 1px; right: 1px; border-radius: 50%; background: #fff0c9; }
+.footerNote { position: absolute; bottom: 12px; left: 108px; right: 96px; display: flex; justify-content: center; align-items: center; flex-direction: column; z-index: 3; pointer-events: none; }
+.feedback { font-size: 12px; font-weight: 650; line-height: 1.5; color: #8a625d; text-align: center; padding: 6px 12px; border-radius: 14px; background: #fff8e8ed; border: 1px solid #d9b6a1; }
 .singleTab { font-size: 10px; color: #a07055; }
-.moveHint { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: #fffaf0f5; border: 1px solid #d2b78b; border-radius: 12px; padding: 5px 11px; font-size: 11px; display: flex; align-items: center; gap: 9px; width: max-content; max-width: 90%; box-shadow: 0 3px 16px #886d4430; pointer-events: none; }
-.moveHint button { min-height: 44px; min-width: 44px; color: #8f6673; text-decoration: underline; cursor: pointer; pointer-events: auto; }
+.moveHint { position: absolute; top: 92px; left: 50%; transform: translateX(-50%); background: #fffaf0f5; border: 2px solid #d2b78b; border-radius: 18px; padding: 5px 9px; font-size: 12px; display: flex; align-items: center; gap: 9px; width: max-content; max-width: calc(100% - 185px); box-shadow: 0 3px 16px #886d4430; pointer-events: none; z-index: 6; }
+.moveHint button { width: 56px; height: 56px; pointer-events: auto; }
 .assetLoading { position: absolute; top: 40%; left: 50%; transform: translateX(-50%); background: #fff8e8; border: 1px solid #d9c6a4; border-radius: 15px; padding: 12px 19px; font-size: 14px; }
 .initialLoading { position: fixed; inset: 0; display: grid; place-items: center; background: #fbf2e4e8; z-index: 60; font-family: Georgia, serif; font-size: 23px; color: #9d8170; }
 .backdrop { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: 16px; background: radial-gradient(ellipse at 25% 20%, #d4a8b35c, transparent 70%), #46606578; backdrop-filter: blur(7px); }
@@ -117,42 +136,235 @@
 .setting input { accent-color: #759b84; width: 22px; height: 22px; flex-shrink: 0; cursor: pointer; }
 .setting:focus-within { outline: 3px solid #91b19a; outline-offset: 2px; }
 .audioProblem { font-size: 10px; color: #965f52; text-align: center; }
-.audioProblem button { min-height: 44px; padding-inline: 8px; text-decoration: underline; cursor: pointer; }
+.audioProblem button { min-height: 48px; padding-inline: 8px; text-decoration: underline; cursor: pointer; pointer-events: auto; }
+.adventureBar { position: absolute; top: 12px; inset-inline-start: 12px; z-index: 10; }
+.adventureActions, .floorChoices { display: flex; align-items: center; gap: 8px; }
+.floorChoices .currentFloor { background: #e9efdb; border-color: #92b199; }
+.homePortrait { opacity: 0.55; background: #f3efe5; }
+.inventoryActions { display: flex; gap: 7px; flex-shrink: 0; }
+.collectionTabs { display: flex; justify-content: center; gap: 12px; margin-bottom: 15px; }
+.shopButton { background: #f9e5cb; border-color: #d4b18b; font-size: 13px; min-height: 48px; gap: 8px; }
+.travelPlaces, .companionChoices { padding: 0; border: 0; display: grid; gap: 10px; margin-block: 18px; }
+.travelPlaces { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.travelPlaces legend, .companionChoices legend { font-weight: 750; font-size: 14px; padding-bottom: 10px; }
+.destinationCard { border: 2px solid #e4d0b0; border-radius: 19px; padding: 8px; background: #fff8ea; display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: center; cursor: pointer; }
+.destinationCard > img { width: 100%; height: auto; border-radius: 12px; grid-column: 1 / -1; grid-row: 1; }
+.destinationCard > strong { font-size: 15px; }
+.destinationCard input, .companionChoice input { accent-color: #69977f; width: 21px; height: 21px; cursor: pointer; }
+.destinationCard:focus-within, .companionChoice:focus-within { outline: 3px solid #678f82; outline-offset: 3px; }
+.chosenDestination { border-color: #96b092; background: #eef3e4; box-shadow: 0 3px 15px #87a98024; }
+.companionChoices { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.companionChoice { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; min-height: 104px; border: 2px solid #e5d3b5; border-radius: 21px; padding: 6px 9px; background: #fffaf0; font-size: 13px; cursor: pointer; }
+.companionChoice img { flex-shrink: 0; border-radius: 50%; }
+.companionChoice input { position: absolute; top: 7px; inset-inline-start: 7px; width: 25px; height: 25px; }
+.chosenCompanion { border-color: #c9b08b; background: #f8ecd1; }
+.travelWarning { font-size: 12px; line-height: 1.65; border-radius: 13px; padding: 11px 13px; color: #916648; background: #f8e9d8; }
+.shopWallet { display: flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #e4cc99; background: #fff0c9; color: #8b693f; border-radius: 15px; min-height: 48px; width: max-content; max-width: 100%; padding: 7px 18px; margin-inline: auto; }
+.shopWallet strong { font-size: 23px; }
+.shopWallet span { font-size: 12px; }
+.collectionNote { text-align: center; font-size: 12px; line-height: 1.6; padding: 9px 13px; border: 1px solid #d2d8bd; background: #f0f3e6; color: #75836b; border-radius: 13px; margin-block: 12px; }
+.catalogGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; margin-top: 16px; }
+.catalogCard { display: flex; flex-direction: column; align-items: center; gap: 7px; min-width: 0; padding: 11px; background: linear-gradient(160deg, #fff8e9, #f8e9e5); border: 1px solid #e7cfaf; border-top: 4px solid #d7b980; border-radius: 19px; box-shadow: 0 4px 12px #b2937020; text-align: center; }
+.catalogCard > img { width: 100%; height: 135px; object-fit: contain; filter: drop-shadow(0 4px 7px #b2967126); }
+.catalogCard h3 { font-family: Georgia, serif; font-size: 17px; line-height: 1.25; color: #87674f; margin: 3px 0 0; }
+.catalogCard p { flex: 1; font-size: 11px; line-height: 1.55; color: #8f7764; }
+.catalogCard small { font-size: 11px; }
+.catalogCard .button { width: 100%; font-size: 12px; padding-inline: 7px; white-space: normal; flex-wrap: wrap; }
+.catalogCard .primaryButton { box-shadow: 0 3px 0 #456d5b; }
+.itemPrice { display: flex; align-items: center; gap: 4px; font-weight: 750; color: #946a3e; }
+.priceHint { color: #9c6850; }
+.shopPreview { margin-block: 14px; padding: 10px 17px; border: 1px dashed #d4b384; border-radius: 21px; background: radial-gradient(ellipse at 25% 50%, #f3d5b3, transparent 70%), #fcf0d8; display: flex; align-items: center; gap: 18px; min-height: 158px; }
+.shopPreview > img { flex-shrink: 0; object-fit: contain; filter: drop-shadow(0 7px 7px #a57b6324); }
+.shopPreview strong { font-family: Georgia, serif; font-size: 20px; color: #8a6857; }
+.shopPreview p { font-size: 12px; line-height: 1.6; margin-top: 7px; color: #8c8163; }
+.toyDemo { animation: toyBounce 1.4s ease-in-out infinite; }
+.toyDemo[data-toy="royal-train"] { animation-name: toyRoll; }
+.toyDemo[data-toy="bubble-wand"] { animation-name: wandWave; }
+.panelFeedback { min-height: 20px; text-align: center; line-height: 1.65; font-size: 12px; color: #926b58; margin-block: 17px 0; }
+.contextHelp { margin-block: 12px; border: 1px solid #d8c2a6; border-radius: 13px; background: #fff7e8; color: #806850; }
+.contextHelp button { display: flex; align-items: center; gap: 9px; min-width: 48px; min-height: 48px; width: 100%; padding: 7px 12px; font-size: 12px; font-weight: 650; cursor: pointer; text-align: start; border-radius: 13px; }
+.contextHelp button:focus-visible { outline: 3px solid #678f82; outline-offset: 2px; }
+.helpPicture { display: grid; place-items: center; flex-shrink: 0; width: 32px; height: 32px; border: 2px solid #bda3c3; border-radius: 50%; background: #f4e5f5; color: #9a7cae; font-size: 24px; font-weight: 850; }
+.contextHelp p { padding: 0 12px 12px; font-size: 12px; line-height: 1.7; }
+.lessonPanel { position: absolute; top: 180px; right: 16px; z-index: 6; width: 340px; max-height: calc(100% - 196px); overflow-y: auto; padding: 12px; border: 3px solid #c3a0d1; border-radius: 24px; background: linear-gradient(125deg, #f5e7f5f5, #fff0dcf5); box-shadow: 0 6px 0 #9d799524, 0 12px 32px #78527024; scrollbar-width: thin; touch-action: pan-y; }
+.lessonPanel[data-side="left"] { right: auto; left: 106px; }
+.recipeChoices { display: flex; gap: 10px; padding-inline-end: 52px; }
+.recipeChoices .chosenRecipe { background: #e8d8f0; border-color: #a37fb9; }
+.lessonPanel .contextHelp { position: absolute; top: 12px; inset-inline-end: 12px; width: 48px; margin: 0; background: transparent; border: 0; }
+.lessonPanel .contextHelp button { padding: 0; justify-content: center; background: #fff7eb; border: 2px solid #d0adc9; }
+.lessonPanel .helpLabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.lessonPanel .contextHelp p { position: absolute; top: 56px; inset-inline-end: 0; width: 270px; max-height: 145px; overflow-y: auto; padding: 12px; background: #fff8e9; border: 2px solid #d0adc9; border-radius: 15px; box-shadow: 0 7px 20px #78527030; z-index: 2; }
+.lessonHint { font-size: 12px; line-height: 1.5; color: #8c6c80; padding-top: 8px; text-align: center; }
+.brewPicture { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.brewPicture img { object-fit: contain; }
+.ingredientChoices { display: flex; justify-content: space-between; gap: 4px; }
+.ingredientButton { position: relative; display: flex; align-items: center; justify-content: center; flex: 1; min-width: 52px; height: 60px; padding: 2px; color: #7c6274; background: #fff6eb; border: 2px solid #d3bacd; border-radius: 16px; cursor: pointer; }
+.ingredientButton:hover:not(:disabled) { background: #f3dfea; }
+.ingredientButton:disabled { cursor: default; opacity: 0.5; }
+.ingredientButton:focus-visible { outline: 3px solid #678f82; outline-offset: 2px; }
+.ingredientButton[data-next="true"] { border-color: #9165ac; background: #eedaf6; box-shadow: 0 0 0 3px #b799cf45; }
+.ingredientButton[data-wrong="true"] { border-style: dashed; border-color: #c18a83; }
+.ingredientButton > span { position: absolute; top: -5px; right: -3px; width: 22px; height: 22px; display: grid; place-items: center; background: #fff5e8; border: 2px solid #c18a83; border-radius: 50%; color: #a36565; font-size: 23px; font-weight: 850; }
+.recipeTrail { display: flex; align-items: center; gap: 16px; margin: 13px 0; }
+.recipeTrail > span { position: relative; display: flex; align-items: center; justify-content: center; flex: 1; min-width: 52px; height: 62px; border: 2px dashed #d6c3d3; background: #fcf3e9; border-radius: 16px; color: #877184; }
+.recipeTrail > span > img { width: 46px; height: 46px; opacity: 0.65; }
+.recipeTrail > span > b { position: absolute; top: -6px; left: -5px; width: 21px; height: 21px; display: grid; place-items: center; border-radius: 50%; background: #fff8ea; border: 1px solid #d6c3d3; font-size: 13px; }
+.recipeTrail > span > i { position: absolute; right: -16px; font-size: 21px; font-style: normal; color: #9676a5; }
+.recipeTrail > span[data-next="true"] { border-style: solid; border-color: #a080b5; box-shadow: 0 0 0 3px #c9b1dc55; background: #eee1f6; }
+.recipeTrail > span[data-next="true"] > img { width: 56px; height: 56px; opacity: 1; }
+.recipeTrail > span[data-accepted="true"] { border-style: solid; border-color: #a9bb9b; background: #eaf2dd; color: #688363; }
+.recipeTrail > span[data-accepted="true"] > img { opacity: 1; }
+.recipeTrail > span[data-accepted="true"] > b { color: #fff; background: #6f947d; border-color: #6f947d; }
+.recipeTrail > img { width: 48px; flex-shrink: 0; object-fit: contain; }
+.invitationConfetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 76; }
+.invitationConfetti > i { position: absolute; left: var(--fall-x); top: -24px; width: 10px; height: 15px; border-radius: 3px; opacity: 0; animation: invitationFall 1.8s var(--fall-delay) ease-in forwards; }
+.invitationConfetti > i:nth-child(3n) { border-radius: 50%; width: 11px; height: 11px; }
+.invitationPortrait { display: flex; align-items: center; justify-content: center; gap: 12px; padding-block: 5px 9px; }
+.invitationPortrait > img { border-radius: 50%; background: radial-gradient(#ffefbf, #f5d9e4); box-shadow: 0 0 0 7px #fff6dc, 0 0 0 10px #e8cd94, 0 9px 25px #b18d782b; animation: invitationBloom 700ms ease-out; }
+.invitationPortrait > span { color: #cca654; font-size: 29px; }
+@keyframes toyBounce { 50% { transform: translateY(-9px) rotate(4deg); } }
+@keyframes toyRoll { 50% { transform: translateX(15px) rotate(-2deg); } }
+@keyframes wandWave { 50% { transform: rotate(12deg); } }
+@keyframes invitationBloom { from { transform: scale(0.8); opacity: 0.4; } to { transform: scale(1); opacity: 1; } }
+@keyframes invitationFall { 10% { opacity: 0.9; } to { transform: translate(30px, 110vh) rotate(var(--fall-spin)); opacity: 0; } }
 @keyframes royalEntrance { from { opacity: 0; transform: translateY(8px) scale(0.975); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes royalFloat { 50% { translate: 0 -5px; } }
 @keyframes royalTwinkle { 50% { opacity: 0.55; transform: scale(0.85); } }
 @media (max-width: 700px) {
-  .toolbar { padding-inline: 10px; }
-  .softLabel { display: none; }
-  .difficultyBadge { font-size: 9px; padding-inline: 5px; }
-  .toolbarActions { gap: 5px; }
-  .carePanel { flex-wrap: wrap; gap: 8px; padding: 7px 12px; }
-  .princessSummary { min-width: 0; flex: 1; }
-  .princessSummary p { max-width: 230px; }
-  .needs { order: 3; width: 100%; flex-basis: 100%; gap: 9px; }
-  .careActions { max-width: 65%; }
-  .careActions .button { min-width: 0; padding-inline: 9px; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .needLabel { font-size: 9px; }
-  .roomHeading h2 { font-size: 17px; }
-  .roomHeading p { font-size: 10px; }
-  .roomHeading { padding: 5px 12px; top: 12px; }
-  .princessStrip { padding-inline: 10px; }
-  .attractions { justify-content: flex-start; }
-  .feedback { font-size: 9px; }
+  .shell header h1 { font-size: 14px; }
+  .shell header > div { padding-inline: 8px; }
+  .toolbar { inset-inline-end: 8px; top: 8px; gap: 4px; }
+  .hearts, .wallet { gap: 1px; min-height: 48px; padding: 3px 4px; border-radius: 15px; }
+  .hearts img, .wallet img { width: 28px; height: 28px; }
+  .hearts strong, .wallet strong { font-size: 18px; }
+  .pictureButton { width: 56px; height: 56px; border-radius: 17px; padding: 2px; }
+  .pictureButton > img { width: 48px; height: 48px; }
+  .adventureBar { top: 8px; inset-inline-start: 8px; }
+  .adventureActions, .floorChoices { gap: 5px; }
+  .roomHeading { top: 74px; padding: 3px 8px; max-width: calc(100% - 160px); }
+  .roomHeading h2 { font-size: 13px; }
+  .roomHeading p { display: none; }
+  .princessStrip { left: 4px; top: 98px; bottom: 5px; width: 72px; gap: 5px; padding: 2px; }
+  .portraitButton { width: 64px; min-height: 76px; padding: 0 1px 3px; }
+  .portraitButton > img:first-child { width: 56px; height: 56px; }
+  .albumButton { width: 64px; min-height: 64px; }
+  .albumButton > img { width: 52px; height: 52px; }
+  .cameraArrow { width: 52px; height: 52px; font-size: 38px; }
+  .previous { left: 78px; }
+  .next { right: 6px; }
+  .carePanel { height: 82px; flex-basis: 82px; gap: 5px; padding: 3px 8px; }
+  .princessSummary { width: 54px; }
+  .princessSummary > img { width: 48px; height: 48px; }
+  .happiness { font-size: 10px; }
+  .happiness img { width: 18px; height: 18px; }
+  .needs { flex: 1; gap: 5px; }
+  .wishButton { height: 58px; border-radius: 15px; }
+  .wishButton > img { width: 48px; height: 48px; }
+  .careActions { right: 8px; top: 104px; flex-direction: row; gap: 5px; }
+  .placeDock { height: 88px; flex-basis: 88px; gap: 5px; padding: 3px 5px; }
+  .roomMap { min-width: 88px; gap: 5px; padding: 3px; }
+  .roomButton { flex-basis: 88px; min-height: 76px; font-size: 9px; border-radius: 14px; }
+  .roomButton bdi { max-width: 76px; }
+  .roomPicture { width: 76px; height: 53px; }
+  .roomPicture img:last-child { width: 56px; height: 53px; left: calc(50% - 28px); }
+  .attractions { min-width: 68px; max-width: 44%; gap: 5px; padding: 3px; }
+  .attractionButton { width: 68px; min-width: 68px; height: 76px; padding: 2px; border-radius: 15px; }
+  .attractionButton > img:not(.shopBadge) { width: 54px; height: 54px; }
+  .inventoryActions { gap: 0; }
+  .inventoryActions > button:not(:last-child) { display: none; }
+  .footerNote { bottom: 72px; left: 78px; right: 8px; }
+  .feedback { font-size: 11px; padding: 4px 8px; }
+  .moveHint { top: 105px; left: 80px; transform: none; max-width: calc(100% - 88px); font-size: 11px; gap: 5px; }
   .dialog { padding: 20px; }
   .albumGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .welcomeCourt { gap: 0; }
   .welcomeCourt img:not(.welcomePortrait) { width: 65px; height: 65px; }
   .welcomeCourt > span { font-size: 15px; }
+  .companionChoices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .companionChoice { padding-inline: 7px; }
+  .catalogGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .catalogCard { padding: 9px; }
+  .catalogCard > img { height: 116px; }
+  .catalogCard h3 { font-size: 15px; }
+  .shopPreview { padding-inline: 10px; gap: 9px; }
+  .shopPreview > img { width: 115px; height: 115px; }
+  .shopPreview strong { font-size: 17px; }
+  .lessonPanel, .lessonPanel[data-side="left"] { top: 168px; left: auto; right: 8px; width: min(294px, calc(100% - 88px)); max-height: calc(100% - 184px); padding: 8px; border-radius: 20px; }
+  .recipeChoices { gap: 8px; }
+  .recipeTrail { gap: 12px; margin: 10px 0; }
+  .recipeTrail > span { min-width: 48px; height: 58px; }
+  .recipeTrail > span > img { width: 42px; height: 42px; }
+  .recipeTrail > span[data-next="true"] > img { width: 52px; height: 52px; }
+  .recipeTrail > span > i { font-size: 18px; right: -13px; }
+  .recipeTrail > img { width: 40px; height: 40px; }
+  .ingredientButton { min-width: 48px; height: 56px; padding: 0; border-radius: 13px; }
+  .ingredientButton > img { width: 44px; height: 44px; }
+  .lessonPanel .contextHelp { top: 10px; inset-inline-end: 8px; }
+  .lessonPanel .contextHelp p { width: 236px; }
+  .invitationPortrait > img { width: 175px; height: 175px; }
 }
-@media (max-height: 600px) and (min-width: 701px) {
-  .roomMap { padding-block: 2px; }
-  .roomButton { min-height: 43px; }
-  .princessStrip { min-height: 52px; padding-block: 1px; }
-  .carePanel { padding-block: 4px; }
+@media (max-width: 1100px) and (min-width: 701px) {
+  .roomHeading { top: 88px; padding: 4px 10px; }
+  .roomHeading p { display: none; }
+  .placeDock { gap: 7px; padding-inline: 7px; }
+  .inventoryActions { gap: 4px; }
+  .inventoryActions .pictureButton { width: 58px; height: 68px; }
+  .inventoryActions .pictureButton > img { width: 48px; height: 48px; }
+  .lessonPanel { width: 306px; padding: 10px; }
+  .recipeTrail { gap: 12px; }
+  .recipeTrail > span { min-width: 48px; }
+  .recipeTrail > img { width: 42px; }
+}
+@media (max-height: 720px) and (min-width: 600px) {
+  .lessonPanel { top: 176px; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 6px; width: 350px; padding: 6px; }
+  .recipeChoices { grid-column: 1; grid-row: 1 / 3; flex-direction: column; padding: 0; gap: 4px; }
+  .recipeChoices .pictureButton { width: 52px; height: 52px; padding: 0; }
+  .recipeChoices .pictureButton > img { width: 48px; height: 48px; }
+  .recipeTrail { grid-column: 2; grid-row: 1; gap: 12px; margin: 0; padding-inline-end: 48px; }
+  .recipeTrail > span { min-width: 48px; height: 54px; }
+  .recipeTrail > span > img { width: 42px; height: 42px; }
+  .recipeTrail > span[data-next="true"] > img { width: 48px; height: 48px; }
+  .recipeTrail > img { display: none; }
+  .ingredientChoices { grid-column: 2; grid-row: 2; }
+  .ingredientButton { min-width: 48px; height: 52px; padding: 0; }
+  .ingredientButton > img { width: 44px; height: 44px; }
+  .lessonPanel .contextHelp { top: 8px; inset-inline-end: 8px; }
+  .brewingLesson { display: block; }
+}
+@media (max-height: 500px) and (min-width: 600px) {
+  .shell header { position: absolute; top: 0; right: 8px; width: 196px; background: transparent; border: 0; backdrop-filter: none; }
+  .shell:dir(rtl) header { right: auto; left: 8px; }
+  .shell header > div { padding: 8px 0; }
+  .shell header h1 { display: none; }
+  .toolbar { inset-inline-end: 212px; }
+  .playArea { display: grid; grid-template-columns: minmax(332px, 44%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 86px; }
+  .world { grid-column: 1 / -1; grid-row: 1; }
+  .carePanel { grid-column: 1; grid-row: 2; height: 86px; padding: 3px 8px; gap: 5px; }
+  .princessSummary { width: 54px; }
+  .princessSummary > img { width: 48px; height: 48px; }
+  .needs { flex: 1; gap: 4px; }
+  .wishButton { height: 58px; }
+  .wishButton > img { width: 48px; height: 48px; }
+  .placeDock { grid-column: 2; grid-row: 2; height: 86px; padding: 3px; gap: 4px; }
+  .roomMap { min-width: 88px; }
+  .roomButton { flex-basis: 88px; min-height: 76px; }
+  .roomPicture { width: 76px; height: 53px; }
+  .roomButton bdi { max-width: 76px; font-size: 9px; }
+  .attractions { min-width: 68px; }
+  .attractionButton { width: 68px; min-width: 68px; height: 76px; }
+  .attractionButton > img:not(.shopBadge) { width: 54px; height: 54px; }
+  .inventoryActions > button:not(:last-child) { display: none; }
+  .inventoryActions .pictureButton { width: 56px; height: 56px; }
+  .inventoryActions .pictureButton > img { width: 48px; height: 48px; }
+  .roomHeading { display: none; }
+  .princessStrip { top: 87px; }
+  .careActions { top: 80px; }
+  .lessonPanel { top: 156px; max-height: calc(100% - 160px); }
+  .lessonPanel[data-side="left"] { top: 156px; left: 88px; right: auto; width: 350px; max-height: calc(100% - 160px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .button, .iconButton, .roomButton, .portraitButton, .albumButton, .attractionButton, .cameraArrow, .difficultyChoice, .needFill { transition: none; }
-  .dialog, .dialogMagic span, .welcomeCourt img { animation: none; }
-  .button:not(:disabled):hover, .button:not(:disabled):active, .difficultyChoice:hover, .difficultyChoice:active { transform: none; }
+  .button, .iconButton, .pictureButton, .wishButton, .roomButton, .portraitButton, .albumButton, .attractionButton, .cameraArrow, .difficultyChoice, .needFill { transition: none; }
+  .dialog, .dialogMagic span, .welcomeCourt img, .toyDemo, .invitationPortrait > img { animation: none; }
+  .invitationConfetti { display: none; }
+  .button:not(:disabled):hover, .button:not(:disabled):active, .pictureButton:hover:not(:disabled), .wishButton:hover:not(:disabled), .difficultyChoice:hover, .difficultyChoice:active { transform: none; }
 }

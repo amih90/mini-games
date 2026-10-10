@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { PRINCESS_IDS, ROOM_IDS, ROOM_WIDTH, STATIONS } from '../src/features/games/princess-mansion/data';
+import { PRINCESS_IDS, LEGACY_ROOM_IDS, ROOM_WIDTH, STATIONS } from '../src/features/games/princess-mansion/data';
 import { command } from '../src/features/games/princess-mansion/model';
 import { careFixture, mansionThumbnailFixture, readyMansion, seedMansion } from './princess-mansion-fixtures';
 
@@ -27,7 +27,7 @@ test('all eight storybook rooms render their furnished care poses', async ({ pag
   await readyMansion(page);
   await page.addStyleTag({ content: 'nextjs-portal { display: none !important; }' });
   await expect(page.locator('canvas')).toHaveCount(1);
-  for (const [index, room] of ROOM_IDS.entries()) {
+  for (const [index, room] of LEGACY_ROOM_IDS.entries()) {
     await page.locator('[aria-label="Choose a princess"] button').nth(index).click();
     await page.locator('nav[aria-label] button').nth(index).click();
     await expect(page.getByTestId('mansion-game')).toHaveAttribute('data-room', room);

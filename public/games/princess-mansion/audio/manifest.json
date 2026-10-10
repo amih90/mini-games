@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "sampleRate": 22050,
   "assets": [
     {
@@ -30,6 +30,46 @@
       "file": "munch.wav",
       "bytes": 21212,
       "sha256": "3e16be74a5701ce686bc4365d05954e3913330f0c81aad5356cf99792974d137",
+      "creator": "Mini-Games original",
+      "source": "scripts/generate-princess-mansion-audio.mjs",
+      "license": "Original project audio"
+    },
+    {
+      "file": "beach-ambient.wav",
+      "bytes": 1058444,
+      "sha256": "55ff6c3afc3e6a2210fb7520070f24cd748c66ef3ab8b2826742f7a1dd5fe1f8",
+      "creator": "Mini-Games original",
+      "source": "scripts/generate-princess-mansion-audio.mjs",
+      "license": "Original project audio"
+    },
+    {
+      "file": "potion.wav",
+      "bytes": 50758,
+      "sha256": "368425260c07721ffc8473e67afba82e7ec994e658444e3515ead5cbbfd802b1",
+      "creator": "Mini-Games original",
+      "source": "scripts/generate-princess-mansion-audio.mjs",
+      "license": "Original project audio"
+    },
+    {
+      "file": "slide.wav",
+      "bytes": 48554,
+      "sha256": "c8654f3ba0aa578680cfaf1e540543c3627a19e9be71a46985b01458acceedb4",
+      "creator": "Mini-Games original",
+      "source": "scripts/generate-princess-mansion-audio.mjs",
+      "license": "Original project audio"
+    },
+    {
+      "file": "shells.wav",
+      "bytes": 35324,
+      "sha256": "d3804e164443f33434c33b54f606aa9d2f2f74a0de61a7565ee035f3dc2b4adc",
+      "creator": "Mini-Games original",
+      "source": "scripts/generate-princess-mansion-audio.mjs",
+      "license": "Original project audio"
+    },
+    {
+      "file": "fanfare.wav",
+      "bytes": 79424,
+      "sha256": "b51feb587fa9fed384f28a1c558fda7095511e301006461cdff1cc985e90c0df",
       "creator": "Mini-Games original",
       "source": "scripts/generate-princess-mansion-audio.mjs",
       "license": "Original project audio"

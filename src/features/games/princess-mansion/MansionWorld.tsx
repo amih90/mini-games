@@ -21,6 +21,7 @@ function royalScene(controller: MansionController, bridge: SceneBridge, lifetime
         moving: value => { if (current()) bridge.moving(value); },
         pause: () => { if (current()) bridge.pause(); },
         decorative: () => { if (current()) bridge.decorative(); },
+        shop: id => { if (current()) bridge.shop(id); },
       });
     }
   };

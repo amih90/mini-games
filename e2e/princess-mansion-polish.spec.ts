@@ -44,7 +44,7 @@ test('royal preferences persist and disabling ambience does not mute button effe
   await readyMansion(page);
   await page.getByRole('button', { name: 'Sound Off', exact: true }).click();
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  const ambient = page.getByRole('checkbox', { name: 'Soft palace ambience' });
+  const ambient = page.getByRole('checkbox', { name: 'Quiet adventure ambience' });
   const autonomy = page.getByRole('checkbox', { name: 'Lively princesses' });
   await expect(ambient).toBeChecked();
   await expect(autonomy).toBeChecked();
@@ -82,6 +82,7 @@ test('a princess walks without player input and manual care immediately override
 test('a princess chooses a useful nearby activity without being dragged', async ({ page }) => {
   const state = careFixture('lounge');
   state.activeTime = 60000;
+  state.destinationClocks.home = 60000;
   state.princesses[0].needs.energy = 80;
   state.princesses[0].autonomy.nextDecisionAt = 0;
   await seedMansion(page, state);
@@ -117,7 +118,7 @@ test('joyful welcome, difficulty cards and princess album render with reduced mo
   await page.goto('/en/games/princess-mansion');
   const welcome = page.getByRole('dialog', { name: 'A little kingdom of kindness' });
   await expect(welcome).toBeVisible();
-  await expect(welcome.locator('img')).toHaveCount(3);
+  await expect(welcome.locator('img')).toHaveCount(4);
   await expect(welcome.locator('[data-level]')).toHaveCount(3);
   expect(await welcome.evaluate(element => getComputedStyle(element).animationName)).toBe('none');
   await page.screenshot({ path: testInfo.outputPath('joyful-welcome.png') });

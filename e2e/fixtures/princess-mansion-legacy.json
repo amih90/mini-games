@@ -1,0 +1,1343 @@
+{
+  "provenance": "Frozen from the unmodified schema-2 model before expansion; do not regenerate from the schema-3 model.",
+  "schema1": {
+    "schemaVersion": 1,
+    "adventureId": "legacy-royal-table",
+    "revision": 0,
+    "savedAt": 0,
+    "difficulty": "medium",
+    "activeTime": 1300,
+    "hearts": 0,
+    "nextActionId": 2,
+    "cameraRoom": "dining",
+    "cameraCenterX": 2980,
+    "selectedId": "liora",
+    "tutorialSeen": false,
+    "collectionCelebrated": false,
+    "princesses": [
+      {
+        "id": "liora",
+        "room": "dining",
+        "x": 495,
+        "y": 480,
+        "facing": -1,
+        "needs": {
+          "satiety": 35.627882352941164,
+          "energy": 24.935000000000013,
+          "hygiene": 24.954500000000014,
+          "toiletComfort": 24.90899999999998,
+          "fun": 24.921999999999997
+        },
+        "happiness": 80.03249999999997,
+        "activity": {
+          "kind": "active",
+          "stationId": "royal-table",
+          "slot": 0,
+          "actionId": 1,
+          "elapsed": 1300,
+          "duration": 8500,
+          "initialNeed": 25
+        },
+        "refusal": {
+          "startedAt": -30000,
+          "attempts": 0,
+          "penalty": 0
+        },
+        "poutUntil": 0
+      }
+    ]
+  },
+  "schema2": {
+    "schemaVersion": 2,
+    "adventureId": "authentic-schema-2-before-expansion",
+    "revision": 0,
+    "savedAt": 0,
+    "difficulty": "medium",
+    "activeTime": 0,
+    "hearts": 0,
+    "nextActionId": 1,
+    "cameraRoom": "dining",
+    "cameraCenterX": 3260,
+    "selectedId": "liora",
+    "tutorialSeen": false,
+    "collectionCelebrated": false,
+    "ambientEnabled": true,
+    "autonomyEnabled": true,
+    "princesses": [
+      {
+        "id": "liora",
+        "room": "dining",
+        "x": 940,
+        "y": 480,
+        "facing": 1,
+        "needs": {
+          "satiety": 27,
+          "energy": 76,
+          "hygiene": 74,
+          "toiletComfort": 70,
+          "fun": 66
+        },
+        "happiness": 80,
+        "activity": null,
+        "refusal": {
+          "startedAt": -30000,
+          "attempts": 0,
+          "penalty": 0
+        },
+        "poutUntil": 0,
+        "autonomy": {
+          "nextDecisionAt": 18000,
+          "walk": null
+        }
+      }
+    ]
+  },
+  "walking": {
+    "schemaVersion": 2,
+    "adventureId": "authentic-schema-2-before-expansion",
+    "revision": 0,
+    "savedAt": 0,
+    "difficulty": "medium",
+    "activeTime": 18300,
+    "hearts": 0,
+    "nextActionId": 1,
+    "cameraRoom": "dining",
+    "cameraCenterX": 3260,
+    "selectedId": "liora",
+    "tutorialSeen": false,
+    "collectionCelebrated": false,
+    "ambientEnabled": true,
+    "autonomyEnabled": true,
+    "princesses": [
+      {
+        "id": "liora",
+        "room": "dining",
+        "x": 909.6000000000004,
+        "y": 489.5999999999999,
+        "facing": -1,
+        "needs": {
+          "satiety": 25.90199999999996,
+          "energy": 75.08500000000083,
+          "hygiene": 73.35949999999954,
+          "toiletComfort": 68.71899999999908,
+          "fun": 64.90199999999996
+        },
+        "happiness": 80.45749999999958,
+        "activity": null,
+        "refusal": {
+          "startedAt": -30000,
+          "attempts": 0,
+          "penalty": 0
+        },
+        "poutUntil": 0,
+        "autonomy": {
+          "nextDecisionAt": 32000,
+          "walk": {
+            "room": "dining",
+            "x": 862,
+            "stationId": null
+          }
+        }
+      }
+    ]
+  },
+  "activities": [
+    {
+      "stationId": "bed-0",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-bed-0",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "bedroom",
+        "cameraCenterX": 190,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "bedroom",
+            "x": 190,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 30.866250000000022,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 24.90899999999998,
+              "fun": 24.921999999999997
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "bed-0",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 16000,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "bed-1",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-bed-1",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "bedroom",
+        "cameraCenterX": 445,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "bedroom",
+            "x": 445,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 30.866250000000022,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 24.90899999999998,
+              "fun": 24.921999999999997
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "bed-1",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 16000,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "bed-2",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-bed-2",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "bedroom",
+        "cameraCenterX": 700,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "bedroom",
+            "x": 700,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 30.866250000000022,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 24.90899999999998,
+              "fun": 24.921999999999997
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "bed-2",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 16000,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "bed-3",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-bed-3",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "bedroom",
+        "cameraCenterX": 955,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "bedroom",
+            "x": 955,
+            "y": 480,
+            "facing": 1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 30.866250000000022,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 24.90899999999998,
+              "fun": 24.921999999999997
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "bed-3",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 16000,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "couch-left",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-couch-left",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "lounge",
+        "cameraCenterX": 1405,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "lounge",
+            "x": 190,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 32.30166666666668,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 24.90899999999998,
+              "fun": 24.921999999999997
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "couch-left",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 9000,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "reading",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-reading",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "lounge",
+        "cameraCenterX": 1980,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "lounge",
+            "x": 765,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 24.935000000000013,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 24.90899999999998,
+              "fun": 34.599777777777774
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "reading",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 9000,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "royal-table",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-royal-table",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "dining",
+        "cameraCenterX": 2980,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "dining",
+            "x": 495,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 35.627882352941164,
+              "energy": 24.935000000000013,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 24.90899999999998,
+              "fun": 24.921999999999997
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "royal-table",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 8500,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "snack-table",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-snack-table",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "dining",
+        "cameraCenterX": 2500,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "dining",
+            "x": 180,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 35.627882352941164,
+              "energy": 24.935000000000013,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 24.90899999999998,
+              "fun": 24.921999999999997
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "snack-table",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 8500,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "stall-left",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-stall-left",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "restroom",
+        "cameraCenterX": 3830,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "restroom",
+            "x": 350,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 24.935000000000013,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 39.509,
+              "fun": 24.921999999999997
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "stall-left",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 6500,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "stall-right",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-stall-right",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "restroom",
+        "cameraCenterX": 4100,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "restroom",
+            "x": 620,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 24.935000000000013,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 39.509,
+              "fun": 24.921999999999997
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "stall-right",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 6500,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "handwash",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-handwash",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "restroom",
+        "cameraCenterX": 4410,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "restroom",
+            "x": 930,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 24.935000000000013,
+              "hygiene": 36.95449999999998,
+              "toiletComfort": 24.90899999999998,
+              "fun": 24.921999999999997
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "handwash",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 6500,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "bubble-bath",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-bubble-bath",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "bathroom",
+        "cameraCenterX": 5085,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "bathroom",
+            "x": 445,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 24.935000000000013,
+              "hygiene": 33.581772727272735,
+              "toiletComfort": 24.90899999999998,
+              "fun": 24.921999999999997
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "bubble-bath",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 11000,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "grooming",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-grooming",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "bathroom",
+        "cameraCenterX": 5570,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "bathroom",
+            "x": 930,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 24.935000000000013,
+              "hygiene": 36.95449999999998,
+              "toiletComfort": 24.90899999999998,
+              "fun": 24.921999999999997
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "grooming",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 6500,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "toy-castle",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-toy-castle",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "games",
+        "cameraCenterX": 6080,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "games",
+            "x": 225,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 24.935000000000013,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 24.90899999999998,
+              "fun": 34.88866666666665
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "toy-castle",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 9000,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "craft-easel",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-craft-easel",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "games",
+        "cameraCenterX": 6595,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "games",
+            "x": 753,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 24.935000000000013,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 24.90899999999998,
+              "fun": 33.58866666666667
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "craft-easel",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 10500,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "dance-floor",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-dance-floor",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "ballroom",
+        "cameraCenterX": 7610,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "ballroom",
+            "x": 515,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 24.935000000000013,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 24.90899999999998,
+              "fun": 35.03311111111112
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "dance-floor",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 9000,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "royal-piano",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-royal-piano",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "ballroom",
+        "cameraCenterX": 7195,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "ballroom",
+            "x": 235,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 24.935000000000013,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 24.90899999999998,
+              "fun": 34.022
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "royal-piano",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 10000,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "music-box",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-music-box",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "ballroom",
+        "cameraCenterX": 7970,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "ballroom",
+            "x": 1010,
+            "y": 480,
+            "facing": 1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 24.935000000000013,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 24.90899999999998,
+              "fun": 34.022
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "music-box",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 10000,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "tree-swing",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-tree-swing",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "yard",
+        "cameraCenterX": 8715,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "yard",
+            "x": 595,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 24.935000000000013,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 24.90899999999998,
+              "fun": 35.03311111111112
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "tree-swing",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 9000,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "flower-garden",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-flower-garden",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "yard",
+        "cameraCenterX": 8320,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "yard",
+            "x": 150,
+            "y": 480,
+            "facing": -1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 24.935000000000013,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 24.90899999999998,
+              "fun": 33.58866666666667
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "flower-garden",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 10500,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "stationId": "butterfly-garden",
+      "snapshot": {
+        "schemaVersion": 2,
+        "adventureId": "legacy-butterfly-garden",
+        "revision": 0,
+        "savedAt": 0,
+        "difficulty": "medium",
+        "activeTime": 1300,
+        "hearts": 0,
+        "nextActionId": 2,
+        "cameraRoom": "yard",
+        "cameraCenterX": 9095,
+        "selectedId": "liora",
+        "tutorialSeen": false,
+        "collectionCelebrated": false,
+        "ambientEnabled": true,
+        "autonomyEnabled": true,
+        "princesses": [
+          {
+            "id": "liora",
+            "room": "yard",
+            "x": 930,
+            "y": 480,
+            "facing": 1,
+            "needs": {
+              "satiety": 24.921999999999997,
+              "energy": 24.935000000000013,
+              "hygiene": 24.954500000000014,
+              "toiletComfort": 24.90899999999998,
+              "fun": 33.58866666666667
+            },
+            "happiness": 80.03249999999997,
+            "activity": {
+              "kind": "active",
+              "source": "player",
+              "stationId": "butterfly-garden",
+              "slot": 0,
+              "actionId": 1,
+              "elapsed": 1300,
+              "duration": 10500,
+              "initialNeed": 25
+            },
+            "refusal": {
+              "startedAt": -30000,
+              "attempts": 0,
+              "penalty": 0
+            },
+            "poutUntil": 0,
+            "autonomy": {
+              "nextDecisionAt": 28000,
+              "walk": null
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

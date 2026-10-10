@@ -1,29 +1,11 @@
 import { test, expect, type Page } from '@playwright/test';
-import { ACTIVITIES, ROOM_IDS, ROOM_WIDTH, STATIONS, roomIndex, type ActivityId } from '../src/features/games/princess-mansion/data';
+import { ACTIVITIES, LEGACY_ROOM_IDS, ROOM_WIDTH, STATIONS, roomIndex } from '../src/features/games/princess-mansion/data';
 import { advance, command, createAdventure } from '../src/features/games/princess-mansion/model';
 import { BACKUP_KEY, SAVE_KEY } from '../src/features/games/princess-mansion/persistence';
-import { audioState, careFixture, readyMansion, savedMansion, seedMansion, trackAudio } from './princess-mansion-fixtures';
+import { audioState, careFixture, failSaveWrites, readyMansion, savedMansion, seedMansion, trackAudio, worldPoint } from './princess-mansion-fixtures';
 
 test.describe.configure({ mode: 'parallel' });
 
-async function failSaveWrites(page: Page): Promise<void> {
-  await page.evaluate(key => {
-    localStorage.setItem('mansion-simulate-quota', 'true');
-    const write = Storage.prototype.setItem;
-    Storage.prototype.setItem = function (name, value) {
-      if (name === key && this.getItem('mansion-simulate-quota') === 'true') throw new DOMException('Simulated storage full', 'QuotaExceededError');
-      write.call(this, name, value);
-    };
-  }, SAVE_KEY);
-}
-async function worldPoint(page: Page, x: number, y: number): Promise<{ x: number; y: number }> {
-  const canvas = await page.locator('canvas').boundingBox();
-  if (!canvas) throw new Error('Missing game canvas');
-  const state = await savedMansion(page);
-  const zoom = canvas.height / 515;
-  const scroll = Math.max(0, Math.min(ROOM_IDS.length * ROOM_WIDTH - canvas.width / zoom, state.cameraCenterX - canvas.width / zoom / 2));
-  return { x: canvas.x + (x - scroll) * zoom, y: canvas.y + y * zoom };
-}
 async function canvasColor(page: Page, x: number, y: number): Promise<number[]> {
   await expect.poll(() => page.locator('canvas').evaluate(canvas => {
     let opacity = 1;
@@ -67,7 +49,7 @@ test('a new adventure starts, progresses, recharges and survives a site restart'
   await expect(page.getByRole('progressbar', { name: 'Food' })).toHaveAttribute('aria-valuenow', /9[345]/);
 });
 
-for (const activity of Object.keys(ACTIVITIES) as ActivityId[]) {
+for (const activity of new Set(STATIONS.filter(station => LEGACY_ROOM_IDS.some(room => room === station.room)).map(station => station.activity))) {
   const station = STATIONS.find(item => item.activity === activity)!;
   test(`${activity} restores the intended need through the real game UI`, async ({ page }) => {
     test.setTimeout(40000);
@@ -291,7 +273,7 @@ test('a valid backup is offered explicitly rather than silently applied', async 
 
 test('future save versions are retained, even when an older backup exists', async ({ page }) => {
   const state = careFixture();
-  const raw = JSON.stringify({ ...state, schemaVersion: 3 });
+  const raw = JSON.stringify({ ...state, schemaVersion: 4 });
   await page.addInitScript(({ primary, backup, raw, old }) => {
     localStorage.setItem(primary, raw);
     localStorage.setItem(backup, old);

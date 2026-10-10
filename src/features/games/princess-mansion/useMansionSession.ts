@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { type Difficulty } from './data';
-import { MansionController, createAdventure, type MansionState } from './model';
+import { MansionController, command, createAdventure, type Command, type MansionState } from './model';
 import { LOCK_KEY, SAVE_KEY, MansionSaveStore, type LoadedSave, type SaveError } from './persistence';
 
 export function useMansionSession() {
@@ -50,6 +50,31 @@ export function useMansionSession() {
     saveError.current = null;
     current.pause('save-error', false);
     if (mounted.current) { current.commit(result.state); setError(null); setSaveStatus('saved'); }
+    return true;
+  }, []);
+
+  const transact = useCallback((action: Command): boolean => {
+    const current = active.current;
+    if (!current || current.disposed || !owned.current || !store.current || saveError.current) return false;
+    const transition = command(current.state, action);
+    if (transition.effects.some(effect => effect.type === 'error')) {
+      current.commit(current.state, transition.effects);
+      return false;
+    }
+    if (transition.state === current.state) {
+      current.commit(current.state, transition.effects);
+      return true;
+    }
+    const result = store.current.save(transition.state);
+    if (!result.ok) {
+      saveError.current = result.error;
+      current.pause('save-error', true);
+      if (mounted.current) { setError(result.error); setSaveStatus('error'); }
+      return false;
+    }
+    lastWritten.current = result.state;
+    current.commit(result.state, transition.effects);
+    if (mounted.current) setSaveStatus('saved');
     return true;
   }, []);
 
@@ -171,5 +196,5 @@ export function useMansionSession() {
   }, [activate, loaded]);
 
   const clearStartError = useCallback(() => setStartError(null), []);
-  return { controller, initial, writer, loaded, error, startError, saveStatus, start, clearStartError, recover, saveNow };
+  return { controller, initial, writer, loaded, error, startError, saveStatus, start, clearStartError, recover, saveNow, transact };
 }

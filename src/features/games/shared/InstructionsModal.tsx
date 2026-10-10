@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useRef } from 'react';
+import { useId, useRef, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { KidButton } from '@/components/ui/KidButton';
 import { useDialogFocus } from './useDialogFocus';
@@ -10,7 +10,7 @@ interface InstructionsModalProps {
   onClose: () => void;
   title: string;
   instructions: {
-    icon: string;
+    icon: ReactNode;
     title: string;
     description: string;
   }[];

@@ -63,6 +63,28 @@ writeWave('munch.wav', 0.48, time => {
   }, 0);
   return noise() * pulse * 0.55;
 });
+writeWave('beach-ambient.wav', 24, time => {
+  const edge = Math.min(1, time / 1.5, (24 - time) / 1.5);
+  const wave = 0.1 + Math.sin(tau * time / 6) * 0.055;
+  const breeze = noise() * wave;
+  const shells = [[2, 783.99], [8, 659.25], [15, 523.25], [21, 659.25]]
+    .reduce((sum, [at, frequency]) => sum + bell(time - at, frequency) * 0.24, 0);
+  return edge * (breeze + shells + Math.sin(tau * 196 * time) * 0.016);
+});
+writeWave('potion.wav', 1.15, time => [0.02, 0.2, 0.42, 0.65, 0.86].reduce((sum, at, index) => {
+  const local = time - at;
+  if (local < 0 || local > 0.22) return sum;
+  return sum + Math.sin(tau * ((280 + index * 65) * local + 1600 * local * local)) * Math.sin(Math.PI * local / 0.22) * 0.2;
+}, 0) + bell(time - 0.75, 1046.5, 0.4) * 0.8);
+writeWave('slide.wav', 1.1, time => {
+  const envelope = Math.sin(Math.PI * Math.min(1, time / 0.85)) * 0.18;
+  const glide = Math.sin(tau * (740 * time - 180 * time * time)) * envelope;
+  return glide + bell(time - 0.82, 783.99, 0.28) * 1.2;
+});
+writeWave('shells.wav', 0.8, time => [783.99, 1046.5, 1318.51].reduce((sum, frequency, index) =>
+  sum + bell(time - index * 0.13, frequency, 0.5) * 1.2, 0));
+const fanfare = [[0, 523.25], [0.14, 659.25], [0.28, 783.99], [0.48, 1046.5], [0.82, 783.99], [1.03, 1046.5], [1.03, 1318.51], [1.03, 1567.98]];
+writeWave('fanfare.wav', 1.8, time => fanfare.reduce((sum, [at, frequency]) => sum + bell(time - at, frequency, 0.77) * 1.6, 0));
 
 const sources = {
   'button.mp3': 'click_003.ogg',
@@ -79,5 +101,5 @@ const assets = [...originals, ...Object.keys(sources)].map(file => {
     ...(sources[file] ? { creator: 'Kenney', source, original: sources[file], license: 'CC0-1.0' } : { creator: 'Mini-Games original', source: 'scripts/generate-princess-mansion-audio.mjs', license: 'Original project audio' }),
   };
 });
-writeFileSync(`${directory}/manifest.json`, `${JSON.stringify({ version: 1, sampleRate, assets }, null, 2)}\n`);
-console.log(`Generated four original WAVs and verified ${Object.keys(sources).length} local CC0 interface sounds.`);
+writeFileSync(`${directory}/manifest.json`, `${JSON.stringify({ version: 2, sampleRate, assets }, null, 2)}\n`);
+console.log(`Generated ${originals.length} original WAVs and verified ${Object.keys(sources).length} local CC0 interface sounds.`);
