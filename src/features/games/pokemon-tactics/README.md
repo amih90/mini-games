@@ -3,6 +3,8 @@
 Playable 56-family Pokémon tactical game at `/en/games/pokemon-tactics`
 (also `he`, `zh` and `es`). Local artwork is animated on billboards in a
 Three.js arena; it is not skeletal Pokémon 3D animation.
+All runtime artwork, texture, music and credits URLs use `NEXT_PUBLIC_BASE_PATH`
+so the exported game also works under GitHub Pages' `/mini-games` subpath.
 
 Recruit from an empty company, select a member and click a free cell in the
 four leftmost columns. Start battle when at least one healthy member is

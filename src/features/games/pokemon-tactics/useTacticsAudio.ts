@@ -1,5 +1,7 @@
 'use client';
 
+import { TACTICS_ASSET_ROOT } from './assets';
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRetroSounds } from '@/hooks/useRetroSounds';
 
@@ -9,7 +11,7 @@ export function useTacticsAudio(paused: boolean) {
   const music = useRef<HTMLAudioElement | null>(null);
   const [musicFailed, setMusicFailed] = useState(false);
   useEffect(() => {
-    const track = new Audio('/games/pokemon-tactics/music/jump.mp3');
+    const track = new Audio(`${TACTICS_ASSET_ROOT}/music/jump.mp3`);
     track.loop = true;
     track.volume = .14;
     track.preload = 'none';

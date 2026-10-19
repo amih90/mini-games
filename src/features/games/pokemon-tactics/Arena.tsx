@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import type { SpeciesId } from './types';
 import { ARENA_FOV, ARENA_PITCH, arenaCameraPosition } from './camera';
 import { ResourceBars } from './ResourceBars';
+import { TACTICS_ASSET_ROOT as root } from './assets';
 
 export type ArenaTheme = 'classic' | 'moonwell' | 'obsidian';
 export interface ArenaCell { col: number; row: number }
@@ -42,7 +43,6 @@ interface ArenaProps {
   energyLabel: string;
 }
 const point = (cell: ArenaCell): [number, number, number] => [(cell.col - 5.5) * 1.2, .07, (cell.row - 3.5) * 1.2];
-const root = '/games/pokemon-tactics';
 
 class ArenaBoundary extends Component<{ children: ReactNode; label: string }, { error: boolean }> {
   state = { error: false };

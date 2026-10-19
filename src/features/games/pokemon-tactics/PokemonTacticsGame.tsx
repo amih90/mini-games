@@ -14,10 +14,10 @@ import { useDialogFocus } from '../shared/useDialogFocus';
 import { useTacticsAudio } from './useTacticsAudio';
 import { ActionIcon, type ActionSymbol } from './ActionIcon';
 import { ResourceBars } from './ResourceBars';
+import { TACTICS_ASSET_ROOT as ART } from './assets';
 import './tactics.css';
 
 const SAVE_KEY = 'mini-games:pokemon-tactics:v1';
-const ART = '/games/pokemon-tactics';
 const SHOP_PAGE_SIZE = 6;
 const spellArt: Record<string, string> = {
   scratch: 'enchant-red-1', tackle: 'enchant-orange-1', quickAttack: 'haste-fire-1', lick: 'evil-eye-eerie-1',
