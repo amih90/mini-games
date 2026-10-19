@@ -31,6 +31,7 @@ import { animalDiceConfig } from "../animal-dice/game.config";
 import { wildFriendsConfig } from "../wild-friends/game.config";
 import { mergeTankTacticsConfig } from "../merge-tank-tactics/game.config";
 import { pokemonTowerDefenseConfig } from "../pokemon-tower-defense/game.config";
+import { pokemonTacticsConfig } from "../pokemon-tactics/game.config";
 import { princessMansionConfig } from "../princess-mansion/game.config";
 
 // Re-export types
@@ -41,6 +42,7 @@ export type { GameConfig, GameCategory } from "./types";
  * All games must be registered here to appear in the portal
  */
 export const gameRegistry: Record<string, GameConfig> = {
+  "pokemon-tactics": pokemonTacticsConfig,
   "princess-mansion": princessMansionConfig,
   "color-match": {
     slug: "color-match",
