@@ -1,7 +1,8 @@
-import { test, Page, Frame } from '@playwright/test';
+import { test, expect, chromium, Page, Frame } from '@playwright/test';
 import * as path from 'path';
 import * as fs from 'fs';
 import { mansionThumbnailFixture, readyMansion, seedMansion } from './princess-mansion-fixtures';
+import { createCampaign, transition } from '../src/features/games/pokemon-tactics/engine';
 
 const GAMES_DIR = path.join(__dirname, '..', 'src', 'features', 'games');
 const SCREENSHOTS_DIR = path.join(__dirname, '..', 'public', 'images', 'games', 'screenshots');
@@ -82,6 +83,45 @@ for (const slug of slugs) {
   test(`generate thumbnail for ${slug}`, async ({ page }) => {
     // Playwright default viewport is 1280×720 — game pages should fill nicely
     const screenshotPath = path.join(SCREENSHOTS_DIR, `${slug}.png`);
+
+    if (slug === 'pokemon-tactics') {
+      test.setTimeout(90_000);
+      let state = createCampaign('medium');
+      for (const [i, species] of (['pikachu', 'charmander', 'bulbasaur', 'geodude'] as const).entries()) {
+        state = transition(state, { type: 'buyCreature', species }).state;
+        state = transition(state, { type: 'deploy', unitId: state.roster[i].id, position: { x: i % 2 + 2, y: i * 2 } }).state;
+      }
+      state = transition(state, { type: 'startBattle' }).state;
+      const arenaBrowser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+      try {
+        const context = await arenaBrowser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
+        const arenaPage = await context.newPage();
+        await arenaPage.addInitScript(state => {
+          localStorage.setItem('mini-games:pokemon-tactics:v1', JSON.stringify(state));
+          localStorage.setItem('mini-games-sound-muted', 'true');
+        }, state);
+        await arenaPage.goto(`${test.info().project.use.baseURL}/en/games/pokemon-tactics`);
+        await expect(arenaPage.locator('.pt-unit-label')).toHaveCount(6, { timeout: 30_000 });
+        await arenaPage.locator('.pt-game').screenshot({ path: screenshotPath });
+        await arenaPage.setViewportSize({ width: 390, height: 844 });
+        await expect.poll(async () => {
+          const board = await arenaPage.locator('.pt-board').boundingBox();
+          const canvas = await arenaPage.locator('canvas').boundingBox();
+          return Math.abs((canvas?.height ?? 0) - (board?.height ?? 0));
+        }, { timeout: 15_000 }).toBeLessThan(2);
+        await arenaPage.waitForTimeout(500);
+        await arenaPage.screenshot({ path: '.playwright-mcp/tactics-kids-mobile.png' });
+        await arenaPage.setViewportSize({ width: 800, height: 600 });
+        await expect.poll(async () => {
+          const board = await arenaPage.locator('.pt-board').boundingBox();
+          const canvas = await arenaPage.locator('canvas').boundingBox();
+          return Math.abs((canvas?.height ?? 0) - (board?.height ?? 0));
+        }, { timeout: 15_000 }).toBeLessThan(2);
+        await arenaPage.waitForTimeout(500);
+        await arenaPage.screenshot({ path: '.playwright-mcp/tactics-kids-compact.png' });
+      } finally { await arenaBrowser.close(); }
+      return;
+    }
 
     if (slug === 'princess-mansion') {
       await page.setViewportSize({ width: 1280, height: 800 });

@@ -1,0 +1,197 @@
+POKEMON TACTICS - 56 RECRUITABLE FAMILIES AND THEIR EVOLUTIONS
+
+Pokemon artwork:
+The user states that the Pokemon assets are authorized for this project.
+The POC reuses the same public artwork sources already referenced by this
+repository's Pokemon Tower Defense game. These are NOT CC0 assets.
+Names and moves identify Pokemon; the POC's stats, initiative, energy,
+type multipliers and cooldowns are adaptations for tactical play, not the
+official battle simulation.
+The eight combat elements are simplified tactical archetypes, not claims
+about canonical Pokemon typing or learnsets. New families reuse the existing
+move vocabulary and spell icons; regional, Mega and Gigantamax forms are
+excluded. Evolution requirements are simplified to tactical gold costs.
+The 50 added standard-form evolution lines were checked against PokeAPI's
+species and evolution-chain JSON in https://github.com/PokeAPI/api-data
+(data/api/v2/pokemon-species/ and data/api/v2/evolution-chain/).
+Perrserker is excluded because it evolves only from Galarian Meowth.
+English and Spanish names are shared for these species; Hebrew names are
+transliterations and Chinese names use Simplified Chinese.
+
+Source repository: https://github.com/PokeAPI/sprites
+Source prefix:
+https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/
+Files:
+charmander.png - 4.png
+squirtle.png - 7.png
+bulbasaur.png - 1.png
+pikachu.png - 25.png
+geodude.png - 74.png
+gastly.png - 92.png
+charmeleon.png - 5.png
+charizard.png - 6.png
+wartortle.png - 8.png
+blastoise.png - 9.png
+ivysaur.png - 2.png
+venusaur.png - 3.png
+raichu.png - 26.png
+graveler.png - 75.png
+golem.png - 76.png
+haunter.png - 93.png
+gengar.png - 94.png
+
+50 additional families / 121 additional forms, downloaded 2026-10-19.
+Every file below is an unmodified official-artwork PNG, using the exact
+source prefix above followed by the numbered source filename on the right.
+All downloads were checked for successful HTTP responses, PNG signatures
+and 475 x 475 pixel IHDR dimensions before saving locally under pokemon/.
+caterpie.png - 10.png
+metapod.png - 11.png
+butterfree.png - 12.png
+weedle.png - 13.png
+kakuna.png - 14.png
+beedrill.png - 15.png
+pidgey.png - 16.png
+pidgeotto.png - 17.png
+pidgeot.png - 18.png
+rattata.png - 19.png
+raticate.png - 20.png
+spearow.png - 21.png
+fearow.png - 22.png
+ekans.png - 23.png
+arbok.png - 24.png
+sandshrew.png - 27.png
+sandslash.png - 28.png
+nidoran-f.png - 29.png
+nidorina.png - 30.png
+nidoqueen.png - 31.png
+nidoran-m.png - 32.png
+nidorino.png - 33.png
+nidoking.png - 34.png
+cleffa.png - 173.png
+clefairy.png - 35.png
+clefable.png - 36.png
+vulpix.png - 37.png
+ninetales.png - 38.png
+igglybuff.png - 174.png
+jigglypuff.png - 39.png
+wigglytuff.png - 40.png
+zubat.png - 41.png
+golbat.png - 42.png
+crobat.png - 169.png
+paras.png - 46.png
+parasect.png - 47.png
+venonat.png - 48.png
+venomoth.png - 49.png
+diglett.png - 50.png
+dugtrio.png - 51.png
+meowth.png - 52.png
+persian.png - 53.png
+psyduck.png - 54.png
+golduck.png - 55.png
+mankey.png - 56.png
+primeape.png - 57.png
+annihilape.png - 979.png
+growlithe.png - 58.png
+arcanine.png - 59.png
+abra.png - 63.png
+kadabra.png - 64.png
+alakazam.png - 65.png
+machop.png - 66.png
+machoke.png - 67.png
+machamp.png - 68.png
+bellsprout.png - 69.png
+weepinbell.png - 70.png
+victreebel.png - 71.png
+tentacool.png - 72.png
+tentacruel.png - 73.png
+ponyta.png - 77.png
+rapidash.png - 78.png
+magnemite.png - 81.png
+magneton.png - 82.png
+magnezone.png - 462.png
+doduo.png - 84.png
+dodrio.png - 85.png
+seel.png - 86.png
+dewgong.png - 87.png
+grimer.png - 88.png
+muk.png - 89.png
+shellder.png - 90.png
+cloyster.png - 91.png
+onix.png - 95.png
+steelix.png - 208.png
+drowzee.png - 96.png
+hypno.png - 97.png
+krabby.png - 98.png
+kingler.png - 99.png
+voltorb.png - 100.png
+electrode.png - 101.png
+exeggcute.png - 102.png
+exeggutor.png - 103.png
+cubone.png - 104.png
+marowak.png - 105.png
+koffing.png - 109.png
+weezing.png - 110.png
+rhyhorn.png - 111.png
+rhydon.png - 112.png
+rhyperior.png - 464.png
+horsea.png - 116.png
+seadra.png - 117.png
+kingdra.png - 230.png
+goldeen.png - 118.png
+seaking.png - 119.png
+staryu.png - 120.png
+starmie.png - 121.png
+magikarp.png - 129.png
+gyarados.png - 130.png
+porygon.png - 137.png
+porygon2.png - 233.png
+porygon-z.png - 474.png
+omanyte.png - 138.png
+omastar.png - 139.png
+kabuto.png - 140.png
+kabutops.png - 141.png
+dratini.png - 147.png
+dragonair.png - 148.png
+dragonite.png - 149.png
+chikorita.png - 152.png
+bayleef.png - 153.png
+meganium.png - 154.png
+cyndaquil.png - 155.png
+quilava.png - 156.png
+typhlosion.png - 157.png
+totodile.png - 158.png
+croconaw.png - 159.png
+feraligatr.png - 160.png
+treecko.png - 252.png
+grovyle.png - 253.png
+sceptile.png - 254.png
+
+Terrain textures: Poly Haven, CC0 1.0.
+https://polyhaven.com/a/forest_floor
+https://polyhaven.com/a/mossy_cobblestone
+https://polyhaven.com/a/rock_boulder_dry
+https://creativecommons.org/publicdomain/zero/1.0/
+Only the 1K downloadable diffuse textures are used.
+
+Painterly Spell Icons parts 1 and 2:
+J. W. Bjerk (eleazzaar) -- www.jwbjerk.com/art
+Find this and other open art at: https://opengameart.org
+https://opengameart.org/content/painterly-spell-icons-part-1
+https://opengameart.org/content/painterly-spell-icons-part-2
+Used under the offered Creative Commons Attribution 3.0 Unported license:
+https://creativecommons.org/licenses/by/3.0/
+Icons are displayed unchanged inside original UI frames.
+
+Arena surface, court markings, architecture, vegetation, banners,
+spell effects and interface layout: original implementation.
+No Heroes or Warcraft artwork is used.
+
+Background music: "Jump" by ThePixel, CC0 1.0.
+https://opengameart.org/content/jump
+Verified author and CC0 declaration on the source page.
+Published MP3 download: https://opengameart.org/sites/default/files/jump_0.mp3
+Local file: music/jump.mp3 (unmodified).
+https://creativecommons.org/publicdomain/zero/1.0/
+This is not music from Pokemon, Game Boy cartridges or Let's Go Pikachu.
+Quiet feedback melodies and picture-button SVG artwork: original implementation.

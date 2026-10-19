@@ -338,6 +338,11 @@ const PokemonTowerDefenseGame = dynamic(
   { loading: () => <GameLoadingSkeleton />, ssr: false }
 );
 
+const PokemonTacticsGame = dynamic(
+  () => import('@/features/games/pokemon-tactics/PokemonTacticsGame'),
+  { loading: () => <GameLoadingSkeleton />, ssr: false }
+);
+
 const PrincessMansionGame = dynamic(
   () => import('@/features/games/princess-mansion/PrincessMansionGame'),
   { loading: () => <GameLoadingSkeleton />, ssr: false }
@@ -377,6 +382,8 @@ export function GameLoader({ slug }: GameLoaderProps) {
   }, [slug]);
 
   switch (slug) {
+    case 'pokemon-tactics':
+      return <PokemonTacticsGame />;
     case 'princess-mansion':
       return <PrincessMansionGame />;
     case 'color-match':
